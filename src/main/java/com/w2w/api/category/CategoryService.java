@@ -1,9 +1,7 @@
-package com.w2w.api.category.service;
+package com.w2w.api.category;
 
 import com.w2w.api.category.dto.CategoryDto;
 import com.w2w.api.category.dto.CategoryGroupDto;
-import com.w2w.api.category.model.Category;
-import com.w2w.api.category.model.CategoryGroup;
 import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
