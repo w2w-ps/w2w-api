@@ -1,0 +1,70 @@
+package com.w2w.api.scheduling;
+
+import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import java.sql.ResultSet;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+class SchedulingQueryRepositoryImplTest {
+    @Test
+    @SuppressWarnings("unchecked")
+    void mapsAvailablePositionsAsStructuredDtos() throws Exception {
+        NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
+        SchedulingQueryRepositoryImpl repository = new SchedulingQueryRepositoryImpl(
+                jdbcTemplate,
+                new DefaultResourceLoader()
+        );
+
+        when(jdbcTemplate.query(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(MapSqlParameterSource.class),
+                ArgumentMatchers.any(RowMapper.class)
+        )).thenAnswer(invocation -> {
+            RowMapper<EmployeeShiftProjection> rowMapper = invocation.getArgument(2);
+            ResultSet resultSet = mock(ResultSet.class);
+
+            when(resultSet.getInt("employeeId")).thenReturn(101);
+            when(resultSet.getString("firstName")).thenReturn("Ava");
+            when(resultSet.getString("lastName")).thenReturn("Stone");
+            when(resultSet.getString("phones")).thenReturn("111-222,333-444");
+            when(resultSet.getString("availablePositions")).thenReturn(
+                    "[{\"id\":12,\"name\":\"Bartender\"},{\"id\":19,\"name\":\"Server\"}]"
+            );
+            when(resultSet.getObject("weekCommencing", LocalDate.class)).thenReturn(LocalDate.of(2026, 3, 25));
+            when(resultSet.getObject("startTime", LocalTime.class)).thenReturn(LocalTime.of(9, 0));
+            when(resultSet.getObject("endTime", LocalTime.class)).thenReturn(LocalTime.of(17, 0));
+            when(resultSet.getBoolean("isOvernight")).thenReturn(false);
+            when(resultSet.wasNull()).thenReturn(false);
+            when(resultSet.getString("position")).thenReturn("Bartender");
+            when(resultSet.getString("category")).thenReturn("Front");
+            when(resultSet.getString("description")).thenReturn("Opening shift");
+            when(resultSet.getFloat("duration")).thenReturn(8.0f);
+
+            return List.of(rowMapper.mapRow(resultSet, 0));
+        });
+
+        List<EmployeeShiftProjection> result = repository.findAllEmployeeShiftsInRange(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 27)
+        );
+
+        assertEquals(1, result.size());
+        assertEquals(2, result.getFirst().getAvailablePositions().size());
+        assertEquals(12, result.getFirst().getAvailablePositions().getFirst().getId());
+        assertEquals("Bartender", result.getFirst().getAvailablePositions().getFirst().getName());
+        assertEquals(List.of("111-222", "333-444"), result.getFirst().getPhones());
+    }
+}
