@@ -1,0 +1,192 @@
+{
+  "info": {
+    "name": "w2w-api",
+    "_postman_id": "c5f52dbb-6a77-4f7d-8d40-e87dd6970344",
+    "description": "Postman collection for the current Work2Work API feature set.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "companyId",
+      "value": "1"
+    },
+    {
+      "key": "tenantId",
+      "value": "1"
+    },
+    {
+      "key": "employeeId",
+      "value": "1"
+    },
+    {
+      "key": "scheduleId",
+      "value": "1"
+    },
+    {
+      "key": "transactionId",
+      "value": "1001"
+    },
+    {
+      "key": "startDate",
+      "value": "2026-03-25"
+    },
+    {
+      "key": "endDate",
+      "value": "2026-03-31"
+    }
+  ],
+  "item": [
+    {
+      "name": "Tenants",
+      "item": [
+        {
+          "name": "List Tenants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/tenants"
+          }
+        },
+        {
+          "name": "Get Tenant By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/tenants/{{tenantId}}"
+          }
+        },
+        {
+          "name": "Create Tenant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": 101,\n  \"companyName\": \"Grand Plaza Hotel\",\n  \"departmentName\": \"Operations\",\n  \"address\": \"100 Main St\",\n  \"city\": \"Austin\",\n  \"state\": \"TX\",\n  \"timestamp\": \"2026-03-27T10:00:00\",\n  \"timezone\": -6.0,\n  \"status\": \"active\",\n  \"trialStart\": \"2026-03-01\",\n  \"dropDead\": \"2026-06-01\",\n  \"priceTable\": 1,\n  \"tos\": \"accepted\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/tenants"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "List Employees By Company",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/employees/company/{{companyId}}"
+          }
+        },
+        {
+          "name": "Get Employee By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}?companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": 5001,\n  \"companyId\": 1,\n  \"status\": \"active\",\n  \"lastLogon\": \"2026-03-27T09:30:00\",\n  \"logonCount\": 3,\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Morgan\",\n  \"employeeNumber\": \"EMP-5001\",\n  \"email\": \"alex.morgan@example.com\",\n  \"phones\": [\n    \"555-0100\",\n    \"555-0101\"\n  ],\n  \"hireDate\": \"2026-01-15T09:00:00\",\n  \"maxScheduledHours\": 40,\n  \"maxDailyHours\": 8,\n  \"payRate\": 20.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/employees"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Positions",
+      "item": [
+        {
+          "name": "Get Positions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/positions?companyId={{companyId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/categories?companyId={{companyId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Scheduling",
+      "item": [
+        {
+          "name": "Create Shift",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transactionId\": 1001,\n  \"employeeId\": 1,\n  \"scheduleId\": 1,\n  \"companyId\": 1,\n  \"description\": \"Opening shift\",\n  \"startTime\": \"9:00AM\",\n  \"endTime\": \"5:00PM\",\n  \"duration\": 8.0,\n  \"isOvernight\": false,\n  \"requiredSkillId\": 1,\n  \"categoryId\": 1,\n  \"color\": 1,\n  \"changedBy\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/shifts"
+          }
+        },
+        {
+          "name": "Get Grouped Shifts In Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Returns employees with grouped day buckets relative to the requested startDate. Each bucket contains a date and its shifts; availablePositions are returned as id/name objects.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/range/grouped?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        }
+      ]
+    }
+  ]
+}
