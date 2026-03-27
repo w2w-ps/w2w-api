@@ -6,11 +6,13 @@ import com.w2w.api.position.repository.SkillGroupRepository;
 import com.w2w.api.position.repository.SkillRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class PositionService {
     @Autowired
     private SkillRepository skillRepository;
