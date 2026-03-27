@@ -1,9 +1,8 @@
-package com.w2w.api.category.controller;
+package com.w2w.api.category;
 
 import com.w2w.api.category.dto.CategoriesResponse;
 import com.w2w.api.category.dto.CategoryDto;
 import com.w2w.api.category.dto.CategoryGroupDto;
-import com.w2w.api.category.service.CategoryService;
 import com.w2w.api.config.TenantContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

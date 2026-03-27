@@ -1,9 +1,7 @@
-package com.w2w.api.position.service;
+package com.w2w.api.position;
 
 import com.w2w.api.position.dto.PositionDto;
 import com.w2w.api.position.dto.PositionGroupDto;
-import com.w2w.api.position.model.Skill;
-import com.w2w.api.position.model.SkillGroup;
 import com.w2w.api.position.repository.SkillGroupRepository;
 import com.w2w.api.position.repository.SkillRepository;
 import org.springframework.beans.factory.annotation.Autowired;
