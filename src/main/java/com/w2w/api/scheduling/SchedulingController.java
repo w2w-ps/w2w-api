@@ -22,7 +22,7 @@ public class SchedulingController {
         return schedulingService.saveShift(shift);
     }
 
-    @GetMapping("/shifts/range/grouped")
+    @GetMapping("/employees")
     public List<EmployeeWithShiftsDto> getShiftsGroupedInRange(
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
