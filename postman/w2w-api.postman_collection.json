@@ -183,7 +183,7 @@
             "method": "GET",
             "header": [],
             "description": "Returns employees with grouped day buckets relative to the requested startDate. Each bucket contains a date and its shifts; availablePositions are returned as id/name objects.",
-            "url": "{{baseUrl}}/api/scheduling/shifts/range/grouped?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
+            "url": "{{baseUrl}}/api/scheduling/employees?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
           }
         }
       ]
