@@ -37,38 +37,72 @@ public class SchedulingService {
         shift.setRequiredSkillId(request.getPosition());
         shift.setCategoryId(request.getCategory());
         shift.setColor(request.getColor());
+        shift.setIsDeleted(false);
 
         if (request.getDate() != null) {
             LocalDate date = request.getDate();
-            Schedule schedule = scheduleRepository.findByCompanyIdAndStartDate(shift.getCompanyId(), date)
-                    .orElseGet(() -> {
-                        Schedule newSchedule = new Schedule();
-                        newSchedule.setCompanyId(shift.getCompanyId());
-                        newSchedule.setStartDate(date);
-                        newSchedule.setPublished("true");
-                        newSchedule.setDayOfWeek((short) date.getDayOfWeek().getValue());
-                        newSchedule.setTimestamp(java.time.LocalDateTime.now());
-                        return scheduleRepository.save(newSchedule);
-                    });
+            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), date);
             shift.setScheduleId(schedule.getScheduleId());
         }
 
-        if (shift.getStartTime() != null && shift.getEndTime() != null) {
-            if (request.getDuration() != null) {
-                shift.setDuration(request.getDuration());
-            } else {
-                shift.setDuration(calculateDurationHours(shift.getStartTime(), shift.getEndTime()));
-            }
-
-            if (request.getIsOvernight() != null) {
-                shift.setIsOvernight(request.getIsOvernight());
-            } else {
-                shift.setIsOvernight(shift.getEndTime().isBefore(shift.getStartTime()));
-            }
-        }
+        calculateCalculatedFields(shift, request.getDuration());
 
         shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
+    }
+
+    public Shift updateShift(Integer transactionId, com.w2w.api.scheduling.dto.UpdateShiftRequest request) {
+        Shift shift = shiftRepository.findById(transactionId)
+                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + transactionId));
+
+        if (request.getEmployeeId() != null) shift.setEmployeeId(request.getEmployeeId());
+        if (request.getDescription() != null) shift.setDescription(request.getDescription());
+        if (request.getStartTime() != null) shift.setStartTime(request.getStartTime());
+        if (request.getEndTime() != null) shift.setEndTime(request.getEndTime());
+        if (request.getPosition() != null) shift.setRequiredSkillId(request.getPosition());
+        if (request.getCategory() != null) shift.setCategoryId(request.getCategory());
+        if (request.getColor() != null) shift.setColor(request.getColor());
+
+        if (request.getDate() != null) {
+            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), request.getDate());
+            shift.setScheduleId(schedule.getScheduleId());
+        }
+
+        calculateCalculatedFields(shift, request.getDuration());
+
+        shift.setChangedBy(shift.getEmployeeId());
+        return shiftRepository.save(shift);
+    }
+
+    public void softDeleteShift(Integer transactionId) {
+        Shift shift = shiftRepository.findById(transactionId)
+                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + transactionId));
+        shift.setIsDeleted(true);
+        shiftRepository.save(shift);
+    }
+
+    private Schedule getOrCreateSchedule(Integer companyId, LocalDate date) {
+        return scheduleRepository.findByCompanyIdAndStartDate(companyId, date)
+                .orElseGet(() -> {
+                    Schedule newSchedule = new Schedule();
+                    newSchedule.setCompanyId(companyId);
+                    newSchedule.setStartDate(date);
+                    newSchedule.setPublished(false);
+                    newSchedule.setDayOfWeek((short) date.getDayOfWeek().getValue());
+                    newSchedule.setTimestamp(java.time.LocalDateTime.now());
+                    return scheduleRepository.save(newSchedule);
+                });
+    }
+
+    private void calculateCalculatedFields(Shift shift, Float duration) {
+        if (shift.getStartTime() != null && shift.getEndTime() != null) {
+            if (duration != null) {
+                shift.setDuration(duration);
+            } else {
+                shift.setDuration(calculateDurationHours(shift.getStartTime(), shift.getEndTime()));
+            }
+            shift.setIsOvernight(shift.getEndTime().isBefore(shift.getStartTime()));
+        }
     }
 
     public List<EmployeeWithShiftsDto> getEmployeeShiftsGroupedInRange(Integer companyId, LocalDate startDate, LocalDate endDate) {

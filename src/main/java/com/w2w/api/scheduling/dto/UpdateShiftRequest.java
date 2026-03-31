@@ -5,9 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class CreateShiftRequest {
+public class UpdateShiftRequest {
     private Integer employeeId;
-    private Integer companyId;
     private String description;
     
     @NotNull
@@ -30,13 +29,10 @@ public class CreateShiftRequest {
     private Integer category;
     private String color;
 
-    public CreateShiftRequest() {}
+    public UpdateShiftRequest() {}
 
     public Integer getEmployeeId() { return employeeId; }
     public void setEmployeeId(Integer employeeId) { this.employeeId = employeeId; }
-
-    public Integer getCompanyId() { return companyId; }
-    public void setCompanyId(Integer companyId) { this.companyId = companyId; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }

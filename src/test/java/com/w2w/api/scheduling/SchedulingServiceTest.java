@@ -2,6 +2,7 @@ package com.w2w.api.scheduling;
 
 import com.w2w.api.position.dto.PositionDto;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
+import com.w2w.api.scheduling.dto.UpdateShiftRequest;
 import com.w2w.api.scheduling.dto.DayShiftBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class SchedulingServiceTest {
@@ -132,6 +134,99 @@ class SchedulingServiceTest {
         Shift saved = schedulingService.saveShift(request);
 
         assertEquals(600, saved.getScheduleId());
+        verify(scheduleRepository).save(any(Schedule.class));
+    }
+
+    @Test
+    void saveShiftCreatesUnpublishedScheduleByDefault() {
+        LocalDate date = LocalDate.of(2026, 3, 31);
+        CreateShiftRequest request = new CreateShiftRequest();
+        request.setEmployeeId(101);
+        request.setCompanyId(1);
+        request.setDate(date);
+        request.setStartTime(LocalTime.of(9, 0));
+        request.setEndTime(LocalTime.of(17, 0));
+        request.setPosition(1);
+
+        when(scheduleRepository.findByCompanyIdAndStartDate(1, date)).thenReturn(Optional.empty());
+        when(scheduleRepository.save(any(Schedule.class))).thenAnswer(invocation -> {
+            Schedule schedule = invocation.getArgument(0);
+            schedule.setScheduleId(600);
+            return schedule;
+        });
+        when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        schedulingService.saveShift(request);
+
+        org.mockito.ArgumentCaptor<Schedule> scheduleCaptor = org.mockito.ArgumentCaptor.forClass(Schedule.class);
+        verify(scheduleRepository).save(scheduleCaptor.capture());
+        assertEquals(false, scheduleCaptor.getValue().isPublished());
+    }
+
+    @Test
+    void saveShiftAlwaysDerivesOvernightFromTimes() {
+        LocalDate date = LocalDate.of(2026, 3, 31);
+        CreateShiftRequest request = new CreateShiftRequest();
+        request.setEmployeeId(101);
+        request.setCompanyId(1);
+        request.setDate(date);
+        request.setStartTime(LocalTime.of(22, 0));
+        request.setEndTime(LocalTime.of(6, 0));
+        request.setPosition(1);
+
+        Schedule schedule = new Schedule();
+        schedule.setScheduleId(500);
+        when(scheduleRepository.findByCompanyIdAndStartDate(1, date)).thenReturn(Optional.of(schedule));
+        when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Shift saved = schedulingService.saveShift(request);
+
+        assertEquals(true, saved.getIsOvernight());
+    }
+
+    @Test
+    void updateShiftUpdatesFieldsAndRecalculates() {
+        Integer transactionId = 1001;
+        UpdateShiftRequest request = new UpdateShiftRequest();
+        request.setDescription("New description");
+        request.setStartTime(LocalTime.of(10, 0));
+        request.setEndTime(LocalTime.of(18, 0));
+        request.setPosition(2);
+        request.setColor("");
+
+        Shift existingShift = new Shift();
+        existingShift.setTransactionId(transactionId);
+        existingShift.setEmployeeId(101);
+        existingShift.setCompanyId(1);
+        existingShift.setStartTime(LocalTime.of(9, 0));
+        existingShift.setEndTime(LocalTime.of(17, 0));
+        existingShift.setDuration(8.0f);
+
+        when(shiftRepository.findById(transactionId)).thenReturn(Optional.of(existingShift));
+        when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Shift updated = schedulingService.updateShift(transactionId, request);
+
+        assertEquals("New description", updated.getDescription());
+        assertEquals(LocalTime.of(10, 0), updated.getStartTime());
+        assertEquals(8.0f, updated.getDuration());
+        assertEquals(2, updated.getRequiredSkillId());
+        assertEquals("", updated.getColor());
+    }
+
+    @Test
+    void softDeleteShiftSetsIsDeletedToTrue() {
+        Integer transactionId = 1001;
+        Shift existingShift = new Shift();
+        existingShift.setTransactionId(transactionId);
+        existingShift.setIsDeleted(false);
+
+        when(shiftRepository.findById(transactionId)).thenReturn(Optional.of(existingShift));
+
+        schedulingService.softDeleteShift(transactionId);
+
+        assertEquals(true, existingShift.getIsDeleted());
+        verify(shiftRepository).save(existingShift);
     }
 
     @Test

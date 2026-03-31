@@ -175,6 +175,36 @@
               }
             },
             "url": "{{baseUrl}}/api/scheduling/shifts"
+            }
+            },
+            {
+            "name": "Update Shift",
+            "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-03-31\",\n  \"description\": \"Updated opening shift\",\n  \"startTime\": \"10:00AM\",\n  \"endTime\": \"6:00PM\",\n  \"position\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/shifts/{{transactionId}}"
+          }
+        },
+        {
+          "name": "Delete Shift (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/scheduling/shifts/{{transactionId}}"
           }
         },
         {

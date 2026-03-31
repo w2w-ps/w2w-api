@@ -47,6 +47,9 @@ public class Shift {
     @Column(name = "color")
     private String color;
 
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
     @Column(name = "changed_by")
     private Integer changedBy;
 
@@ -146,6 +149,14 @@ public class Shift {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public Integer getChangedBy() {

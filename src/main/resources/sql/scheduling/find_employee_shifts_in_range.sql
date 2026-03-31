@@ -51,6 +51,7 @@ LEFT JOIN (
     LEFT JOIN skill sk ON se.required_skill_id = sk.skill_id
     LEFT JOIN category cat ON se.category_id = cat.category_id
     WHERE se.company_id = :companyId
+        AND se.is_deleted = false
 ) shift_data ON e.employee_id = shift_data.employeeId
 WHERE e.company_id = :companyId
 ORDER BY e.employee_id, shift_data.weekCommencing, shift_data.startTime
