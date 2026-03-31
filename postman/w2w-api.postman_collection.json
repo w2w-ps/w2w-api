@@ -167,7 +167,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"transactionId\": 1001,\n  \"employeeId\": 1,\n  \"scheduleId\": 1,\n  \"companyId\": 1,\n  \"description\": \"Opening shift\",\n  \"startTime\": \"9:00AM\",\n  \"endTime\": \"5:00PM\",\n  \"duration\": 8.0,\n  \"isOvernight\": false,\n  \"requiredSkillId\": 1,\n  \"categoryId\": 1,\n  \"color\": 1,\n  \"changedBy\": 1\n}",
+              "raw": "{\n  \"employeeId\": 1,\n  \"companyId\": 1,\n  \"date\": \"2026-03-31\",\n  \"description\": \"Opening shift\",\n  \"startTime\": \"9:00AM\",\n  \"endTime\": \"5:00PM\",\n  \"requiredSkillId\": 1,\n  \"categoryId\": 1,\n  \"color\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
