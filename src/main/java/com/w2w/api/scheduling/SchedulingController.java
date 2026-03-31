@@ -39,18 +39,6 @@ public class SchedulingController {
         schedulingService.softDeleteShift(transactionId);
     }
 
-    @PutMapping("/shifts/{transactionId}")
-    public Shift updateShift(@PathVariable Integer transactionId, @RequestBody UpdateShiftRequest request) {
-        // We might want to set tenant based on request or existing shift
-        // For now, assume it's handled or we can fetch the shift first to get companyId
-        return schedulingService.updateShift(transactionId, request);
-    }
-
-    @DeleteMapping("/shifts/{transactionId}")
-    public void deleteShift(@PathVariable Integer transactionId) {
-        schedulingService.softDeleteShift(transactionId);
-    }
-
     @GetMapping("/employees")
     public List<EmployeeWithShiftsDto> getShiftsGroupedInRange(
             @RequestParam Integer companyId,
