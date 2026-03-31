@@ -107,6 +107,7 @@ CREATE TABLE scheduled_employee (
   required_skill_id INTEGER REFERENCES skill(skill_id),
   category_id INTEGER REFERENCES category(category_id),
   color VARCHAR(255),
+  is_deleted BOOLEAN DEFAULT FALSE,
   changed_by INTEGER REFERENCES employee(employee_id)
 );
 
