@@ -143,6 +143,8 @@ class SchedulingServiceTest {
         request.setDescription("New description");
         request.setStartTime(LocalTime.of(10, 0));
         request.setEndTime(LocalTime.of(18, 0));
+        request.setPosition(2);
+        request.setColor("");
 
         Shift existingShift = new Shift();
         existingShift.setTransactionId(transactionId);
@@ -160,6 +162,8 @@ class SchedulingServiceTest {
         assertEquals("New description", updated.getDescription());
         assertEquals(LocalTime.of(10, 0), updated.getStartTime());
         assertEquals(8.0f, updated.getDuration());
+        assertEquals(2, updated.getRequiredSkillId());
+        assertEquals("", updated.getColor());
     }
 
     @Test

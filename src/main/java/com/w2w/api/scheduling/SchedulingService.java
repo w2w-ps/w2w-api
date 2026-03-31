@@ -59,8 +59,8 @@ public class SchedulingService {
         if (request.getDescription() != null) shift.setDescription(request.getDescription());
         if (request.getStartTime() != null) shift.setStartTime(request.getStartTime());
         if (request.getEndTime() != null) shift.setEndTime(request.getEndTime());
-        if (request.getRequiredSkillId() != null) shift.setRequiredSkillId(request.getRequiredSkillId());
-        if (request.getCategoryId() != null) shift.setCategoryId(request.getCategoryId());
+        if (request.getPosition() != null) shift.setRequiredSkillId(request.getPosition());
+        if (request.getCategory() != null) shift.setCategoryId(request.getCategory());
         if (request.getColor() != null) shift.setColor(request.getColor());
 
         if (request.getDate() != null) {

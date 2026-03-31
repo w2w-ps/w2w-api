@@ -175,11 +175,11 @@
               }
             },
             "url": "{{baseUrl}}/api/scheduling/shifts"
-          }
-        },
-        {
-          "name": "Update Shift",
-          "request": {
+            }
+            },
+            {
+            "name": "Update Shift",
+            "request": {
             "method": "PUT",
             "header": [
               {
@@ -189,7 +189,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"description\": \"Updated opening shift\",\n  \"startTime\": \"10:00AM\",\n  \"endTime\": \"6:00PM\"\n}",
+              "raw": "{\n  \"date\": \"2026-03-31\",\n  \"description\": \"Updated opening shift\",\n  \"startTime\": \"10:00AM\",\n  \"endTime\": \"6:00PM\",\n  \"position\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
