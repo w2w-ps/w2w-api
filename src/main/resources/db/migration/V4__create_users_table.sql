@@ -1,0 +1,2 @@
+-- USERS table already exists in the target database.
+-- No migration needed.

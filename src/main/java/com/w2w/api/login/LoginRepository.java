@@ -1,20 +1,10 @@
 package com.w2w.api.login;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
-@Repository
-public class LoginRepository {
-    private final Map<String, String> users = new HashMap<>();
+public interface LoginRepository extends JpaRepository<User, Integer> {
 
-    public LoginRepository() {
-        users.put("admin", "admin123");
-        users.put("user", "user123");
-    }
-
-    public String getPassword(String username) {
-        return users.get(username);
-    }
+    Optional<User> findByLoginId(String loginId);
 }
