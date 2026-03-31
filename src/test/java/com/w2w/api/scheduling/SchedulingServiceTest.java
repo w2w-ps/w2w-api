@@ -2,6 +2,7 @@ package com.w2w.api.scheduling;
 
 import com.w2w.api.position.dto.PositionDto;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
+import com.w2w.api.scheduling.dto.UpdateShiftRequest;
 import com.w2w.api.scheduling.dto.DayShiftBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class SchedulingServiceTest {
@@ -132,6 +134,47 @@ class SchedulingServiceTest {
         Shift saved = schedulingService.saveShift(request);
 
         assertEquals(600, saved.getScheduleId());
+    }
+
+    @Test
+    void updateShiftUpdatesFieldsAndRecalculates() {
+        Integer transactionId = 1001;
+        UpdateShiftRequest request = new UpdateShiftRequest();
+        request.setDescription("New description");
+        request.setStartTime(LocalTime.of(10, 0));
+        request.setEndTime(LocalTime.of(18, 0));
+
+        Shift existingShift = new Shift();
+        existingShift.setTransactionId(transactionId);
+        existingShift.setEmployeeId(101);
+        existingShift.setCompanyId(1);
+        existingShift.setStartTime(LocalTime.of(9, 0));
+        existingShift.setEndTime(LocalTime.of(17, 0));
+        existingShift.setDuration(8.0f);
+
+        when(shiftRepository.findById(transactionId)).thenReturn(Optional.of(existingShift));
+        when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Shift updated = schedulingService.updateShift(transactionId, request);
+
+        assertEquals("New description", updated.getDescription());
+        assertEquals(LocalTime.of(10, 0), updated.getStartTime());
+        assertEquals(8.0f, updated.getDuration());
+    }
+
+    @Test
+    void softDeleteShiftSetsIsDeletedToTrue() {
+        Integer transactionId = 1001;
+        Shift existingShift = new Shift();
+        existingShift.setTransactionId(transactionId);
+        existingShift.setIsDeleted(false);
+
+        when(shiftRepository.findById(transactionId)).thenReturn(Optional.of(existingShift));
+
+        schedulingService.softDeleteShift(transactionId);
+
+        assertEquals(true, existingShift.getIsDeleted());
+        verify(shiftRepository).save(existingShift);
     }
 
     @Test

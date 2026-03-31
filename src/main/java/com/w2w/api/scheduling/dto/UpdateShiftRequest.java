@@ -1,0 +1,57 @@
+package com.w2w.api.scheduling.dto;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+public class UpdateShiftRequest {
+    private Integer employeeId;
+    private String description;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate date;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma")
+    private LocalTime startTime;
+    
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma")
+    private LocalTime endTime;
+    
+    private Float duration;
+    private Boolean isOvernight;
+    private Integer requiredSkillId;
+    private Integer categoryId;
+    private Short color;
+
+    public UpdateShiftRequest() {}
+
+    public Integer getEmployeeId() { return employeeId; }
+    public void setEmployeeId(Integer employeeId) { this.employeeId = employeeId; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
+
+    public LocalTime getStartTime() { return startTime; }
+    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
+
+    public LocalTime getEndTime() { return endTime; }
+    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
+
+    public Float getDuration() { return duration; }
+    public void setDuration(Float duration) { this.duration = duration; }
+
+    public Boolean getIsOvernight() { return isOvernight; }
+    public void setIsOvernight(Boolean isOvernight) { this.isOvernight = isOvernight; }
+
+    public Integer getRequiredSkillId() { return requiredSkillId; }
+    public void setRequiredSkillId(Integer requiredSkillId) { this.requiredSkillId = requiredSkillId; }
+
+    public Integer getCategoryId() { return categoryId; }
+    public void setCategoryId(Integer categoryId) { this.categoryId = categoryId; }
+
+    public Short getColor() { return color; }
+    public void setColor(Short color) { this.color = color; }
+}
