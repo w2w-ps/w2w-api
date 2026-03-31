@@ -1,4 +1,5 @@
 SELECT
+    shift_data.shiftId AS shiftId,
     e.employee_id AS employeeId,
     e.first_name AS firstName,
     e.last_name AS lastName,
@@ -11,7 +12,8 @@ SELECT
     shift_data.position AS position,
     shift_data.category AS category,
     shift_data.description AS description,
-    shift_data.duration AS duration
+    shift_data.duration AS duration,
+    shift_data.color AS color
 FROM employee e
 LEFT JOIN (
     SELECT
