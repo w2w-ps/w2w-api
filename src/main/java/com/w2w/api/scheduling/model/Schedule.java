@@ -15,8 +15,8 @@ public class Schedule {
     @Column(name = "company_id")
     private Integer companyId;
 
-    @Column(name = "published")
-    private String published;
+    @Column(name = "is_published")
+    private Boolean isPublished;
 
     @Column(name = "description")
     private String description;
@@ -54,12 +54,12 @@ public class Schedule {
         this.companyId = companyId;
     }
 
-    public String getPublished() {
-        return published;
+    public Boolean isPublished() {
+        return isPublished;
     }
 
-    public void setPublished(String published) {
-        this.published = published;
+    public void setPublished(Boolean isPublished) {
+        this.isPublished = isPublished;
     }
 
     public String getDescription() {

@@ -42,7 +42,7 @@ CREATE TABLE employee_phone (
 CREATE TABLE schedule (
   schedule_id INTEGER PRIMARY KEY,
   company_id INTEGER NOT NULL REFERENCES company(company_id),
-  published VARCHAR(255),
+  is_published BOOLEAN,
   description VARCHAR(255),
   start_date DATE,
   day_of_week SMALLINT,

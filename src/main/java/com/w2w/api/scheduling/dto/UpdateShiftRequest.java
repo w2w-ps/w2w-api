@@ -22,7 +22,6 @@ public class UpdateShiftRequest {
     private LocalTime endTime;
     
     private Float duration;
-    private Boolean isOvernight;
     
     @NotNull
     private Integer position;
@@ -49,9 +48,6 @@ public class UpdateShiftRequest {
 
     public Float getDuration() { return duration; }
     public void setDuration(Float duration) { this.duration = duration; }
-
-    public Boolean getIsOvernight() { return isOvernight; }
-    public void setIsOvernight(Boolean isOvernight) { this.isOvernight = isOvernight; }
 
     public Integer getPosition() { return position; }
     public void setPosition(Integer position) { this.position = position; }

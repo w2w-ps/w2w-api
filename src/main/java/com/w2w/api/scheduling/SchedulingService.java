@@ -45,7 +45,7 @@ public class SchedulingService {
             shift.setScheduleId(schedule.getScheduleId());
         }
 
-        calculateCalculatedFields(shift, request.getDuration(), request.getIsOvernight());
+        calculateCalculatedFields(shift, request.getDuration());
 
         shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
@@ -68,7 +68,7 @@ public class SchedulingService {
             shift.setScheduleId(schedule.getScheduleId());
         }
 
-        calculateCalculatedFields(shift, request.getDuration(), request.getIsOvernight());
+        calculateCalculatedFields(shift, request.getDuration());
 
         shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
@@ -87,26 +87,21 @@ public class SchedulingService {
                     Schedule newSchedule = new Schedule();
                     newSchedule.setCompanyId(companyId);
                     newSchedule.setStartDate(date);
-                    newSchedule.setPublished("true");
+                    newSchedule.setPublished(false);
                     newSchedule.setDayOfWeek((short) date.getDayOfWeek().getValue());
                     newSchedule.setTimestamp(java.time.LocalDateTime.now());
                     return scheduleRepository.save(newSchedule);
                 });
     }
 
-    private void calculateCalculatedFields(Shift shift, Float duration, Boolean isOvernight) {
+    private void calculateCalculatedFields(Shift shift, Float duration) {
         if (shift.getStartTime() != null && shift.getEndTime() != null) {
             if (duration != null) {
                 shift.setDuration(duration);
             } else {
                 shift.setDuration(calculateDurationHours(shift.getStartTime(), shift.getEndTime()));
             }
-
-            if (isOvernight != null) {
-                shift.setIsOvernight(isOvernight);
-            } else {
-                shift.setIsOvernight(shift.getEndTime().isBefore(shift.getStartTime()));
-            }
+            shift.setIsOvernight(shift.getEndTime().isBefore(shift.getStartTime()));
         }
     }
 

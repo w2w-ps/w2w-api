@@ -134,6 +134,54 @@ class SchedulingServiceTest {
         Shift saved = schedulingService.saveShift(request);
 
         assertEquals(600, saved.getScheduleId());
+        verify(scheduleRepository).save(any(Schedule.class));
+    }
+
+    @Test
+    void saveShiftCreatesUnpublishedScheduleByDefault() {
+        LocalDate date = LocalDate.of(2026, 3, 31);
+        CreateShiftRequest request = new CreateShiftRequest();
+        request.setEmployeeId(101);
+        request.setCompanyId(1);
+        request.setDate(date);
+        request.setStartTime(LocalTime.of(9, 0));
+        request.setEndTime(LocalTime.of(17, 0));
+        request.setPosition(1);
+
+        when(scheduleRepository.findByCompanyIdAndStartDate(1, date)).thenReturn(Optional.empty());
+        when(scheduleRepository.save(any(Schedule.class))).thenAnswer(invocation -> {
+            Schedule schedule = invocation.getArgument(0);
+            schedule.setScheduleId(600);
+            return schedule;
+        });
+        when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        schedulingService.saveShift(request);
+
+        org.mockito.ArgumentCaptor<Schedule> scheduleCaptor = org.mockito.ArgumentCaptor.forClass(Schedule.class);
+        verify(scheduleRepository).save(scheduleCaptor.capture());
+        assertEquals(false, scheduleCaptor.getValue().isPublished());
+    }
+
+    @Test
+    void saveShiftAlwaysDerivesOvernightFromTimes() {
+        LocalDate date = LocalDate.of(2026, 3, 31);
+        CreateShiftRequest request = new CreateShiftRequest();
+        request.setEmployeeId(101);
+        request.setCompanyId(1);
+        request.setDate(date);
+        request.setStartTime(LocalTime.of(22, 0));
+        request.setEndTime(LocalTime.of(6, 0));
+        request.setPosition(1);
+
+        Schedule schedule = new Schedule();
+        schedule.setScheduleId(500);
+        when(scheduleRepository.findByCompanyIdAndStartDate(1, date)).thenReturn(Optional.of(schedule));
+        when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Shift saved = schedulingService.saveShift(request);
+
+        assertEquals(true, saved.getIsOvernight());
     }
 
     @Test
