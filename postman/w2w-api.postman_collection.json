@@ -27,7 +27,7 @@
       "value": "1"
     },
     {
-      "key": "transactionId",
+      "key": "shiftId",
       "value": "1001"
     },
     {
@@ -167,7 +167,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"employeeId\": 1,\n  \"companyId\": 1,\n  \"date\": \"2026-03-31\",\n  \"description\": \"Opening shift\",\n  \"startTime\": \"9:00AM\",\n  \"endTime\": \"5:00PM\",\n  \"position\": 1,\n  \"category\": 1,\n  \"color\": \"#FFAA00\"\n}",
+              "raw": "{\n  \"employeeId\": 1,\n  \"companyId\": 1,\n  \"date\": \"2026-03-31\",\n  \"description\": \"Opening shift\",\n  \"startTime\": \"9:00AM\",\n  \"endTime\": \"5:00PM\",\n  \"position\": 1,\n  \"category\": 1,\n  \"color\": \"amber\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -175,6 +175,14 @@
               }
             },
             "url": "{{baseUrl}}/api/scheduling/shifts"
+          }
+        },
+        {
+          "name": "Get Shift",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/scheduling/shifts/{{shiftId}}"
           }
         },
         {
@@ -196,7 +204,7 @@
                 }
               }
             },
-            "url": "{{baseUrl}}/api/scheduling/shifts/{{transactionId}}"
+            "url": "{{baseUrl}}/api/scheduling/shifts/{{shiftId}}"
           }
         },
         {
@@ -204,7 +212,7 @@
           "request": {
             "method": "DELETE",
             "header": [],
-            "url": "{{baseUrl}}/api/scheduling/shifts/{{transactionId}}"
+            "url": "{{baseUrl}}/api/scheduling/shifts/{{shiftId}}"
           }
         },
         {

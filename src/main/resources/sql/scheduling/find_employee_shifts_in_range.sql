@@ -36,6 +36,7 @@ LEFT JOIN (
 ) skill_data ON e.employee_id = skill_data.employee_id
 LEFT JOIN (
     SELECT
+        se.shift_id AS shiftId,
         se.employee_id AS employeeId,
         sc.start_date AS weekCommencing,
         se.start_time AS startTime,
@@ -44,7 +45,8 @@ LEFT JOIN (
         sk.description AS position,
         cat.description AS category,
         se.description AS description,
-        se.duration AS duration
+        se.duration AS duration,
+        se.color AS color
     FROM scheduled_employee se
     JOIN schedule sc ON se.schedule_id = sc.schedule_id
         AND sc.start_date BETWEEN :startDate AND :endDate

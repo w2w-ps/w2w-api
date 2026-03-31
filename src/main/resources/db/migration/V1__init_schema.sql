@@ -1,5 +1,8 @@
 -- Consolidated Database Schema
 
+CREATE SEQUENCE IF NOT EXISTS scheduled_employee_shift_id_seq START WITH 100000;
+CREATE SEQUENCE IF NOT EXISTS schedule_id_seq START WITH 100000;
+
 CREATE TABLE company (
   company_id INTEGER PRIMARY KEY,
   company_name VARCHAR(255),
@@ -40,9 +43,9 @@ CREATE TABLE employee_phone (
 );
 
 CREATE TABLE schedule (
-  schedule_id INTEGER PRIMARY KEY,
+  schedule_id INTEGER PRIMARY KEY DEFAULT nextval('schedule_id_seq'),
   company_id INTEGER NOT NULL REFERENCES company(company_id),
-  published VARCHAR(255),
+  is_published BOOLEAN,
   description VARCHAR(255),
   start_date DATE,
   day_of_week SMALLINT,
@@ -95,7 +98,7 @@ CREATE TABLE group_cat (
 );
 
 CREATE TABLE scheduled_employee (
-  transaction_id INTEGER PRIMARY KEY,
+  shift_id INTEGER PRIMARY KEY DEFAULT nextval('scheduled_employee_shift_id_seq'),
   employee_id INTEGER REFERENCES employee(employee_id),
   schedule_id INTEGER REFERENCES schedule(schedule_id),
   company_id INTEGER REFERENCES company(company_id),
@@ -106,7 +109,8 @@ CREATE TABLE scheduled_employee (
   is_overnight BOOLEAN DEFAULT FALSE,
   required_skill_id INTEGER REFERENCES skill(skill_id),
   category_id INTEGER REFERENCES category(category_id),
-  color SMALLINT,
+  color VARCHAR(255),
+  is_deleted BOOLEAN DEFAULT FALSE,
   changed_by INTEGER REFERENCES employee(employee_id)
 );
 
@@ -129,3 +133,6 @@ CREATE TABLE "user" (
   encryption_type INTEGER,
   login_failures INTEGER
 );
+
+CREATE INDEX IF NOT EXISTS idx_schedule_start_date
+  ON schedule (start_date);

@@ -29,12 +29,12 @@ public class SchedulingService {
     @Autowired
     private ScheduleRepository scheduleRepository;
 
-    public ShiftResponseDto getShift(Integer transactionId) {
-        ShiftDetailsProjection shift = shiftRepository.findShiftDetailsByTransactionId(transactionId)
-                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + transactionId));
+    public ShiftResponseDto getShift(Integer shiftId) {
+        ShiftDetailsProjection shift = shiftRepository.findShiftDetailsByShiftId(shiftId)
+                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + shiftId));
 
         ShiftResponseDto response = new ShiftResponseDto();
-        response.setTransactionId(shift.getTransactionId());
+        response.setShiftId(shift.getShiftId());
         response.setEmployeeId(shift.getEmployeeId());
         response.setCompanyId(shift.getCompanyId());
         response.setDescription(shift.getDescription());
@@ -73,9 +73,9 @@ public class SchedulingService {
         return shiftRepository.save(shift);
     }
 
-    public Shift updateShift(Integer transactionId, com.w2w.api.scheduling.dto.UpdateShiftRequest request) {
-        Shift shift = shiftRepository.findById(transactionId)
-                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + transactionId));
+    public Shift updateShift(Integer shiftId, com.w2w.api.scheduling.dto.UpdateShiftRequest request) {
+        Shift shift = shiftRepository.findById(shiftId)
+                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + shiftId));
 
         if (request.getEmployeeId() != null) shift.setEmployeeId(request.getEmployeeId());
         if (request.getDescription() != null) shift.setDescription(request.getDescription());
@@ -96,9 +96,9 @@ public class SchedulingService {
         return shiftRepository.save(shift);
     }
 
-    public void softDeleteShift(Integer transactionId) {
-        Shift shift = shiftRepository.findById(transactionId)
-                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + transactionId));
+    public void softDeleteShift(Integer shiftId) {
+        Shift shift = shiftRepository.findById(shiftId)
+                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + shiftId));
         shift.setIsDeleted(true);
         shiftRepository.save(shift);
     }
@@ -232,12 +232,14 @@ public class SchedulingService {
     ) {
         int dayIndex = Math.toIntExact(ChronoUnit.DAYS.between(rangeStartDate, date));
         employeeDto.addShiftToDay(dayIndex, date, new ShiftDto(
+                row.getShiftId(),
                 startTime,
                 endTime,
                 row.getPosition(),
                 row.getCategory(),
                 row.getDescription(),
-                durationHours
+                durationHours,
+                row.getColor()
         ));
         employeeDto.setTotalHours(employeeDto.getTotalHours() + durationHours);
     }

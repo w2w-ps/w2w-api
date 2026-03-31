@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public interface ShiftDetailsProjection {
-    Integer getTransactionId();
+    Integer getShiftId();
 
     Integer getEmployeeId();
 

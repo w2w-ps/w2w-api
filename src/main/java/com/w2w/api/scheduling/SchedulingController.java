@@ -21,9 +21,9 @@ public class SchedulingController {
     @Autowired
     private SchedulingService schedulingService;
 
-    @GetMapping("/shifts/{transactionId}")
-    public ShiftResponseDto getShift(@PathVariable Integer transactionId) {
-        return schedulingService.getShift(transactionId);
+    @GetMapping("/shifts/{shiftId}")
+    public ShiftResponseDto getShift(@PathVariable Integer shiftId) {
+        return schedulingService.getShift(shiftId);
     }
 
     @PostMapping("/shifts")
@@ -33,16 +33,16 @@ public class SchedulingController {
         schedulingService.saveShift(request);
     }
 
-    @PutMapping("/shifts/{transactionId}")
-    public Shift updateShift(@PathVariable Integer transactionId, @Valid @RequestBody UpdateShiftRequest request) {
+    @PutMapping("/shifts/{shiftId}")
+    public Shift updateShift(@PathVariable Integer shiftId, @Valid @RequestBody UpdateShiftRequest request) {
         // We might want to set tenant based on request or existing shift
         // For now, assume it's handled or we can fetch the shift first to get companyId
-        return schedulingService.updateShift(transactionId, request);
+        return schedulingService.updateShift(shiftId, request);
     }
 
-    @DeleteMapping("/shifts/{transactionId}")
-    public void deleteShift(@PathVariable Integer transactionId) {
-        schedulingService.softDeleteShift(transactionId);
+    @DeleteMapping("/shifts/{shiftId}")
+    public void deleteShift(@PathVariable Integer shiftId) {
+        schedulingService.softDeleteShift(shiftId);
     }
 
     @GetMapping("/employees")

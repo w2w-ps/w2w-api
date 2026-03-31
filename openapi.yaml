@@ -1,0 +1,273 @@
+openapi: 3.0.3
+info:
+  title: Work2Work API
+  version: 0.0.1
+  description: OpenAPI specification for the current scheduling endpoints and response shapes.
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/scheduling/shifts:
+    post:
+      summary: Create a shift
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShiftRequest'
+      responses:
+        '201':
+          description: Shift created
+  /api/scheduling/shifts/{shiftId}:
+    get:
+      summary: Get a shift by id
+      parameters:
+        - $ref: '#/components/parameters/ShiftId'
+      responses:
+        '200':
+          description: Shift details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftResponse'
+    put:
+      summary: Update a shift
+      parameters:
+        - $ref: '#/components/parameters/ShiftId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShiftRequest'
+      responses:
+        '200':
+          description: Updated shift
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftEntity'
+    delete:
+      summary: Soft-delete a shift
+      parameters:
+        - $ref: '#/components/parameters/ShiftId'
+      responses:
+        '200':
+          description: Shift deleted
+  /api/scheduling/employees:
+    get:
+      summary: Get grouped shifts in range
+      parameters:
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: startDate
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Employees with grouped daily shift buckets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeWithShifts'
+components:
+  parameters:
+    ShiftId:
+      in: path
+      name: shiftId
+      required: true
+      schema:
+        type: integer
+  schemas:
+    CreateShiftRequest:
+      type: object
+      required: [date, startTime, endTime, position]
+      properties:
+        employeeId:
+          type: integer
+        companyId:
+          type: integer
+        description:
+          type: string
+        date:
+          type: string
+          format: date
+        startTime:
+          type: string
+          example: 9:00AM
+        endTime:
+          type: string
+          example: 5:00PM
+        duration:
+          type: number
+          format: float
+        position:
+          type: integer
+        category:
+          type: integer
+        color:
+          type: string
+    UpdateShiftRequest:
+      type: object
+      required: [date, startTime, endTime, position]
+      properties:
+        employeeId:
+          type: integer
+        description:
+          type: string
+        date:
+          type: string
+          format: date
+        startTime:
+          type: string
+          example: 10:00AM
+        endTime:
+          type: string
+          example: 6:00PM
+        duration:
+          type: number
+          format: float
+        position:
+          type: integer
+        category:
+          type: integer
+        color:
+          type: string
+    ShiftResponse:
+      type: object
+      properties:
+        shiftId:
+          type: integer
+        employeeId:
+          type: integer
+        companyId:
+          type: integer
+        description:
+          type: string
+        date:
+          type: string
+          format: date
+        startTime:
+          type: string
+        endTime:
+          type: string
+        duration:
+          type: number
+          format: float
+        isOvernight:
+          type: boolean
+        position:
+          type: string
+        category:
+          type: string
+        color:
+          type: string
+    ShiftEntity:
+      type: object
+      properties:
+        shiftId:
+          type: integer
+        employeeId:
+          type: integer
+        scheduleId:
+          type: integer
+        companyId:
+          type: integer
+        description:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        duration:
+          type: number
+          format: float
+        isOvernight:
+          type: boolean
+        requiredSkillId:
+          type: integer
+        categoryId:
+          type: integer
+        color:
+          type: string
+        isDeleted:
+          type: boolean
+        changedBy:
+          type: integer
+    Position:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    GroupedShift:
+      type: object
+      properties:
+        shiftId:
+          type: integer
+        startTime:
+          type: string
+        endTime:
+          type: string
+        position:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        duration:
+          type: number
+          format: float
+        color:
+          type: string
+    DayShiftBucket:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        shifts:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupedShift'
+    EmployeeWithShifts:
+      type: object
+      properties:
+        employeeId:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phones:
+          type: array
+          items:
+            type: string
+        availablePositions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Position'
+        weeklyShifts:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DayShiftBucket'
+        totalHours:
+          type: number
+          format: float
+        shiftCount:
+          type: integer
