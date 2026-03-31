@@ -249,7 +249,7 @@ class SchedulingServiceTest {
                         false,
                         "Bartender",
                         "Front",
-                        (short) 4
+                        ""
                 )));
 
         ShiftResponseDto response = schedulingService.getShift(transactionId);
@@ -265,7 +265,7 @@ class SchedulingServiceTest {
         assertEquals(false, response.getIsOvernight());
         assertEquals("Bartender", response.getPosition());
         assertEquals("Front", response.getCategory());
-        assertEquals("4", response.getColor());
+        assertEquals("", response.getColor());
         verifyNoInteractions(scheduleRepository);
     }
 
@@ -493,7 +493,7 @@ class SchedulingServiceTest {
             Boolean isOvernight,
             String position,
             String category,
-            Short color
+            String color
     ) implements ShiftDetailsProjection {
         @Override
         public Integer getTransactionId() {
@@ -551,7 +551,7 @@ class SchedulingServiceTest {
         }
 
         @Override
-        public Short getColor() {
+        public String getColor() {
             return color;
         }
     }

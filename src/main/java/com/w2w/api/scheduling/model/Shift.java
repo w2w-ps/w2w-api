@@ -50,9 +50,6 @@ public class Shift {
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
-    @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
-
     @Column(name = "changed_by")
     private Integer changedBy;
 

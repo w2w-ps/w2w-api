@@ -45,7 +45,7 @@ public class SchedulingService {
         response.setDate(shift.getDate());
         response.setPosition(shift.getPosition());
         response.setCategory(shift.getCategory());
-        response.setColor(shift.getColor() != null ? shift.getColor().toString() : null);
+        response.setColor(shift.getColor());
 
         return response;
     }
