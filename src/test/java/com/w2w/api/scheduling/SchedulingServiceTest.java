@@ -7,6 +7,7 @@ import com.w2w.api.scheduling.dto.DayShiftBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
 import com.w2w.api.scheduling.dto.ShiftDetailsProjection;
+import com.w2w.api.scheduling.dto.ShiftDto;
 import com.w2w.api.scheduling.dto.ShiftResponseDto;
 import com.w2w.api.scheduling.model.Schedule;
 import com.w2w.api.scheduling.model.Shift;
@@ -56,7 +57,7 @@ class SchedulingServiceTest {
         request.setStartTime(LocalTime.of(9, 0));
         request.setEndTime(LocalTime.of(17, 0));
         request.setPosition(1);
-        request.setColor("#FFAA00");
+        request.setColor("amber");
 
         Schedule schedule = new Schedule();
         schedule.setScheduleId(500);
@@ -69,7 +70,7 @@ class SchedulingServiceTest {
         assertEquals(false, saved.getIsOvernight());
         assertEquals(101, saved.getChangedBy());
         assertEquals(500, saved.getScheduleId());
-        assertEquals("#FFAA00", saved.getColor());
+        assertEquals("amber", saved.getColor());
     }
 
     @Test
@@ -190,7 +191,7 @@ class SchedulingServiceTest {
 
     @Test
     void updateShiftUpdatesFieldsAndRecalculates() {
-        Integer transactionId = 1001;
+        Integer shiftId = 1001;
         UpdateShiftRequest request = new UpdateShiftRequest();
         request.setDescription("New description");
         request.setStartTime(LocalTime.of(10, 0));
@@ -199,17 +200,17 @@ class SchedulingServiceTest {
         request.setColor("");
 
         Shift existingShift = new Shift();
-        existingShift.setTransactionId(transactionId);
+        existingShift.setShiftId(shiftId);
         existingShift.setEmployeeId(101);
         existingShift.setCompanyId(1);
         existingShift.setStartTime(LocalTime.of(9, 0));
         existingShift.setEndTime(LocalTime.of(17, 0));
         existingShift.setDuration(8.0f);
 
-        when(shiftRepository.findById(transactionId)).thenReturn(Optional.of(existingShift));
+        when(shiftRepository.findById(shiftId)).thenReturn(Optional.of(existingShift));
         when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Shift updated = schedulingService.updateShift(transactionId, request);
+        Shift updated = schedulingService.updateShift(shiftId, request);
 
         assertEquals("New description", updated.getDescription());
         assertEquals(LocalTime.of(10, 0), updated.getStartTime());
@@ -220,14 +221,14 @@ class SchedulingServiceTest {
 
     @Test
     void softDeleteShiftSetsIsDeletedToTrue() {
-        Integer transactionId = 1001;
+        Integer shiftId = 1001;
         Shift existingShift = new Shift();
-        existingShift.setTransactionId(transactionId);
+        existingShift.setShiftId(shiftId);
         existingShift.setIsDeleted(false);
 
-        when(shiftRepository.findById(transactionId)).thenReturn(Optional.of(existingShift));
+        when(shiftRepository.findById(shiftId)).thenReturn(Optional.of(existingShift));
 
-        schedulingService.softDeleteShift(transactionId);
+        schedulingService.softDeleteShift(shiftId);
 
         assertEquals(true, existingShift.getIsDeleted());
         verify(shiftRepository).save(existingShift);
@@ -235,10 +236,10 @@ class SchedulingServiceTest {
 
     @Test
     void getShiftReturnsSingleQueryDetailsProjection() {
-        Integer transactionId = 1001;
-        when(shiftRepository.findShiftDetailsByTransactionId(transactionId))
+        Integer shiftId = 1001;
+        when(shiftRepository.findShiftDetailsByShiftId(shiftId))
                 .thenReturn(Optional.of(new TestShiftDetailsProjection(
-                        transactionId,
+                        shiftId,
                         101,
                         7,
                         "Opening shift",
@@ -252,9 +253,9 @@ class SchedulingServiceTest {
                         ""
                 )));
 
-        ShiftResponseDto response = schedulingService.getShift(transactionId);
+        ShiftResponseDto response = schedulingService.getShift(shiftId);
 
-        assertEquals(transactionId, response.getTransactionId());
+        assertEquals(shiftId, response.getShiftId());
         assertEquals(101, response.getEmployeeId());
         assertEquals(7, response.getCompanyId());
         assertEquals("Opening shift", response.getDescription());
@@ -271,12 +272,12 @@ class SchedulingServiceTest {
 
     @Test
     void getShiftThrowsWhenProjectionNotFound() {
-        Integer transactionId = 1001;
-        when(shiftRepository.findShiftDetailsByTransactionId(transactionId)).thenReturn(Optional.empty());
+        Integer shiftId = 1001;
+        when(shiftRepository.findShiftDetailsByShiftId(shiftId)).thenReturn(Optional.empty());
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> schedulingService.getShift(transactionId)
+                () -> schedulingService.getShift(shiftId)
         );
 
         assertEquals("Shift not found with id: 1001", exception.getMessage());
@@ -289,6 +290,7 @@ class SchedulingServiceTest {
 
         when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
                 .thenReturn(List.of(new TestProjection(
+                        9001,
                         101,
                         "Ava",
                         "Stone",
@@ -301,7 +303,8 @@ class SchedulingServiceTest {
                         "Bartender",
                         "Front",
                         "Opening shift",
-                        8.0f
+                        8.0f,
+                        "amber"
                 )));
 
         List<EmployeeWithShiftsDto> result = schedulingService.getEmployeeShiftsGroupedInRange(7, startDate, endDate);
@@ -319,6 +322,8 @@ class SchedulingServiceTest {
 
         DayShiftBucketDto firstBucket = employee.getWeeklyShifts().get(0);
         assertEquals(1, firstBucket.getShifts().size());
+        assertEquals(9001, firstBucket.getShifts().getFirst().getShiftId());
+        assertEquals("amber", firstBucket.getShifts().getFirst().getColor());
         assertTrue(employee.getWeeklyShifts().get(1).getShifts().isEmpty());
         assertTrue(employee.getWeeklyShifts().get(2).getShifts().isEmpty());
         assertEquals(8.0, employee.getTotalHours());
@@ -332,6 +337,7 @@ class SchedulingServiceTest {
 
         when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
                 .thenReturn(List.of(new TestProjection(
+                        9002,
                         101,
                         "Ava",
                         "Stone",
@@ -344,7 +350,8 @@ class SchedulingServiceTest {
                         "Bartender",
                         "Front",
                         "Close",
-                        8.0f
+                        8.0f,
+                        "blue"
                 )));
 
         List<EmployeeWithShiftsDto> result = schedulingService.getEmployeeShiftsGroupedInRange(7, startDate, endDate);
@@ -359,6 +366,8 @@ class SchedulingServiceTest {
         assertEquals(LocalDate.of(2026, 3, 27), thirdBucket.getDate());
         assertEquals(1, secondBucket.getShifts().size());
         assertEquals(1, thirdBucket.getShifts().size());
+        assertEquals(9002, secondBucket.getShifts().getFirst().getShiftId());
+        assertEquals("blue", secondBucket.getShifts().getFirst().getColor());
         assertEquals(LocalTime.of(22, 0), secondBucket.getShifts().getFirst().getStartTime());
         assertEquals(LocalTime.MIDNIGHT, secondBucket.getShifts().getFirst().getEndTime());
         assertEquals(LocalTime.MIDNIGHT, thirdBucket.getShifts().getFirst().getStartTime());
@@ -374,6 +383,7 @@ class SchedulingServiceTest {
 
         when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
                 .thenReturn(List.of(new TestProjection(
+                        9003,
                         101,
                         "Ava",
                         "Stone",
@@ -386,7 +396,8 @@ class SchedulingServiceTest {
                         "Bartender",
                         "Front",
                         "Carry over",
-                        4.0f
+                        4.0f,
+                        "charcoal"
                 )));
 
         List<EmployeeWithShiftsDto> result = schedulingService.getEmployeeShiftsGroupedInRange(7, startDate, endDate);
@@ -394,13 +405,48 @@ class SchedulingServiceTest {
         EmployeeWithShiftsDto employee = result.getFirst();
         assertNotNull(employee.getWeeklyShifts().get(0));
         assertEquals(1, employee.getWeeklyShifts().get(0).getShifts().size());
+        assertEquals(9003, employee.getWeeklyShifts().get(0).getShifts().getFirst().getShiftId());
+        assertEquals("charcoal", employee.getWeeklyShifts().get(0).getShifts().getFirst().getColor());
+        assertTrue(employee.getWeeklyShifts().get(0).getShifts().getFirst().getColor().length() > 0);
         assertTrue(employee.getWeeklyShifts().get(1).getShifts().isEmpty());
         assertTrue(employee.getWeeklyShifts().get(2).getShifts().isEmpty());
         assertEquals(2.0, employee.getTotalHours());
         assertEquals(1, employee.getShiftCount());
     }
 
+    @Test
+    void groupedShiftsPreserveNullShiftIdAndColor() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+                .thenReturn(List.of(new TestProjection(
+                        null,
+                        101,
+                        "Ava",
+                        "Stone",
+                        List.of(),
+                        List.of(),
+                        LocalDate.of(2026, 3, 25),
+                        LocalTime.of(9, 0),
+                        LocalTime.of(17, 0),
+                        false,
+                        "Bartender",
+                        "Front",
+                        "No color shift",
+                        8.0f,
+                        null
+                )));
+
+        List<EmployeeWithShiftsDto> result = schedulingService.getEmployeeShiftsGroupedInRange(7, startDate, endDate);
+
+        ShiftDto groupedShift = result.getFirst().getWeeklyShifts().get(0).getShifts().getFirst();
+        assertEquals(null, groupedShift.getShiftId());
+        assertEquals(null, groupedShift.getColor());
+    }
+
     private record TestProjection(
+            Integer shiftId,
             Integer employeeId,
             String firstName,
             String lastName,
@@ -413,8 +459,14 @@ class SchedulingServiceTest {
             String position,
             String category,
             String description,
-            Float duration
+            Float duration,
+            String color
     ) implements EmployeeShiftProjection {
+        @Override
+        public Integer getShiftId() {
+            return shiftId;
+        }
+
         @Override
         public Integer getEmployeeId() {
             return employeeId;
@@ -479,10 +531,15 @@ class SchedulingServiceTest {
         public Boolean getIsOvernight() {
             return isOvernight;
         }
+
+        @Override
+        public String getColor() {
+            return color;
+        }
     }
 
     private record TestShiftDetailsProjection(
-            Integer transactionId,
+            Integer shiftId,
             Integer employeeId,
             Integer companyId,
             String description,
@@ -496,8 +553,8 @@ class SchedulingServiceTest {
             String color
     ) implements ShiftDetailsProjection {
         @Override
-        public Integer getTransactionId() {
-            return transactionId;
+        public Integer getShiftId() {
+            return shiftId;
         }
 
         @Override

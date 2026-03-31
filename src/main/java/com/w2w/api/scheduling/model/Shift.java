@@ -9,8 +9,8 @@ import java.time.LocalTime;
 public class Shift {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "transaction_id")
-    private Integer transactionId;
+    @Column(name = "shift_id")
+    private Integer shiftId;
 
     @Column(name = "employee_id")
     private Integer employeeId;
@@ -55,12 +55,12 @@ public class Shift {
 
     public Shift() {}
 
-    public Integer getTransactionId() {
-        return transactionId;
+    public Integer getShiftId() {
+        return shiftId;
     }
 
-    public void setTransactionId(Integer transactionId) {
-        this.transactionId = transactionId;
+    public void setShiftId(Integer shiftId) {
+        this.shiftId = shiftId;
     }
 
     public Integer getEmployeeId() {

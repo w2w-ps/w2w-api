@@ -35,6 +35,7 @@ class SchedulingQueryRepositoryImplTest {
             RowMapper<EmployeeShiftProjection> rowMapper = invocation.getArgument(2);
             ResultSet resultSet = mock(ResultSet.class);
 
+            when(resultSet.getInt("shiftId")).thenReturn(1001);
             when(resultSet.getInt("employeeId")).thenReturn(101);
             when(resultSet.getString("firstName")).thenReturn("Ava");
             when(resultSet.getString("lastName")).thenReturn("Stone");
@@ -51,6 +52,7 @@ class SchedulingQueryRepositoryImplTest {
             when(resultSet.getString("category")).thenReturn("Front");
             when(resultSet.getString("description")).thenReturn("Opening shift");
             when(resultSet.getFloat("duration")).thenReturn(8.0f);
+            when(resultSet.getString("color")).thenReturn("amber");
 
             return List.of(rowMapper.mapRow(resultSet, 0));
         });
@@ -62,9 +64,59 @@ class SchedulingQueryRepositoryImplTest {
         );
 
         assertEquals(1, result.size());
+        assertEquals(1001, result.getFirst().getShiftId());
         assertEquals(2, result.getFirst().getAvailablePositions().size());
         assertEquals(12, result.getFirst().getAvailablePositions().getFirst().getId());
         assertEquals("Bartender", result.getFirst().getAvailablePositions().getFirst().getName());
         assertEquals(List.of("111-222", "333-444"), result.getFirst().getPhones());
+        assertEquals("amber", result.getFirst().getColor());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void mapsNullShiftIdAndColorForGroupedRows() throws Exception {
+        NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
+        SchedulingQueryRepositoryImpl repository = new SchedulingQueryRepositoryImpl(
+                jdbcTemplate,
+                new DefaultResourceLoader()
+        );
+
+        when(jdbcTemplate.query(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(MapSqlParameterSource.class),
+                ArgumentMatchers.any(RowMapper.class)
+        )).thenAnswer(invocation -> {
+            RowMapper<EmployeeShiftProjection> rowMapper = invocation.getArgument(2);
+            ResultSet resultSet = mock(ResultSet.class);
+
+            when(resultSet.getInt("shiftId")).thenReturn(0);
+            when(resultSet.wasNull()).thenReturn(true, false, false);
+            when(resultSet.getInt("employeeId")).thenReturn(101);
+            when(resultSet.getString("firstName")).thenReturn("Ava");
+            when(resultSet.getString("lastName")).thenReturn("Stone");
+            when(resultSet.getString("phones")).thenReturn(null);
+            when(resultSet.getString("availablePositions")).thenReturn(null);
+            when(resultSet.getObject("weekCommencing", LocalDate.class)).thenReturn(LocalDate.of(2026, 3, 25));
+            when(resultSet.getObject("startTime", LocalTime.class)).thenReturn(LocalTime.of(9, 0));
+            when(resultSet.getObject("endTime", LocalTime.class)).thenReturn(LocalTime.of(17, 0));
+            when(resultSet.getBoolean("isOvernight")).thenReturn(false);
+            when(resultSet.getString("position")).thenReturn("Bartender");
+            when(resultSet.getString("category")).thenReturn("Front");
+            when(resultSet.getString("description")).thenReturn("Opening shift");
+            when(resultSet.getFloat("duration")).thenReturn(8.0f);
+            when(resultSet.getString("color")).thenReturn(null);
+
+            return List.of(rowMapper.mapRow(resultSet, 0));
+        });
+
+        List<EmployeeShiftProjection> result = repository.findAllEmployeeShiftsInRange(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 27)
+        );
+
+        assertEquals(1, result.size());
+        assertEquals(null, result.getFirst().getShiftId());
+        assertEquals(null, result.getFirst().getColor());
     }
 }

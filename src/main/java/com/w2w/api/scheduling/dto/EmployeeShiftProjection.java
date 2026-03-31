@@ -7,6 +7,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 public interface EmployeeShiftProjection {
+    Integer getShiftId();
     Integer getEmployeeId();
     String getFirstName();
     String getLastName();
@@ -20,4 +21,5 @@ public interface EmployeeShiftProjection {
     String getDescription();
     Float getDuration();
     Boolean getIsOvernight();
+    String getColor();
 }

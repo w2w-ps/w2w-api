@@ -60,6 +60,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
 
     private EmployeeShiftProjection mapRow(ResultSet rs) throws SQLException {
         return new EmployeeShiftRow(
+                getNullableInteger(rs, "shiftId"),
                 rs.getInt("employeeId"),
                 rs.getString("firstName"),
                 rs.getString("lastName"),
@@ -72,8 +73,14 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                 rs.getString("position"),
                 rs.getString("category"),
                 rs.getString("description"),
-                getNullableFloat(rs, "duration")
+                getNullableFloat(rs, "duration"),
+                rs.getString("color")
         );
+    }
+
+    private Integer getNullableInteger(ResultSet rs, String column) throws SQLException {
+        int value = rs.getInt(column);
+        return rs.wasNull() ? null : value;
     }
 
     private Boolean getNullableBoolean(ResultSet rs, String column) throws SQLException {
@@ -117,6 +124,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
     }
 
     private static final class EmployeeShiftRow implements EmployeeShiftProjection {
+        private final Integer shiftId;
         private final Integer employeeId;
         private final String firstName;
         private final String lastName;
@@ -130,8 +138,10 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         private final String category;
         private final String description;
         private final Float duration;
+        private final String color;
 
         private EmployeeShiftRow(
+                Integer shiftId,
                 Integer employeeId,
                 String firstName,
                 String lastName,
@@ -144,8 +154,10 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                 String position,
                 String category,
                 String description,
-                Float duration
+                Float duration,
+                String color
         ) {
+            this.shiftId = shiftId;
             this.employeeId = employeeId;
             this.firstName = firstName;
             this.lastName = lastName;
@@ -159,6 +171,12 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
             this.category = category;
             this.description = description;
             this.duration = duration;
+            this.color = color;
+        }
+
+        @Override
+        public Integer getShiftId() {
+            return shiftId;
         }
 
         @Override
@@ -224,6 +242,11 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         @Override
         public Boolean getIsOvernight() {
             return isOvernight;
+        }
+
+        @Override
+        public String getColor() {
+            return color;
         }
     }
 }

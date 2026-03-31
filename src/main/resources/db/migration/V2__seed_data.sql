@@ -1,3 +1,4 @@
+-- Seed Data
 DO $$
 DECLARE
     first_names TEXT[] := ARRAY['James', 'Mary', 'Robert', 'Patricia', 'John', 'Jennifer', 'Michael', 'Linda', 'David', 'Elizabeth', 'William', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen', 'Christopher', 'Nancy', 'Daniel', 'Margaret', 'Matthew', 'Lisa', 'Anthony', 'Betty', 'Mark', 'Dorothy', 'Donald', 'Sandra', 'Steven', 'Ashley', 'Paul', 'Kimberly', 'Andrew', 'Donna', 'Joshua', 'Emily', 'Kenneth', 'Michelle', 'Kevin', 'Carol', 'Brian', 'Amanda', 'George', 'Melissa', 'Edward', 'Deborah'];
@@ -137,7 +138,7 @@ BEGIN
                     END IF;
 
                     INSERT INTO scheduled_employee (
-                        transaction_id, employee_id, schedule_id, company_id,
+                        shift_id, employee_id, schedule_id, company_id,
                         description, start_time, end_time, is_overnight, duration,
                         required_skill_id, category_id
                     )

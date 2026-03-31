@@ -1,5 +1,8 @@
 -- Complete Database Schema
 
+CREATE SEQUENCE scheduled_employee_shift_id_seq START WITH 100000;
+CREATE SEQUENCE schedule_id_seq START WITH 100000;
+
 CREATE TABLE company (
   company_id INTEGER PRIMARY KEY,
   company_name VARCHAR(255),
@@ -40,7 +43,7 @@ CREATE TABLE employee_phone (
 );
 
 CREATE TABLE schedule (
-  schedule_id INTEGER PRIMARY KEY,
+  schedule_id INTEGER PRIMARY KEY DEFAULT nextval('schedule_id_seq'),
   company_id INTEGER NOT NULL REFERENCES company(company_id),
   is_published BOOLEAN,
   description VARCHAR(255),
@@ -95,7 +98,7 @@ CREATE TABLE group_cat (
 );
 
 CREATE TABLE scheduled_employee (
-  transaction_id INTEGER PRIMARY KEY,
+  shift_id INTEGER PRIMARY KEY DEFAULT nextval('scheduled_employee_shift_id_seq'),
   employee_id INTEGER REFERENCES employee(employee_id),
   schedule_id INTEGER REFERENCES schedule(schedule_id),
   company_id INTEGER REFERENCES company(company_id),

@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class ShiftResponseDto {
-    private Integer transactionId;
+    private Integer shiftId;
     private Integer employeeId;
     private Integer companyId;
     private String description;
@@ -25,8 +25,8 @@ public class ShiftResponseDto {
 
     public ShiftResponseDto() {}
 
-    public Integer getTransactionId() { return transactionId; }
-    public void setTransactionId(Integer transactionId) { this.transactionId = transactionId; }
+    public Integer getShiftId() { return shiftId; }
+    public void setShiftId(Integer shiftId) { this.shiftId = shiftId; }
 
     public Integer getEmployeeId() { return employeeId; }
     public void setEmployeeId(Integer employeeId) { this.employeeId = employeeId; }
