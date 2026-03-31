@@ -8,6 +8,7 @@ import java.time.LocalTime;
 @Table(name = "scheduled_employee")
 public class Shift {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "transaction_id")
     private Integer transactionId;
 
@@ -44,7 +45,7 @@ public class Shift {
     private Integer categoryId;
 
     @Column(name = "color")
-    private Short color;
+    private String color;
 
     @Column(name = "changed_by")
     private Integer changedBy;
@@ -139,11 +140,11 @@ public class Shift {
         this.categoryId = categoryId;
     }
 
-    public Short getColor() {
+    public String getColor() {
         return color;
     }
 
-    public void setColor(Short color) {
+    public void setColor(String color) {
         this.color = color;
     }
 

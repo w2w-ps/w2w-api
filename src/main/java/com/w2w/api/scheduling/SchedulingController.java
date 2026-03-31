@@ -1,10 +1,12 @@
 package com.w2w.api.scheduling;
 
 import com.w2w.api.config.TenantContext;
+import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
-import com.w2w.api.scheduling.model.Shift;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -17,9 +19,10 @@ public class SchedulingController {
     private SchedulingService schedulingService;
 
     @PostMapping("/shifts")
-    public Shift createShift(@RequestBody Shift shift) {
-        TenantContext.setCurrentTenant(shift.getCompanyId());
-        return schedulingService.saveShift(shift);
+    @ResponseStatus(HttpStatus.CREATED)
+    public void createShift(@Valid @RequestBody CreateShiftRequest request) {
+        TenantContext.setCurrentTenant(request.getCompanyId());
+        schedulingService.saveShift(request);
     }
 
     @GetMapping("/employees")

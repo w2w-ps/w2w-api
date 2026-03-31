@@ -1,0 +1,3 @@
+ALTER TABLE scheduled_employee
+ALTER COLUMN color TYPE VARCHAR(255)
+USING color::VARCHAR(255);
