@@ -8,30 +8,30 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "USERS")
+@Table(name = "users")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "USUSERID")
+    @Column(name = "user_id")
     private Integer id;
 
-    @Column(name = "USUSERLOGINID", unique = true)
+    @Column(name = "user_login_id", unique = true)
     private String loginId;
 
-    @Column(name = "USUSERLOGINPW")
+    @Column(name = "user_login_pw")
     private String password;
 
-    @Column(name = "USCOMPANYID")
+    @Column(name = "company_id")
     private Integer companyId;
 
-    @Column(name = "USWORKERTYPE")
+    @Column(name = "worker_type")
     private String workerType;
 
-    @Column(name = "USENCRYPTIONTYPE")
+    @Column(name = "encryption_type")
     private Integer encryptionType;
 
-    @Column(name = "USLOGINFAILURES")
+    @Column(name = "login_failures")
     private Integer loginFailures;
 
     public User() {}
