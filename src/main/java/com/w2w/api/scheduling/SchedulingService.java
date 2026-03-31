@@ -1,8 +1,10 @@
 package com.w2w.api.scheduling;
 
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
+import com.w2w.api.scheduling.dto.ShiftDetailsProjection;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
 import com.w2w.api.scheduling.dto.ShiftDto;
+import com.w2w.api.scheduling.dto.ShiftResponseDto;
 import com.w2w.api.scheduling.model.Schedule;
 import com.w2w.api.scheduling.model.Shift;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,27 @@ public class SchedulingService {
     @Autowired
     private ScheduleRepository scheduleRepository;
 
+    public ShiftResponseDto getShift(Integer transactionId) {
+        ShiftDetailsProjection shift = shiftRepository.findShiftDetailsByTransactionId(transactionId)
+                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + transactionId));
+
+        ShiftResponseDto response = new ShiftResponseDto();
+        response.setTransactionId(shift.getTransactionId());
+        response.setEmployeeId(shift.getEmployeeId());
+        response.setCompanyId(shift.getCompanyId());
+        response.setDescription(shift.getDescription());
+        response.setStartTime(shift.getStartTime());
+        response.setEndTime(shift.getEndTime());
+        response.setDuration(shift.getDuration());
+        response.setIsOvernight(shift.getIsOvernight());
+        response.setDate(shift.getDate());
+        response.setPosition(shift.getPosition());
+        response.setCategory(shift.getCategory());
+        response.setColor(shift.getColor());
+
+        return response;
+    }
+
     public Shift saveShift(com.w2w.api.scheduling.dto.CreateShiftRequest request) {
         Shift shift = new Shift();
         shift.setEmployeeId(request.getEmployeeId());
@@ -40,12 +63,11 @@ public class SchedulingService {
         shift.setIsDeleted(false);
 
         if (request.getDate() != null) {
-            LocalDate date = request.getDate();
-            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), date);
+            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), request.getDate());
             shift.setScheduleId(schedule.getScheduleId());
         }
 
-        calculateCalculatedFields(shift, request.getDuration());
+        applyDerivedShiftFields(shift, request.getDuration());
 
         shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
@@ -68,7 +90,7 @@ public class SchedulingService {
             shift.setScheduleId(schedule.getScheduleId());
         }
 
-        calculateCalculatedFields(shift, request.getDuration());
+        applyDerivedShiftFields(shift, request.getDuration());
 
         shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
@@ -94,7 +116,7 @@ public class SchedulingService {
                 });
     }
 
-    private void calculateCalculatedFields(Shift shift, Float duration) {
+    private void applyDerivedShiftFields(Shift shift, Float duration) {
         if (shift.getStartTime() != null && shift.getEndTime() != null) {
             if (duration != null) {
                 shift.setDuration(duration);

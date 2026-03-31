@@ -1,38 +1,38 @@
 package com.w2w.api.scheduling.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class UpdateShiftRequest {
+public class ShiftResponseDto {
+    private Integer transactionId;
     private Integer employeeId;
+    private Integer companyId;
     private String description;
-    
-    @NotNull
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate date;
     
-    @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma")
     private LocalTime startTime;
     
-    @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma")
     private LocalTime endTime;
     
     private Float duration;
-    
-    @NotNull
-    private Integer position;
-    
-    private Integer category;
+    private Boolean isOvernight;
+    private String position;
+    private String category;
     private String color;
 
-    public UpdateShiftRequest() {}
+    public ShiftResponseDto() {}
+
+    public Integer getTransactionId() { return transactionId; }
+    public void setTransactionId(Integer transactionId) { this.transactionId = transactionId; }
 
     public Integer getEmployeeId() { return employeeId; }
     public void setEmployeeId(Integer employeeId) { this.employeeId = employeeId; }
+
+    public Integer getCompanyId() { return companyId; }
+    public void setCompanyId(Integer companyId) { this.companyId = companyId; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
@@ -49,11 +49,15 @@ public class UpdateShiftRequest {
     public Float getDuration() { return duration; }
     public void setDuration(Float duration) { this.duration = duration; }
 
-    public Integer getPosition() { return position; }
-    public void setPosition(Integer position) { this.position = position; }
+    public Boolean getIsOvernight() { return isOvernight; }
+    public void setIsOvernight(Boolean isOvernight) { this.isOvernight = isOvernight; }
 
-    public Integer getCategory() { return category; }
-    public void setCategory(Integer category) { this.category = category; }
+    public String getPosition() { return position; }
+    public void setPosition(String position) { this.position = position; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }
 }

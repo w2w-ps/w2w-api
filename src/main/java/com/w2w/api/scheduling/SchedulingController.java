@@ -3,6 +3,7 @@ package com.w2w.api.scheduling;
 import com.w2w.api.config.TenantContext;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.dto.UpdateShiftRequest;
+import com.w2w.api.scheduling.dto.ShiftResponseDto;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
 import com.w2w.api.scheduling.model.Shift;
 import jakarta.validation.Valid;
@@ -19,6 +20,11 @@ import java.util.List;
 public class SchedulingController {
     @Autowired
     private SchedulingService schedulingService;
+
+    @GetMapping("/shifts/{transactionId}")
+    public ShiftResponseDto getShift(@PathVariable Integer transactionId) {
+        return schedulingService.getShift(transactionId);
+    }
 
     @PostMapping("/shifts")
     @ResponseStatus(HttpStatus.CREATED)
