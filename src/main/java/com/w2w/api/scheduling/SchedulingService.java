@@ -1,8 +1,10 @@
 package com.w2w.api.scheduling;
 
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
+import com.w2w.api.scheduling.dto.ShiftDetailsProjection;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
 import com.w2w.api.scheduling.dto.ShiftDto;
+import com.w2w.api.scheduling.dto.ShiftResponseDto;
 import com.w2w.api.scheduling.model.Schedule;
 import com.w2w.api.scheduling.model.Shift;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,27 @@ public class SchedulingService {
 
     @Autowired
     private ScheduleRepository scheduleRepository;
+
+    public ShiftResponseDto getShift(Integer transactionId) {
+        ShiftDetailsProjection shift = shiftRepository.findShiftDetailsByTransactionId(transactionId)
+                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + transactionId));
+
+        ShiftResponseDto response = new ShiftResponseDto();
+        response.setTransactionId(shift.getTransactionId());
+        response.setEmployeeId(shift.getEmployeeId());
+        response.setCompanyId(shift.getCompanyId());
+        response.setDescription(shift.getDescription());
+        response.setStartTime(shift.getStartTime());
+        response.setEndTime(shift.getEndTime());
+        response.setDuration(shift.getDuration());
+        response.setIsOvernight(shift.getIsOvernight());
+        response.setDate(shift.getDate());
+        response.setPosition(shift.getPosition());
+        response.setCategory(shift.getCategory());
+        response.setColor(shift.getColor() != null ? shift.getColor().toString() : null);
+
+        return response;
+    }
 
     public Shift saveShift(com.w2w.api.scheduling.dto.CreateShiftRequest request) {
         Shift shift = new Shift();

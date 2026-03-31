@@ -6,6 +6,8 @@ import com.w2w.api.scheduling.dto.UpdateShiftRequest;
 import com.w2w.api.scheduling.dto.DayShiftBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
+import com.w2w.api.scheduling.dto.ShiftDetailsProjection;
+import com.w2w.api.scheduling.dto.ShiftResponseDto;
 import com.w2w.api.scheduling.model.Schedule;
 import com.w2w.api.scheduling.model.Shift;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,9 +22,11 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class SchedulingServiceTest {
@@ -230,6 +234,55 @@ class SchedulingServiceTest {
     }
 
     @Test
+    void getShiftReturnsSingleQueryDetailsProjection() {
+        Integer transactionId = 1001;
+        when(shiftRepository.findShiftDetailsByTransactionId(transactionId))
+                .thenReturn(Optional.of(new TestShiftDetailsProjection(
+                        transactionId,
+                        101,
+                        7,
+                        "Opening shift",
+                        LocalDate.of(2026, 3, 31),
+                        LocalTime.of(9, 0),
+                        LocalTime.of(17, 0),
+                        8.0f,
+                        false,
+                        "Bartender",
+                        "Front",
+                        (short) 4
+                )));
+
+        ShiftResponseDto response = schedulingService.getShift(transactionId);
+
+        assertEquals(transactionId, response.getTransactionId());
+        assertEquals(101, response.getEmployeeId());
+        assertEquals(7, response.getCompanyId());
+        assertEquals("Opening shift", response.getDescription());
+        assertEquals(LocalDate.of(2026, 3, 31), response.getDate());
+        assertEquals(LocalTime.of(9, 0), response.getStartTime());
+        assertEquals(LocalTime.of(17, 0), response.getEndTime());
+        assertEquals(8.0f, response.getDuration());
+        assertEquals(false, response.getIsOvernight());
+        assertEquals("Bartender", response.getPosition());
+        assertEquals("Front", response.getCategory());
+        assertEquals("4", response.getColor());
+        verifyNoInteractions(scheduleRepository);
+    }
+
+    @Test
+    void getShiftThrowsWhenProjectionNotFound() {
+        Integer transactionId = 1001;
+        when(shiftRepository.findShiftDetailsByTransactionId(transactionId)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> schedulingService.getShift(transactionId)
+        );
+
+        assertEquals("Shift not found with id: 1001", exception.getMessage());
+    }
+
+    @Test
     void groupsShiftsRelativeToRequestedStartDateAndInitializesDayBuckets() {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 27);
@@ -425,6 +478,81 @@ class SchedulingServiceTest {
         @Override
         public Boolean getIsOvernight() {
             return isOvernight;
+        }
+    }
+
+    private record TestShiftDetailsProjection(
+            Integer transactionId,
+            Integer employeeId,
+            Integer companyId,
+            String description,
+            LocalDate date,
+            LocalTime startTime,
+            LocalTime endTime,
+            Float duration,
+            Boolean isOvernight,
+            String position,
+            String category,
+            Short color
+    ) implements ShiftDetailsProjection {
+        @Override
+        public Integer getTransactionId() {
+            return transactionId;
+        }
+
+        @Override
+        public Integer getEmployeeId() {
+            return employeeId;
+        }
+
+        @Override
+        public Integer getCompanyId() {
+            return companyId;
+        }
+
+        @Override
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public LocalDate getDate() {
+            return date;
+        }
+
+        @Override
+        public LocalTime getStartTime() {
+            return startTime;
+        }
+
+        @Override
+        public LocalTime getEndTime() {
+            return endTime;
+        }
+
+        @Override
+        public Float getDuration() {
+            return duration;
+        }
+
+        @Override
+        public Boolean getIsOvernight() {
+            return isOvernight;
+        }
+
+        @Override
+        public String getPosition() {
+            return position;
+        }
+
+        @Override
+        public String getCategory() {
+            return category;
+        }
+
+        @Override
+        public Short getColor() {
+            return color;
         }
     }
 }
