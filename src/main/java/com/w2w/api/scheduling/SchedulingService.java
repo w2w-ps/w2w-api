@@ -40,12 +40,11 @@ public class SchedulingService {
         shift.setIsDeleted(false);
 
         if (request.getDate() != null) {
-            LocalDate date = request.getDate();
-            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), date);
+            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), request.getDate());
             shift.setScheduleId(schedule.getScheduleId());
         }
 
-        calculateCalculatedFields(shift, request.getDuration());
+        applyDerivedShiftFields(shift, request.getDuration());
 
         shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
@@ -68,7 +67,7 @@ public class SchedulingService {
             shift.setScheduleId(schedule.getScheduleId());
         }
 
-        calculateCalculatedFields(shift, request.getDuration());
+        applyDerivedShiftFields(shift, request.getDuration());
 
         shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
@@ -94,7 +93,7 @@ public class SchedulingService {
                 });
     }
 
-    private void calculateCalculatedFields(Shift shift, Float duration) {
+    private void applyDerivedShiftFields(Shift shift, Float duration) {
         if (shift.getStartTime() != null && shift.getEndTime() != null) {
             if (duration != null) {
                 shift.setDuration(duration);
