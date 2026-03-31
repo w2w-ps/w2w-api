@@ -1,6 +1,7 @@
 package com.w2w.api.scheduling.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -9,18 +10,24 @@ public class CreateShiftRequest {
     private Integer companyId;
     private String description;
     
+    @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate date;
     
+    @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma")
     private LocalTime startTime;
     
+    @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma")
     private LocalTime endTime;
     
     private Float duration;
     private Boolean isOvernight;
+    
+    @NotNull
     private Integer requiredSkillId;
+    
     private Integer categoryId;
     private Short color;
 
