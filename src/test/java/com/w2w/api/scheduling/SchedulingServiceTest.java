@@ -50,6 +50,7 @@ class SchedulingServiceTest {
         request.setStartTime(LocalTime.of(9, 0));
         request.setEndTime(LocalTime.of(17, 0));
         request.setPosition(1);
+        request.setColor("#FFAA00");
 
         Schedule schedule = new Schedule();
         schedule.setScheduleId(500);
@@ -62,6 +63,29 @@ class SchedulingServiceTest {
         assertEquals(false, saved.getIsOvernight());
         assertEquals(101, saved.getChangedBy());
         assertEquals(500, saved.getScheduleId());
+        assertEquals("#FFAA00", saved.getColor());
+    }
+
+    @Test
+    void saveShiftAllowsBlankColor() {
+        LocalDate date = LocalDate.of(2026, 3, 31);
+        CreateShiftRequest request = new CreateShiftRequest();
+        request.setEmployeeId(101);
+        request.setCompanyId(1);
+        request.setDate(date);
+        request.setStartTime(LocalTime.of(9, 0));
+        request.setEndTime(LocalTime.of(17, 0));
+        request.setPosition(1);
+        request.setColor("");
+
+        Schedule schedule = new Schedule();
+        schedule.setScheduleId(500);
+        when(scheduleRepository.findByCompanyIdAndStartDate(1, date)).thenReturn(Optional.of(schedule));
+        when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Shift saved = schedulingService.saveShift(request);
+
+        assertEquals("", saved.getColor());
     }
 
     @Test
