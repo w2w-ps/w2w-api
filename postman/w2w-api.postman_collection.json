@@ -37,9 +37,42 @@
     {
       "key": "endDate",
       "value": "2026-03-31"
+    },
+    {
+      "key": "bearerToken",
+      "value": "",
+      "description": "JWT token — populate by running the Login request first, then copy the token value here."
     }
   ],
   "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/login",
+            "description": "Public endpoint — no token required. On success, copy the returned `token` value into the `bearerToken` collection variable."
+          }
+        }
+      ]
+    },
     {
       "name": "Tenants",
       "item": [
@@ -47,7 +80,12 @@
           "name": "List Tenants",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
             "url": "{{baseUrl}}/api/tenants"
           }
         },
@@ -55,7 +93,12 @@
           "name": "Get Tenant By Id",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
             "url": "{{baseUrl}}/api/tenants/{{tenantId}}"
           }
         },
@@ -67,6 +110,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
@@ -90,7 +137,12 @@
           "name": "List Employees By Company",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
             "url": "{{baseUrl}}/api/employees/company/{{companyId}}"
           }
         },
@@ -98,7 +150,12 @@
           "name": "Get Employee By Id",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
             "url": "{{baseUrl}}/api/employees/{{employeeId}}?companyId={{companyId}}"
           }
         },
@@ -110,6 +167,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
@@ -133,7 +194,12 @@
           "name": "Get Positions",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
             "url": "{{baseUrl}}/api/positions?companyId={{companyId}}"
           }
         }
@@ -146,7 +212,12 @@
           "name": "Get Categories",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
             "url": "{{baseUrl}}/api/categories?companyId={{companyId}}"
           }
         }
@@ -163,6 +234,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
@@ -219,7 +294,12 @@
           "name": "Get Grouped Shifts In Range",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
             "description": "Returns employees with grouped day buckets relative to the requested startDate. Each bucket contains a date and its shifts; availablePositions are returned as id/name objects.",
             "url": "{{baseUrl}}/api/scheduling/employees?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
           }

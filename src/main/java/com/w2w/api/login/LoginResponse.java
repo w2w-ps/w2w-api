@@ -3,12 +3,14 @@ package com.w2w.api.login;
 public class LoginResponse {
     private boolean success;
     private String message;
+    private String token;
 
     public LoginResponse() {}
 
-    public LoginResponse(boolean success, String message) {
+    public LoginResponse(boolean success, String message, String token) {
         this.success = success;
         this.message = message;
+        this.token = token;
     }
 
     public boolean isSuccess() {
@@ -25,5 +27,13 @@ public class LoginResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

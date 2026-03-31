@@ -18,12 +18,12 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        boolean isValid = loginService.authenticate(request.getUsername(), request.getPassword());
+        String token = loginService.authenticate(request.getUsername(), request.getPassword());
 
-        if (isValid) {
-            return ResponseEntity.ok(new LoginResponse(true, "Login successful"));
+        if (token != null) {
+            return ResponseEntity.ok(new LoginResponse(true, "Login successful", token));
         } else {
-            return ResponseEntity.status(401).body(new LoginResponse(false, "Invalid credentials"));
+            return ResponseEntity.status(401).body(new LoginResponse(false, "Invalid credentials", null));
         }
     }
 }
