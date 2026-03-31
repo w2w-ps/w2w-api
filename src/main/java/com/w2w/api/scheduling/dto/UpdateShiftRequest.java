@@ -54,7 +54,6 @@ public class UpdateShiftRequest {
 
     public Integer getCategory() { return category; }
     public void setCategory(Integer category) { this.category = category; }
-
     public String getColor() { return color; }
     public void setColor(String color) { this.color = color; }
 }
