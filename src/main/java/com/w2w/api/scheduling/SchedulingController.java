@@ -1,6 +1,7 @@
 package com.w2w.api.scheduling;
 
 import com.w2w.api.config.TenantContext;
+import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
 import com.w2w.api.scheduling.model.Shift;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +18,9 @@ public class SchedulingController {
     private SchedulingService schedulingService;
 
     @PostMapping("/shifts")
-    public Shift createShift(@RequestBody Shift shift) {
-        TenantContext.setCurrentTenant(shift.getCompanyId());
-        return schedulingService.saveShift(shift);
+    public Shift createShift(@RequestBody CreateShiftRequest request) {
+        TenantContext.setCurrentTenant(request.getCompanyId());
+        return schedulingService.saveShift(request);
     }
 
     @GetMapping("/employees")

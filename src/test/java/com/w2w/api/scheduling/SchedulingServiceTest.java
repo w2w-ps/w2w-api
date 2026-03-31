@@ -1,9 +1,12 @@
 package com.w2w.api.scheduling;
 
 import com.w2w.api.position.dto.PositionDto;
+import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.dto.DayShiftBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
+import com.w2w.api.scheduling.model.Schedule;
+import com.w2w.api.scheduling.model.Shift;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -12,21 +15,96 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 class SchedulingServiceTest {
     private SchedulingQueryRepository schedulingQueryRepository;
+    private ShiftRepository shiftRepository;
+    private ScheduleRepository scheduleRepository;
     private SchedulingService schedulingService;
 
     @BeforeEach
     void setUp() {
         schedulingQueryRepository = Mockito.mock(SchedulingQueryRepository.class);
+        shiftRepository = Mockito.mock(ShiftRepository.class);
+        scheduleRepository = Mockito.mock(ScheduleRepository.class);
         schedulingService = new SchedulingService();
         ReflectionTestUtils.setField(schedulingService, "schedulingQueryRepository", schedulingQueryRepository);
+        ReflectionTestUtils.setField(schedulingService, "shiftRepository", shiftRepository);
+        ReflectionTestUtils.setField(schedulingService, "scheduleRepository", scheduleRepository);
+    }
+
+    @Test
+    void saveShiftCalculatesDurationAndOvernightStatus() {
+        LocalDate date = LocalDate.of(2026, 3, 31);
+        CreateShiftRequest request = new CreateShiftRequest();
+        request.setEmployeeId(101);
+        request.setCompanyId(1);
+        request.setDate(date);
+        request.setStartTime(LocalTime.of(9, 0));
+        request.setEndTime(LocalTime.of(17, 0));
+
+        Schedule schedule = new Schedule();
+        schedule.setScheduleId(500);
+        when(scheduleRepository.findByCompanyIdAndStartDate(1, date)).thenReturn(Optional.of(schedule));
+        when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Shift saved = schedulingService.saveShift(request);
+
+        assertEquals(8.0f, saved.getDuration());
+        assertEquals(false, saved.getIsOvernight());
+        assertEquals(101, saved.getChangedBy());
+        assertEquals(500, saved.getScheduleId());
+    }
+
+    @Test
+    void saveShiftCalculatesOvernightStatusCorrecty() {
+        LocalDate date = LocalDate.of(2026, 3, 31);
+        CreateShiftRequest request = new CreateShiftRequest();
+        request.setEmployeeId(101);
+        request.setCompanyId(1);
+        request.setDate(date);
+        request.setStartTime(LocalTime.of(22, 0));
+        request.setEndTime(LocalTime.of(6, 0));
+
+        Schedule schedule = new Schedule();
+        schedule.setScheduleId(500);
+        when(scheduleRepository.findByCompanyIdAndStartDate(1, date)).thenReturn(Optional.of(schedule));
+        when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Shift saved = schedulingService.saveShift(request);
+
+        assertEquals(8.0f, saved.getDuration());
+        assertEquals(true, saved.getIsOvernight());
+    }
+
+    @Test
+    void saveShiftCreatesNewScheduleIfNotFound() {
+        LocalDate date = LocalDate.of(2026, 3, 31);
+        CreateShiftRequest request = new CreateShiftRequest();
+        request.setEmployeeId(101);
+        request.setCompanyId(1);
+        request.setDate(date);
+        request.setStartTime(LocalTime.of(9, 0));
+        request.setEndTime(LocalTime.of(17, 0));
+
+        when(scheduleRepository.findByCompanyIdAndStartDate(1, date)).thenReturn(Optional.empty());
+        when(scheduleRepository.save(any(Schedule.class))).thenAnswer(invocation -> {
+            Schedule s = invocation.getArgument(0);
+            s.setScheduleId(600);
+            return s;
+        });
+        when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Shift saved = schedulingService.saveShift(request);
+
+        assertEquals(600, saved.getScheduleId());
     }
 
     @Test

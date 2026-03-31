@@ -3,6 +3,7 @@ package com.w2w.api.scheduling;
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
 import com.w2w.api.scheduling.dto.ShiftDto;
+import com.w2w.api.scheduling.model.Schedule;
 import com.w2w.api.scheduling.model.Shift;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,50 @@ public class SchedulingService {
     @Autowired
     private ShiftRepository shiftRepository;
 
-    public Shift saveShift(Shift shift) {
+    @Autowired
+    private ScheduleRepository scheduleRepository;
+
+    public Shift saveShift(com.w2w.api.scheduling.dto.CreateShiftRequest request) {
+        Shift shift = new Shift();
+        shift.setEmployeeId(request.getEmployeeId());
+        shift.setCompanyId(request.getCompanyId());
+        shift.setDescription(request.getDescription());
+        shift.setStartTime(request.getStartTime());
+        shift.setEndTime(request.getEndTime());
+        shift.setRequiredSkillId(request.getRequiredSkillId());
+        shift.setCategoryId(request.getCategoryId());
+        shift.setColor(request.getColor());
+
+        if (request.getDate() != null) {
+            LocalDate date = request.getDate();
+            Schedule schedule = scheduleRepository.findByCompanyIdAndStartDate(shift.getCompanyId(), date)
+                    .orElseGet(() -> {
+                        Schedule newSchedule = new Schedule();
+                        newSchedule.setCompanyId(shift.getCompanyId());
+                        newSchedule.setStartDate(date);
+                        newSchedule.setPublished("true");
+                        newSchedule.setDayOfWeek((short) date.getDayOfWeek().getValue());
+                        newSchedule.setTimestamp(java.time.LocalDateTime.now());
+                        return scheduleRepository.save(newSchedule);
+                    });
+            shift.setScheduleId(schedule.getScheduleId());
+        }
+
+        if (shift.getStartTime() != null && shift.getEndTime() != null) {
+            if (request.getDuration() != null) {
+                shift.setDuration(request.getDuration());
+            } else {
+                shift.setDuration(calculateDurationHours(shift.getStartTime(), shift.getEndTime()));
+            }
+
+            if (request.getIsOvernight() != null) {
+                shift.setIsOvernight(request.getIsOvernight());
+            } else {
+                shift.setIsOvernight(shift.getEndTime().isBefore(shift.getStartTime()));
+            }
+        }
+
+        shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
     }
 

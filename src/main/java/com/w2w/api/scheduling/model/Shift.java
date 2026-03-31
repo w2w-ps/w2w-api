@@ -8,6 +8,7 @@ import java.time.LocalTime;
 @Table(name = "scheduled_employee")
 public class Shift {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "transaction_id")
     private Integer transactionId;
 
