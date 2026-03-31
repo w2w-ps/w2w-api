@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: when-to-work-backend
+  namespace: platformai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: when-to-work-backend
+  template:
+    metadata:
+      labels:
+        app: when-to-work-backend
+    spec:
+      containers:
+      - name: when-to-work-backend
+        image: PLACEHOLDER_IMAGE
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: Always
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "10m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+      imagePullSecrets:
+      - name: ecr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: when-to-work-backend-service
+  namespace: platformai
+spec:
+  selector:
+    app: when-to-work-backend
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+
