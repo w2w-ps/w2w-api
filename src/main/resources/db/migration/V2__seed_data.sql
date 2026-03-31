@@ -122,8 +122,8 @@ BEGIN
 
         v_current_date := '2026-03-01'::DATE;
         WHILE v_current_date <= v_end_date LOOP
-            INSERT INTO schedule (schedule_id, company_id, description, start_date, day_of_week, published, timestamp)
-            VALUES (sched_id, c_id, 'Daily Schedule: ' || v_current_date, v_current_date, (extract(dow from v_current_date))::SMALLINT, 'true', NOW());
+            INSERT INTO schedule (schedule_id, company_id, description, start_date, day_of_week, is_published, timestamp)
+            VALUES (sched_id, c_id, 'Daily Schedule: ' || v_current_date, v_current_date, (extract(dow from v_current_date))::SMALLINT, TRUE, NOW());
             FOR m IN 1..(CASE WHEN target_count > 300 THEN 300 ELSE target_count END) LOOP
                 IF random() < 0.3 THEN
                     is_overnight := (random() < 0.2);
