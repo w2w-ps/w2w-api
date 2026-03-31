@@ -4,6 +4,7 @@ import com.w2w.api.config.TenantContext;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.dto.UpdateShiftRequest;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
+import com.w2w.api.scheduling.model.Shift;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -27,7 +28,7 @@ public class SchedulingController {
     }
 
     @PutMapping("/shifts/{transactionId}")
-    public Shift updateShift(@PathVariable Integer transactionId, @RequestBody UpdateShiftRequest request) {
+    public Shift updateShift(@PathVariable Integer transactionId, @Valid @RequestBody UpdateShiftRequest request) {
         // We might want to set tenant based on request or existing shift
         // For now, assume it's handled or we can fetch the shift first to get companyId
         return schedulingService.updateShift(transactionId, request);
