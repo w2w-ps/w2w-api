@@ -7,6 +7,7 @@ import com.w2w.api.scheduling.model.Shift;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -19,6 +20,7 @@ public class SchedulingController {
     private SchedulingService schedulingService;
 
     @PostMapping("/shifts")
+    @ResponseStatus(HttpStatus.CREATED)
     public Shift createShift(@Valid @RequestBody CreateShiftRequest request) {
         TenantContext.setCurrentTenant(request.getCompanyId());
         return schedulingService.saveShift(request);

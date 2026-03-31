@@ -26,10 +26,10 @@ public class CreateShiftRequest {
     private Boolean isOvernight;
     
     @NotNull
-    private Integer requiredSkillId;
+    private Integer position;
     
-    private Integer categoryId;
-    private Short color;
+    private Integer category;
+    private String color;
 
     public CreateShiftRequest() {}
 
@@ -57,12 +57,12 @@ public class CreateShiftRequest {
     public Boolean getIsOvernight() { return isOvernight; }
     public void setIsOvernight(Boolean isOvernight) { this.isOvernight = isOvernight; }
 
-    public Integer getRequiredSkillId() { return requiredSkillId; }
-    public void setRequiredSkillId(Integer requiredSkillId) { this.requiredSkillId = requiredSkillId; }
+    public Integer getPosition() { return position; }
+    public void setPosition(Integer position) { this.position = position; }
 
-    public Integer getCategoryId() { return categoryId; }
-    public void setCategoryId(Integer categoryId) { this.categoryId = categoryId; }
+    public Integer getCategory() { return category; }
+    public void setCategory(Integer category) { this.category = category; }
 
-    public Short getColor() { return color; }
-    public void setColor(Short color) { this.color = color; }
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
 }

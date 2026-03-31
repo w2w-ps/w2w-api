@@ -34,9 +34,15 @@ public class SchedulingService {
         shift.setDescription(request.getDescription());
         shift.setStartTime(request.getStartTime());
         shift.setEndTime(request.getEndTime());
-        shift.setRequiredSkillId(request.getRequiredSkillId());
-        shift.setCategoryId(request.getCategoryId());
-        shift.setColor(request.getColor());
+        shift.setRequiredSkillId(request.getPosition());
+        shift.setCategoryId(request.getCategory());
+        if (request.getColor() != null) {
+            try {
+                shift.setColor(Short.valueOf(request.getColor()));
+            } catch (NumberFormatException e) {
+                // Ignore or handle default
+            }
+        }
 
         if (request.getDate() != null) {
             LocalDate date = request.getDate();

@@ -49,6 +49,7 @@ class SchedulingServiceTest {
         request.setDate(date);
         request.setStartTime(LocalTime.of(9, 0));
         request.setEndTime(LocalTime.of(17, 0));
+        request.setPosition(1);
 
         Schedule schedule = new Schedule();
         schedule.setScheduleId(500);
@@ -72,6 +73,7 @@ class SchedulingServiceTest {
         request.setDate(date);
         request.setStartTime(LocalTime.of(22, 0));
         request.setEndTime(LocalTime.of(6, 0));
+        request.setPosition(1);
 
         Schedule schedule = new Schedule();
         schedule.setScheduleId(500);
@@ -93,6 +95,7 @@ class SchedulingServiceTest {
         request.setDate(date);
         request.setStartTime(LocalTime.of(9, 0));
         request.setEndTime(LocalTime.of(17, 0));
+        request.setPosition(1);
 
         when(scheduleRepository.findByCompanyIdAndStartDate(1, date)).thenReturn(Optional.empty());
         when(scheduleRepository.save(any(Schedule.class))).thenAnswer(invocation -> {
