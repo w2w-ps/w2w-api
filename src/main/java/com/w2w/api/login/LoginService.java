@@ -41,8 +41,8 @@ public class LoginService {
         return Optional.empty();
     }
 
-    public String generateToken(String username) {
-        return jwtUtil.generateToken(username);
+    public String generateToken(String username, String role) {
+        return jwtUtil.generateToken(username, role);
     }
 
     public PasswordValidationResponse validatePassword(String password) {
