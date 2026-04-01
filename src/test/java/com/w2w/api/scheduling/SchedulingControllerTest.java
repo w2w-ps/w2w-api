@@ -1,11 +1,16 @@
 package com.w2w.api.scheduling;
 
 import com.w2w.api.login.JwtUtil;
-import com.w2w.api.scheduling.model.Shift;
 import com.w2w.api.scheduling.dto.ConflictDto;
+import com.w2w.api.scheduling.dto.ConflictResponse;
+import com.w2w.api.scheduling.dto.DayPositionBucketDto;
+import com.w2w.api.scheduling.dto.EmployeeScheduledShiftDto;
+import com.w2w.api.scheduling.dto.FindConflictRequest;
+import com.w2w.api.scheduling.dto.PositionShiftBucketDto;
+import com.w2w.api.scheduling.model.Shift;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,12 +22,14 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,6 +74,53 @@ class SchedulingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.hasConflicts", is(false)))
                 .andExpect(jsonPath("$.conflicts", hasSize(0)));
+    }
+
+    @Test
+    void getShiftsGroupedByDayAndPosition_returnsGroupedBuckets() throws Exception {
+        when(schedulingService.getShiftsGroupedByDayAndPosition(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
+                .thenReturn(List.of(
+                        new DayPositionBucketDto(
+                                LocalDate.of(2026, 3, 25),
+                                List.of(
+                                        new PositionShiftBucketDto(
+                                                "Bartender",
+                                                List.of(
+                                                        new EmployeeScheduledShiftDto(
+                                                                9001,
+                                                                101,
+                                                                "Ava",
+                                                                "Stone",
+                                                                List.of("111-222"),
+                                                                LocalTime.of(9, 0),
+                                                                LocalTime.of(17, 0),
+                                                                "Front",
+                                                                "Opening shift",
+                                                                8.0f,
+                                                                "amber"
+                                                        )
+                                                )
+                                        )
+                                )
+                        ),
+                        new DayPositionBucketDto(LocalDate.of(2026, 3, 26), List.of())
+                ));
+
+        mockMvc.perform(get("/api/scheduling/shifts/range/grouped/day-position")
+                .param("companyId", "7")
+                .param("startDate", "2026-03-25")
+                .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].date", is("2026-03-25")))
+                .andExpect(jsonPath("$[0].positions", hasSize(1)))
+                .andExpect(jsonPath("$[0].positions[0].position", is("Bartender")))
+                .andExpect(jsonPath("$[0].positions[0].shifts", hasSize(1)))
+                .andExpect(jsonPath("$[0].positions[0].shifts[0].employeeId", is(101)))
+                .andExpect(jsonPath("$[0].positions[0].shifts[0].firstName", is("Ava")))
+                .andExpect(jsonPath("$[1].positions", hasSize(0)));
+
+        verify(schedulingService).getShiftsGroupedByDayAndPosition(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
     }
 
     @Test

@@ -2,19 +2,29 @@ package com.w2w.api.scheduling;
 
 import com.w2w.api.config.TenantContext;
 import com.w2w.api.scheduling.dto.ConflictDto;
+import com.w2w.api.scheduling.dto.ConflictResponse;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
-import com.w2w.api.scheduling.dto.UpdateShiftRequest;
-import com.w2w.api.scheduling.dto.ShiftResponseDto;
+import com.w2w.api.scheduling.dto.DayPositionBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
-import com.w2w.api.scheduling.dto.ConflictResponse; // Import the renamed DTO
+import com.w2w.api.scheduling.dto.ShiftResponseDto;
+import com.w2w.api.scheduling.dto.UpdateShiftRequest;
 import com.w2w.api.scheduling.model.Shift;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,9 +49,6 @@ public class SchedulingController {
 
     @PutMapping("/shifts/{shiftId}")
     public Shift updateShift(@PathVariable Integer shiftId, @Valid @RequestBody UpdateShiftRequest request) {
-        // TODO: Determine tenant context appropriately. It might be inferred from the shiftId, or the request.
-        // The shiftId from the path variable is used here. If the request body also contains shiftId,
-        // ensure consistency or decide which one takes precedence.
         return schedulingService.updateShift(shiftId, request);
     }
 
@@ -54,26 +61,26 @@ public class SchedulingController {
     public List<EmployeeWithShiftsDto> getShiftsGroupedInRange(
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
+    ) {
         TenantContext.setCurrentTenant(companyId);
         return schedulingService.getEmployeeShiftsGroupedInRange(companyId, startDate, endDate);
     }
 
-    /**
-     * Performs pre-checks for create/update/reassign operations and returns any conflicts.
-     *
-     * @param request The validation request containing operation type and shift data (including IDs for reassignment/update).
-     * @return A ConflictResponse containing a boolean indicating conflicts and a list of ConflictDto.
-     */
-    @PostMapping("/validation/precheck") // New endpoint path under /api/scheduling
-    public ResponseEntity<ConflictResponse> preCheck(@RequestBody FindConflictRequest request) { // Use the renamed DTO and return type
-        // TODO: Implement more complex validation rules by calling RuleEngineService methods
-        // for specific operation types as needed. For now, basic checks are delegated.
+    @GetMapping("/shifts/range/grouped/day-position")
+    public List<DayPositionBucketDto> getShiftsGroupedByDayAndPosition(
+            @RequestParam Integer companyId,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
+    ) {
+        TenantContext.setCurrentTenant(companyId);
+        return schedulingService.getShiftsGroupedByDayAndPosition(companyId, startDate, endDate);
+    }
+
+    @PostMapping("/validation/precheck")
+    public ResponseEntity<ConflictResponse> preCheck(@RequestBody FindConflictRequest request) {
         List<ConflictDto> conflicts = schedulingService.validate(request);
-
-        boolean hasConflicts = !conflicts.isEmpty();
-        ConflictResponse response = new ConflictResponse(hasConflicts, conflicts); // Use ConflictResponse
-
+        ConflictResponse response = new ConflictResponse(!conflicts.isEmpty(), conflicts);
         return ResponseEntity.ok(response);
     }
 }

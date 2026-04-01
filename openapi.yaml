@@ -84,6 +84,36 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EmployeeWithShifts'
+  /api/scheduling/shifts/range/grouped/day-position:
+    get:
+      summary: Get shifts grouped by day and position
+      parameters:
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: startDate
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Daily shift buckets grouped by position
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DayPositionBucket'
 components:
   parameters:
     ShiftId:
@@ -271,3 +301,51 @@ components:
           format: float
         shiftCount:
           type: integer
+    EmployeeScheduledShift:
+      type: object
+      properties:
+        shiftId:
+          type: integer
+        employeeId:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phones:
+          type: array
+          items:
+            type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        duration:
+          type: number
+          format: float
+        color:
+          type: string
+    PositionShiftBucket:
+      type: object
+      properties:
+        position:
+          type: string
+          nullable: true
+        shifts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeScheduledShift'
+    DayPositionBucket:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        positions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionShiftBucket'

@@ -303,6 +303,20 @@
             "description": "Returns employees with grouped day buckets relative to the requested startDate. Each bucket contains a date and its shifts; availablePositions are returned as id/name objects.",
             "url": "{{baseUrl}}/api/scheduling/employees?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
           }
+        },
+        {
+          "name": "Get Grouped Shifts By Day And Position",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns day buckets for the requested range, with each day grouped by position and each position listing employee-level shift entries.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/range/grouped/day-position?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
+          }
         }
       ]
     }
