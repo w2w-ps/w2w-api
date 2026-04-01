@@ -20,6 +20,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.List;
 
 @Repository
@@ -97,7 +98,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         if (value == null || value.isBlank()) {
             return List.of();
         }
-        return java.util.Arrays.stream(value.split(","))
+        return Arrays.stream(value.split(","))
                 .map(String::trim)
                 .filter(item -> !item.isEmpty())
                 .toList();

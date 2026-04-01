@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -18,13 +19,13 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        java.util.Optional<User> userOpt = loginService.authenticate(request.getUsername(), request.getPassword());
+        Optional<User> userOpt = loginService.authenticate(request.getUsername(), request.getPassword());
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            String token = loginService.generateToken(user.getLoginId());
+            String roleName = (user.getRole() != null) ? user.getRole().getName() : "ROLE_USER";
+            String token = loginService.generateToken(user.getLoginId(), roleName);
             
-            String roleName = (user.getRole() != null) ? user.getRole().getName() : null;
             String empTypeName = (user.getEmpType() != null) ? user.getEmpType().getName() : null;
             String displayName = (user.getEmployee() != null) ? 
                 user.getEmployee().getFirstName() + " " + user.getEmployee().getLastName() : user.getLoginId();
@@ -33,5 +34,26 @@ public class LoginController {
         } else {
             return ResponseEntity.status(401).body(new LoginResponse(false, "Invalid credentials", null, null, null, null, null, null));
         }
+    }
+
+
+    @PostMapping("/login/update-password")
+    public ResponseEntity<PasswordValidationResponse> updatePassword(@RequestBody PasswordValidationRequest request) {
+        return ResponseEntity.ok(loginService.updatePassword(
+            request.getUsername(), 
+            request.getOldPassword(), 
+            request.getNewPassword(), 
+            request.getConfirmPassword()
+        ));
+    }
+
+    @PostMapping("/login/reset-user-account")
+    public ResponseEntity<PasswordValidationResponse> resetUserAccount(@RequestBody UserAccountResetRequest request) {
+        return ResponseEntity.ok(loginService.resetUserAccount(
+            request.getCurrentUsername(),
+            request.getNewUsername(),
+            request.getNewPassword(),
+            request.getConfirmPassword()
+        ));
     }
 }
