@@ -1,7 +1,6 @@
 package com.w2w.api.employee;
 
 import jakarta.persistence.*;
-import com.w2w.api.login.User;
 
 import java.util.ArrayList;
 import java.time.LocalDateTime;
@@ -39,10 +38,7 @@ public class Employee {
     private String email;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "employee_phone",
-            joinColumns = @JoinColumn(name = "employee_id")
-    )
+    @CollectionTable(name = "employee_phone", joinColumns = @JoinColumn(name = "employee_id"))
     @Column(name = "phone_number")
     @OrderColumn(name = "sort_order")
     private List<String> phones = new ArrayList<>();
@@ -59,10 +55,8 @@ public class Employee {
     @Column(name = "pay_rate")
     private Float payRate;
 
-    @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
-    private User user;
-
-    public Employee() {}
+    public Employee() {
+    }
 
     public Integer getEmployeeId() {
         return employeeId;
@@ -174,13 +168,5 @@ public class Employee {
 
     public void setPayRate(Float payRate) {
         this.payRate = payRate;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
     }
 }

@@ -43,11 +43,8 @@ public class User {
     @Column(name = "login_failures")
     private Integer loginFailures;
 
-    @Column(name = "employee_id")
-    private Integer employeeId;
-
     @OneToOne
-    @JoinColumn(name = "employee_id", insertable = false, updatable = false)
+    @JoinColumn(name = "employee_id")
     private Employee employee;
 
     public User() {}
@@ -75,8 +72,9 @@ public class User {
     public Integer getLoginFailures() { return loginFailures; }
     public void setLoginFailures(Integer loginFailures) { this.loginFailures = loginFailures; }
 
-    public Integer getEmployeeId() { return employeeId; }
-    public void setEmployeeId(Integer employeeId) { this.employeeId = employeeId; }
+    public Integer getEmployeeId() {
+        return employee != null ? employee.getEmployeeId() : null;
+    }
 
     public Employee getEmployee() { return employee; }
     public void setEmployee(Employee employee) { this.employee = employee; }
