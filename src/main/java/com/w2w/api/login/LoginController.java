@@ -46,4 +46,14 @@ public class LoginController {
             request.getConfirmPassword()
         ));
     }
+
+    @PostMapping("/login/reset-user-account")
+    public ResponseEntity<PasswordValidationResponse> resetUserAccount(@RequestBody UserAccountResetRequest request) {
+        return ResponseEntity.ok(loginService.resetUserAccount(
+            request.getCurrentUsername(),
+            request.getNewUsername(),
+            request.getNewPassword(),
+            request.getConfirmPassword()
+        ));
+    }
 }

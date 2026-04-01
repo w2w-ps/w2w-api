@@ -70,4 +70,31 @@ class PasswordValidationTest {
         assertFalse(response.getIsValid());
         assertTrue(response.getErrors().contains("Incorrect old password."));
     }
+
+    @Test
+    void testResetUserAccount_Success() {
+        User user = new User();
+        user.setLoginId("oldUser");
+        Mockito.when(loginRepository.findByLoginId("oldUser")).thenReturn(Optional.of(user));
+        Mockito.when(passwordEncoder.encode("NewSecret123!")).thenReturn("hashedNewSecret");
+
+        PasswordValidationResponse response = loginService.resetUserAccount("oldUser", "newUser", "NewSecret123!", "NewSecret123!");
+
+        assertTrue(response.getIsValid());
+        assertEquals("User account reset successfully.", response.getMessage());
+        assertEquals("newUser", user.getLoginId());
+        assertEquals("hashedNewSecret", user.getPassword());
+        Mockito.verify(loginRepository).save(user);
+    }
+
+    @Test
+    void testResetUserAccount_WeakPassword() {
+        User user = new User();
+        Mockito.when(loginRepository.findByLoginId("any")).thenReturn(Optional.of(user));
+
+        PasswordValidationResponse response = loginService.resetUserAccount("any", "any", "weak", "weak");
+
+        assertFalse(response.getIsValid());
+        assertTrue(response.getErrors().size() > 0);
+    }
 }

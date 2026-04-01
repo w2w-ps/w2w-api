@@ -119,4 +119,44 @@ public class LoginService {
 
         return new PasswordValidationResponse(true, new ArrayList<>(), "Password updated successfully.");
     }
+
+    public PasswordValidationResponse resetUserAccount(String currentUsername, String newUsername, String newPassword, String confirmPassword) {
+        List<String> errors = new ArrayList<>();
+
+        if (currentUsername == null || currentUsername.isEmpty()) {
+            errors.add("Current username is required.");
+        }
+        if (newUsername == null || newUsername.isEmpty()) {
+            errors.add("New username is required.");
+        }
+        if (newPassword == null || !newPassword.equals(confirmPassword)) {
+            errors.add("Passwords do not match.");
+        }
+
+        if (!errors.isEmpty()) {
+            return new PasswordValidationResponse(false, errors, "Validation failed.");
+        }
+
+        // Locate user
+        Optional<User> userOpt = loginRepository.findByLoginId(currentUsername);
+        if (userOpt.isEmpty()) {
+            errors.add("User not found.");
+            return new PasswordValidationResponse(false, errors, "User not found.");
+        }
+
+        User user = userOpt.get();
+
+        // Complexity validation
+        PasswordValidationResponse valResponse = validatePassword(newPassword);
+        if (!valResponse.getIsValid()) {
+            return valResponse;
+        }
+
+        // Persistence
+        user.setLoginId(newUsername);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        loginRepository.save(user);
+
+        return new PasswordValidationResponse(true, new ArrayList<>(), "User account reset successfully.");
+    }
 }
