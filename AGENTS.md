@@ -55,4 +55,5 @@
 - Do not reintroduce `controller/` or `service/` subpackages for category or position.
 - Keep DTO/model/repository folders grouped only when they contain multiple files.
 - Add new database changes as incremental Flyway migrations; do not edit already-applied migrations in a shared environment.
-- When response contracts change, update request examples in the Postman collection.
+- When request or response contracts change, update `openapi.yaml`.
+- When request or response contracts change, update request examples in `postman/w2w-api.postman_collection.json`.

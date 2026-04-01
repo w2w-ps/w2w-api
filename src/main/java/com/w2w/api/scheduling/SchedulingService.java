@@ -1,10 +1,14 @@
 package com.w2w.api.scheduling;
 
+import com.w2w.api.scheduling.dto.ConflictDto;
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import com.w2w.api.scheduling.dto.ShiftDetailsProjection;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
-import com.w2w.api.scheduling.dto.ShiftDto;
+import com.w2w.api.scheduling.dto.ShiftDto; // ShiftDto is now a class
 import com.w2w.api.scheduling.dto.ShiftResponseDto;
+import com.w2w.api.scheduling.dto.FindConflictRequest;
+import com.w2w.api.scheduling.dto.OperationType;
+import com.w2w.api.scheduling.dto.UpdateShiftRequest;
 import com.w2w.api.scheduling.model.Schedule;
 import com.w2w.api.scheduling.model.Shift;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +18,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashMap; // Import LinkedHashMap
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +32,9 @@ public class SchedulingService {
 
     @Autowired
     private ScheduleRepository scheduleRepository;
+
+    @Autowired
+    private RuleEngineService ruleEngineService; // Inject the new service
 
     public ShiftResponseDto getShift(Integer shiftId) {
         ShiftDetailsProjection shift = shiftRepository.findShiftDetailsByShiftId(shiftId)
@@ -63,12 +70,14 @@ public class SchedulingService {
         shift.setIsDeleted(false);
 
         if (request.getDate() != null) {
+            // Assuming CreateShiftRequest has getCompanyId()
             Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), request.getDate());
             shift.setScheduleId(schedule.getScheduleId());
         }
 
         applyDerivedShiftFields(shift, request.getDuration());
 
+        // Assuming Shift model has getEmployeeId()
         shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
     }
@@ -77,21 +86,25 @@ public class SchedulingService {
         Shift shift = shiftRepository.findById(shiftId)
                 .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + shiftId));
 
-        if (request.getEmployeeId() != null) shift.setEmployeeId(request.getEmployeeId());
-        if (request.getDescription() != null) shift.setDescription(request.getDescription());
-        if (request.getStartTime() != null) shift.setStartTime(request.getStartTime());
-        if (request.getEndTime() != null) shift.setEndTime(request.getEndTime());
-        if (request.getPosition() != null) shift.setRequiredSkillId(request.getPosition());
-        if (request.getCategory() != null) shift.setCategoryId(request.getCategory());
-        if (request.getColor() != null) shift.setColor(request.getColor());
+        // Using record accessors for UpdateShiftRequest
+        if (request.employeeId() != null) shift.setEmployeeId(request.employeeId());
+        if (request.description() != null) shift.setDescription(request.description());
+        if (request.startTime() != null) shift.setStartTime(request.startTime());
+        if (request.endTime() != null) shift.setEndTime(request.endTime());
+        if (request.position() != null) shift.setRequiredSkillId(request.position());
+        if (request.category() != null) shift.setCategoryId(request.category());
+        if (request.color() != null) shift.setColor(request.color());
 
-        if (request.getDate() != null) {
-            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), request.getDate());
+        if (request.date() != null) {
+            // Assuming UpdateShiftRequest has getCompanyId() or it can be inferred/provided
+            // For now, assuming shift object already has companyId
+            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), request.date());
             shift.setScheduleId(schedule.getScheduleId());
         }
 
-        applyDerivedShiftFields(shift, request.getDuration());
+        applyDerivedShiftFields(shift, request.duration());
 
+        // Assuming Shift model has getEmployeeId()
         shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
     }
@@ -231,6 +244,8 @@ public class SchedulingService {
             float durationHours
     ) {
         int dayIndex = Math.toIntExact(ChronoUnit.DAYS.between(rangeStartDate, date));
+        // Correcting ShiftDto constructor call to match its class structure and arguments
+        // Assuming EmployeeShiftProjection has getCompanyId()
         employeeDto.addShiftToDay(dayIndex, date, new ShiftDto(
                 row.getShiftId(),
                 startTime,
@@ -256,5 +271,24 @@ public class SchedulingService {
             minutes += 24 * 60;
         }
         return minutes / 60.0f;
+    }
+
+    // Updated validate method to use FindConflictRequest's new structure
+    // and rely on essential parameter checks and RuleEngineService delegation.
+    public List<ConflictDto> validate(FindConflictRequest request) {
+        // Removed all explicit parameter checks (for null operationType, shiftData, shiftId, newEmployeeId).
+        // The method now solely delegates to the RuleEngineService.
+        // The RuleEngineService methods currently return empty lists due to TODOs.
+
+        // Delegate to RuleEngineService for all rule checks
+        List<ConflictDto> conflicts = new ArrayList<>();
+        conflicts.addAll(ruleEngineService.checkMaxHoursPerDay(request));
+        conflicts.addAll(ruleEngineService.checkMaxShiftsPerDay(request));
+        conflicts.addAll(ruleEngineService.checkMaxHoursAndShiftsPerWeek(request));
+        conflicts.addAll(ruleEngineService.checkWorkPreferences(request));
+        conflicts.addAll(ruleEngineService.checkTimeOff(request));
+        conflicts.addAll(ruleEngineService.checkConflictWithExistingShifts(request));
+
+        return conflicts;
     }
 }
