@@ -38,10 +38,7 @@ public class Employee {
     private String email;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-            name = "employee_phone",
-            joinColumns = @JoinColumn(name = "employee_id")
-    )
+    @CollectionTable(name = "employee_phone", joinColumns = @JoinColumn(name = "employee_id"))
     @Column(name = "phone_number")
     @OrderColumn(name = "sort_order")
     private List<String> phones = new ArrayList<>();
@@ -58,7 +55,8 @@ public class Employee {
     @Column(name = "pay_rate")
     private Float payRate;
 
-    public Employee() {}
+    public Employee() {
+    }
 
     public Integer getEmployeeId() {
         return employeeId;
