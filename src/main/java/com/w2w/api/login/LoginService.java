@@ -19,24 +19,27 @@ public class LoginService {
     }
 
     /**
-     * Fetches the user from USERS table by USUSERLOGINID, verifies the raw password
-     * against the BCrypt-hashed USUSERLOGINPW, and returns a signed JWT on success or null on failure.
+     * Authenticates the user and returns the User object if successful.
      */
-    public String authenticate(String username, String password) {
+    public java.util.Optional<User> authenticate(String username, String password) {
         if (username == null || password == null) {
-            return null;
+            return Optional.empty();
         }
 
         Optional<User> userOpt = loginRepository.findByLoginId(username);
         if (userOpt.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
 
         User user = userOpt.get();
         if (passwordEncoder.matches(password, user.getPassword())) {
-            return jwtUtil.generateToken(username);
+            return Optional.of(user);
         }
+    
+        return Optional.empty();
+    }
 
-        return null;
+    public String generateToken(String username) {
+        return jwtUtil.generateToken(username);
     }
 }

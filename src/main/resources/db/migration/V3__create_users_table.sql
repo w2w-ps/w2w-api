@@ -32,6 +32,7 @@ CREATE TABLE users (
     company_id INTEGER,
     emp_type_id INTEGER,
     role_id INTEGER,
+    employee_id INTEGER,
 
     encryption_type INTEGER,
     login_failures INTEGER DEFAULT 0,
@@ -46,5 +47,9 @@ CREATE TABLE users (
 
     CONSTRAINT fk_users_role
         FOREIGN KEY (role_id)
-        REFERENCES user_roles(role_id)
+        REFERENCES user_roles(role_id),
+
+    CONSTRAINT fk_users_employee
+        FOREIGN KEY (employee_id)
+        REFERENCES employee(employee_id)
 );

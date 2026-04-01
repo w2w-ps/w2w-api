@@ -1,6 +1,7 @@
 package com.w2w.api.employee;
 
 import jakarta.persistence.*;
+import com.w2w.api.login.User;
 
 import java.util.ArrayList;
 import java.time.LocalDateTime;
@@ -57,6 +58,9 @@ public class Employee {
 
     @Column(name = "pay_rate")
     private Float payRate;
+
+    @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
+    private User user;
 
     public Employee() {}
 
@@ -170,5 +174,13 @@ public class Employee {
 
     public void setPayRate(Float payRate) {
         this.payRate = payRate;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

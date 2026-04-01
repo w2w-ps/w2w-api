@@ -5,7 +5,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import com.w2w.api.employee.Employee;
 
 @Entity
 @Table(name = "users")
@@ -25,17 +29,26 @@ public class User {
     @Column(name = "company_id")
     private Integer companyId;
 
-    @Column(name = "emp_type_id")
-    private Integer empTypeId;
+    @ManyToOne
+    @JoinColumn(name = "emp_type_id")
+    private EmpType empType;
 
-    @Column(name = "role_id")
-    private Integer roleId;
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private UserRole role;
 
     @Column(name = "encryption_type")
     private Integer encryptionType;
 
     @Column(name = "login_failures")
     private Integer loginFailures;
+
+    @Column(name = "employee_id")
+    private Integer employeeId;
+
+    @OneToOne
+    @JoinColumn(name = "employee_id", insertable = false, updatable = false)
+    private Employee employee;
 
     public User() {}
 
@@ -50,15 +63,21 @@ public class User {
     public Integer getCompanyId() { return companyId; }
     public void setCompanyId(Integer companyId) { this.companyId = companyId; }
 
-    public Integer getEmpTypeId() { return empTypeId; }
-    public void setEmpTypeId(Integer empTypeId) { this.empTypeId = empTypeId; }
+    public EmpType getEmpType() { return empType; }
+    public void setEmpType(EmpType empType) { this.empType = empType; }
 
-    public Integer getRoleId() { return roleId; }
-    public void setRoleId(Integer roleId) { this.roleId = roleId; }
+    public UserRole getRole() { return role; }
+    public void setRole(UserRole role) { this.role = role; }
 
     public Integer getEncryptionType() { return encryptionType; }
     public void setEncryptionType(Integer encryptionType) { this.encryptionType = encryptionType; }
 
     public Integer getLoginFailures() { return loginFailures; }
     public void setLoginFailures(Integer loginFailures) { this.loginFailures = loginFailures; }
+
+    public Integer getEmployeeId() { return employeeId; }
+    public void setEmployeeId(Integer employeeId) { this.employeeId = employeeId; }
+
+    public Employee getEmployee() { return employee; }
+    public void setEmployee(Employee employee) { this.employee = employee; }
 }

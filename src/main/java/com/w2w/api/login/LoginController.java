@@ -18,12 +18,20 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        String token = loginService.authenticate(request.getUsername(), request.getPassword());
+        java.util.Optional<User> userOpt = loginService.authenticate(request.getUsername(), request.getPassword());
 
-        if (token != null) {
-            return ResponseEntity.ok(new LoginResponse(true, "Login successful", token));
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            String token = loginService.generateToken(user.getLoginId());
+            
+            String roleName = (user.getRole() != null) ? user.getRole().getName() : null;
+            String empTypeName = (user.getEmpType() != null) ? user.getEmpType().getName() : null;
+            String displayName = (user.getEmployee() != null) ? 
+                user.getEmployee().getFirstName() + " " + user.getEmployee().getLastName() : user.getLoginId();
+
+            return ResponseEntity.ok(new LoginResponse(true, "Login successful", token, roleName, empTypeName, displayName));
         } else {
-            return ResponseEntity.status(401).body(new LoginResponse(false, "Invalid credentials", null));
+            return ResponseEntity.status(401).body(new LoginResponse(false, "Invalid credentials", null, null, null, null));
         }
     }
 }
