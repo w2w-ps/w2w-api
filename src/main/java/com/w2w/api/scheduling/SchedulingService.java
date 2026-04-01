@@ -9,12 +9,14 @@ import com.w2w.api.scheduling.dto.ShiftResponseDto;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
 import com.w2w.api.scheduling.dto.OperationType;
 import com.w2w.api.scheduling.dto.UpdateShiftRequest;
+import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.model.Schedule;
 import com.w2w.api.scheduling.model.Shift;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -57,7 +59,7 @@ public class SchedulingService {
         return response;
     }
 
-    public Shift saveShift(com.w2w.api.scheduling.dto.CreateShiftRequest request) {
+    public Shift saveShift(CreateShiftRequest request) {
         Shift shift = new Shift();
         shift.setEmployeeId(request.getEmployeeId());
         shift.setCompanyId(request.getCompanyId());
@@ -82,7 +84,7 @@ public class SchedulingService {
         return shiftRepository.save(shift);
     }
 
-    public Shift updateShift(Integer shiftId, com.w2w.api.scheduling.dto.UpdateShiftRequest request) {
+    public Shift updateShift(Integer shiftId, UpdateShiftRequest request) {
         Shift shift = shiftRepository.findById(shiftId)
                 .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + shiftId));
 
@@ -124,7 +126,7 @@ public class SchedulingService {
                     newSchedule.setStartDate(date);
                     newSchedule.setPublished(false);
                     newSchedule.setDayOfWeek((short) date.getDayOfWeek().getValue());
-                    newSchedule.setTimestamp(java.time.LocalDateTime.now());
+                    newSchedule.setTimestamp(LocalDateTime.now());
                     return scheduleRepository.save(newSchedule);
                 });
     }
