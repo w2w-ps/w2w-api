@@ -34,4 +34,15 @@ public class LoginController {
             return ResponseEntity.status(401).body(new LoginResponse(false, "Invalid credentials", null, null, null, null, null, null));
         }
     }
+
+
+    @PostMapping("/login/update-password")
+    public ResponseEntity<PasswordValidationResponse> updatePassword(@RequestBody PasswordValidationRequest request) {
+        return ResponseEntity.ok(loginService.updatePassword(
+            request.getUsername(), 
+            request.getOldPassword(), 
+            request.getNewPassword(), 
+            request.getConfirmPassword()
+        ));
+    }
 }
