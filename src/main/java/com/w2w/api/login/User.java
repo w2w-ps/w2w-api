@@ -25,8 +25,11 @@ public class User {
     @Column(name = "company_id")
     private Integer companyId;
 
-    @Column(name = "worker_type")
-    private String workerType;
+    @Column(name = "emp_type_id")
+    private Integer empTypeId;
+
+    @Column(name = "role_id")
+    private Integer roleId;
 
     @Column(name = "encryption_type")
     private Integer encryptionType;
@@ -47,8 +50,11 @@ public class User {
     public Integer getCompanyId() { return companyId; }
     public void setCompanyId(Integer companyId) { this.companyId = companyId; }
 
-    public String getWorkerType() { return workerType; }
-    public void setWorkerType(String workerType) { this.workerType = workerType; }
+    public Integer getEmpTypeId() { return empTypeId; }
+    public void setEmpTypeId(Integer empTypeId) { this.empTypeId = empTypeId; }
+
+    public Integer getRoleId() { return roleId; }
+    public void setRoleId(Integer roleId) { this.roleId = roleId; }
 
     public Integer getEncryptionType() { return encryptionType; }
     public void setEncryptionType(Integer encryptionType) { this.encryptionType = encryptionType; }
