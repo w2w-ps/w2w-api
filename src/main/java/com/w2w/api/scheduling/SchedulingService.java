@@ -182,6 +182,14 @@ public class SchedulingService {
                     segment.durationHours(),
                     segment.color()
             ));
+            grouped.put(
+                    segment.date(),
+                    new DayPositionBucketDto(
+                            dayBucket.date(),
+                            dayBucket.positions(),
+                            dayBucket.totalDuration() + segment.durationHours()
+                    )
+            );
         }
 
         return new ArrayList<>(grouped.values());
@@ -354,7 +362,7 @@ public class SchedulingService {
         long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
         for (int i = 0; i <= totalDays; i++) {
             LocalDate bucketDate = startDate.plusDays(i);
-            grouped.put(bucketDate, new DayPositionBucketDto(bucketDate, new ArrayList<>()));
+            grouped.put(bucketDate, new DayPositionBucketDto(bucketDate, new ArrayList<>(), 0.0f));
         }
 
         return grouped;

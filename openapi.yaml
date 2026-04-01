@@ -349,3 +349,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PositionShiftBucket'
+        totalDuration:
+          type: number
+          format: float

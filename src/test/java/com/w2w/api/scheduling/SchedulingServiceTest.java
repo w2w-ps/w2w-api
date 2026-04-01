@@ -500,7 +500,9 @@ class SchedulingServiceTest {
 
         assertEquals(2, result.size());
         assertEquals(startDate, result.get(0).date());
+        assertEquals(16.0f, result.get(0).totalDuration());
         assertEquals(endDate, result.get(1).date());
+        assertEquals(0.0f, result.get(1).totalDuration());
         assertTrue(result.get(1).positions().isEmpty());
 
         List<PositionShiftBucketDto> firstDayPositions = result.get(0).positions();
@@ -543,6 +545,8 @@ class SchedulingServiceTest {
         assertEquals(2, result.size());
         assertEquals(1, result.get(0).positions().size());
         assertEquals(1, result.get(1).positions().size());
+        assertEquals(2.0f, result.get(0).totalDuration());
+        assertEquals(6.0f, result.get(1).totalDuration());
         assertEquals("Bartender", result.get(0).positions().getFirst().position());
         assertEquals(9003, result.get(0).positions().getFirst().shifts().getFirst().shiftId());
         assertEquals(LocalTime.of(22, 0), result.get(0).positions().getFirst().shifts().getFirst().startTime());
