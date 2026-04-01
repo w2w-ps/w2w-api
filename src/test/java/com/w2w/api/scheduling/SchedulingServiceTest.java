@@ -1,5 +1,6 @@
 package com.w2w.api.scheduling;
 
+import com.w2w.api.position.PositionService;
 import com.w2w.api.position.dto.PositionDto;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.dto.DayPositionBucketDto;
@@ -36,6 +37,7 @@ class SchedulingServiceTest {
     private SchedulingQueryRepository schedulingQueryRepository;
     private ShiftRepository shiftRepository;
     private ScheduleRepository scheduleRepository;
+    private PositionService positionService;
     private SchedulingService schedulingService;
 
     @BeforeEach
@@ -43,10 +45,12 @@ class SchedulingServiceTest {
         schedulingQueryRepository = Mockito.mock(SchedulingQueryRepository.class);
         shiftRepository = Mockito.mock(ShiftRepository.class);
         scheduleRepository = Mockito.mock(ScheduleRepository.class);
+        positionService = Mockito.mock(PositionService.class);
         schedulingService = new SchedulingService();
         ReflectionTestUtils.setField(schedulingService, "schedulingQueryRepository", schedulingQueryRepository);
         ReflectionTestUtils.setField(schedulingService, "shiftRepository", shiftRepository);
         ReflectionTestUtils.setField(schedulingService, "scheduleRepository", scheduleRepository);
+        ReflectionTestUtils.setField(schedulingService, "positionService", positionService);
     }
 
     @Test
@@ -458,6 +462,11 @@ class SchedulingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 26);
 
+        when(positionService.getPositionsByCompanyId(7))
+                .thenReturn(List.of(
+                        new PositionDto(12, "Bartender"),
+                        new PositionDto(19, "Server")
+                ));
         when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
                 .thenReturn(List.of(
                         new TestProjection(
@@ -505,7 +514,15 @@ class SchedulingServiceTest {
         assertEquals(endDate, result.get(1).date());
         assertEquals(0, result.get(1).shiftCount());
         assertEquals(0.0f, result.get(1).totalDuration());
-        assertTrue(result.get(1).positions().isEmpty());
+        assertEquals(2, result.get(1).positions().size());
+        assertEquals("Bartender", result.get(1).positions().get(0).position());
+        assertEquals(0, result.get(1).positions().get(0).shiftCount());
+        assertEquals(0.0f, result.get(1).positions().get(0).totalDuration());
+        assertTrue(result.get(1).positions().get(0).shifts().isEmpty());
+        assertEquals("Server", result.get(1).positions().get(1).position());
+        assertEquals(0, result.get(1).positions().get(1).shiftCount());
+        assertEquals(0.0f, result.get(1).positions().get(1).totalDuration());
+        assertTrue(result.get(1).positions().get(1).shifts().isEmpty());
 
         List<PositionShiftBucketDto> firstDayPositions = result.get(0).positions();
         assertEquals(2, firstDayPositions.size());
@@ -527,6 +544,11 @@ class SchedulingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 26);
 
+        when(positionService.getPositionsByCompanyId(7))
+                .thenReturn(List.of(
+                        new PositionDto(12, "Bartender"),
+                        new PositionDto(19, "Server")
+                ));
         when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
                 .thenReturn(List.of(new TestProjection(
                         9003,
@@ -549,8 +571,8 @@ class SchedulingServiceTest {
         List<DayPositionBucketDto> result = schedulingService.getShiftsGroupedByDayAndPosition(7, startDate, endDate);
 
         assertEquals(2, result.size());
-        assertEquals(1, result.get(0).positions().size());
-        assertEquals(1, result.get(1).positions().size());
+        assertEquals(2, result.get(0).positions().size());
+        assertEquals(2, result.get(1).positions().size());
         assertEquals(1, result.get(0).shiftCount());
         assertEquals(1, result.get(1).shiftCount());
         assertEquals(2.0f, result.get(0).totalDuration());
@@ -565,6 +587,14 @@ class SchedulingServiceTest {
         assertEquals(6.0f, result.get(1).positions().getFirst().totalDuration());
         assertEquals(LocalTime.MIDNIGHT, result.get(1).positions().getFirst().shifts().getFirst().startTime());
         assertEquals(LocalTime.of(6, 0), result.get(1).positions().getFirst().shifts().getFirst().endTime());
+        assertEquals("Server", result.get(0).positions().get(1).position());
+        assertEquals(0, result.get(0).positions().get(1).shiftCount());
+        assertEquals(0.0f, result.get(0).positions().get(1).totalDuration());
+        assertTrue(result.get(0).positions().get(1).shifts().isEmpty());
+        assertEquals("Server", result.get(1).positions().get(1).position());
+        assertEquals(0, result.get(1).positions().get(1).shiftCount());
+        assertEquals(0.0f, result.get(1).positions().get(1).totalDuration());
+        assertTrue(result.get(1).positions().get(1).shifts().isEmpty());
     }
 
     private record TestProjection(

@@ -1,5 +1,7 @@
 package com.w2w.api.scheduling;
 
+import com.w2w.api.position.PositionService;
+import com.w2w.api.position.dto.PositionDto;
 import com.w2w.api.scheduling.dto.ConflictDto;
 import com.w2w.api.scheduling.dto.DayPositionBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeScheduledShiftDto;
@@ -41,6 +43,9 @@ public class SchedulingService {
 
     @Autowired
     private RuleEngineService ruleEngineService;
+
+    @Autowired
+    private PositionService positionService;
 
     public ShiftResponseDto getShift(Integer shiftId) {
         ShiftDetailsProjection shift = shiftRepository.findShiftDetailsByShiftId(shiftId)
@@ -153,7 +158,11 @@ public class SchedulingService {
             LocalDate startDate,
             LocalDate endDate
     ) {
-        Map<LocalDate, DayPositionBucketDto> grouped = initializeDayBuckets(startDate, endDate);
+        Map<LocalDate, DayPositionBucketDto> grouped = initializeDayBuckets(
+                startDate,
+                endDate,
+                getCompanyPositionNames(companyId)
+        );
         List<ShiftSegment> segments = new ArrayList<>();
 
         for (EmployeeShiftProjection row : findEmployeeShiftRows(companyId, startDate, endDate)) {
@@ -355,7 +364,11 @@ public class SchedulingService {
         );
     }
 
-    private Map<LocalDate, DayPositionBucketDto> initializeDayBuckets(LocalDate startDate, LocalDate endDate) {
+    private Map<LocalDate, DayPositionBucketDto> initializeDayBuckets(
+            LocalDate startDate,
+            LocalDate endDate,
+            List<String> companyPositions
+    ) {
         Map<LocalDate, DayPositionBucketDto> grouped = new LinkedHashMap<>();
         if (startDate == null || endDate == null || endDate.isBefore(startDate)) {
             return grouped;
@@ -364,10 +377,27 @@ public class SchedulingService {
         long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
         for (int i = 0; i <= totalDays; i++) {
             LocalDate bucketDate = startDate.plusDays(i);
-            grouped.put(bucketDate, new DayPositionBucketDto(bucketDate, new ArrayList<>(), 0, 0.0f));
+            List<PositionShiftBucketDto> positions = new ArrayList<>();
+            for (String position : companyPositions) {
+                positions.add(new PositionShiftBucketDto(position, new ArrayList<>(), 0, 0.0f));
+            }
+            grouped.put(bucketDate, new DayPositionBucketDto(bucketDate, positions, 0, 0.0f));
         }
 
         return grouped;
+    }
+
+    private List<String> getCompanyPositionNames(Integer companyId) {
+        if (companyId == null) {
+            return List.of();
+        }
+
+        return positionService.getPositionsByCompanyId(companyId).stream()
+                .map(PositionDto::getName)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
+                .toList();
     }
 
     private PositionShiftBucketDto getOrCreatePositionBucket(DayPositionBucketDto dayBucket, String position) {

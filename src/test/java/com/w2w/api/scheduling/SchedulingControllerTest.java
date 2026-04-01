@@ -155,11 +155,11 @@ class SchedulingControllerTest {
     }
 
     @Test
-    void getShiftsGroupedInRange_returnsEmployeeBuckets() throws Exception {
+    void getShiftEmployees_returnsEmployeeBuckets() throws Exception {
         when(schedulingService.getEmployeeShiftsGroupedInRange(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
                 .thenReturn(List.of(createEmployeeWithShifts()));
 
-        mockMvc.perform(get("/api/scheduling/employees")
+        mockMvc.perform(get("/api/scheduling/shifts/employees")
                         .param("companyId", "7")
                         .param("startDate", "2026-03-25")
                         .param("endDate", "2026-03-26"))
@@ -173,6 +173,22 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$[0].weeklyShifts['0'].shifts[0].startTime").value("9:00AM"))
                 .andExpect(jsonPath("$[0].weeklyShifts['1'].date").value("2026-03-26"))
                 .andExpect(jsonPath("$[0].weeklyShifts['1'].shifts", hasSize(0)));
+
+        verify(schedulingService).getEmployeeShiftsGroupedInRange(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
+    }
+
+    @Test
+    void getShiftsGroupedInRange_deprecatedPathStillReturnsEmployeeBuckets() throws Exception {
+        when(schedulingService.getEmployeeShiftsGroupedInRange(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
+                .thenReturn(List.of(createEmployeeWithShifts()));
+
+        mockMvc.perform(get("/api/scheduling/employees")
+                        .param("companyId", "7")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].employeeId").value(101));
 
         verify(schedulingService).getEmployeeShiftsGroupedInRange(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
     }
@@ -203,33 +219,52 @@ class SchedulingControllerTest {
                                                 ),
                                                 1,
                                                 8.0f
+                                        ),
+                                        new PositionShiftBucketDto(
+                                                "Server",
+                                                List.of(),
+                                                0,
+                                                0.0f
                                         )
                                 ),
                                 1,
                                 8.0f
                         ),
-                        new DayPositionBucketDto(LocalDate.of(2026, 3, 26), List.of(), 0, 0.0f)
+                        new DayPositionBucketDto(
+                                LocalDate.of(2026, 3, 26),
+                                List.of(
+                                        new PositionShiftBucketDto("Bartender", List.of(), 0, 0.0f),
+                                        new PositionShiftBucketDto("Server", List.of(), 0, 0.0f)
+                                ),
+                                0,
+                                0.0f
+                        )
                 ));
 
-        mockMvc.perform(get("/api/scheduling/shifts/range/grouped/day-position")
+        mockMvc.perform(get("/api/scheduling/shifts/day-position")
                         .param("companyId", "7")
                         .param("startDate", "2026-03-25")
                         .param("endDate", "2026-03-26"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].date").value("2026-03-25"))
-                .andExpect(jsonPath("$[0].positions", hasSize(1)))
+                .andExpect(jsonPath("$[0].positions", hasSize(2)))
                 .andExpect(jsonPath("$[0].shiftCount").value(1))
                 .andExpect(jsonPath("$[0].positions[0].position").value("Bartender"))
                 .andExpect(jsonPath("$[0].positions[0].shifts", hasSize(1)))
                 .andExpect(jsonPath("$[0].positions[0].shiftCount").value(1))
                 .andExpect(jsonPath("$[0].positions[0].totalDuration").value(8.0))
+                .andExpect(jsonPath("$[0].positions[1].position").value("Server"))
+                .andExpect(jsonPath("$[0].positions[1].shiftCount").value(0))
+                .andExpect(jsonPath("$[0].positions[1].shifts", hasSize(0)))
                 .andExpect(jsonPath("$[0].positions[0].shifts[0].employeeId").value(101))
                 .andExpect(jsonPath("$[0].positions[0].shifts[0].startTime").value("9:00AM"))
                 .andExpect(jsonPath("$[0].totalDuration").value(8.0))
                 .andExpect(jsonPath("$[1].shiftCount").value(0))
                 .andExpect(jsonPath("$[1].totalDuration").value(0.0))
-                .andExpect(jsonPath("$[1].positions", hasSize(0)));
+                .andExpect(jsonPath("$[1].positions", hasSize(2)))
+                .andExpect(jsonPath("$[1].positions[0].position").value("Bartender"))
+                .andExpect(jsonPath("$[1].positions[1].position").value("Server"));
 
         verify(schedulingService).getShiftsGroupedByDayAndPosition(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
     }
@@ -290,15 +325,15 @@ class SchedulingControllerTest {
 
     @Test
     void getShiftsGroupedByDayAndPosition_missingCompanyId_returnsBadRequest() throws Exception {
-        mockMvc.perform(get("/api/scheduling/shifts/range/grouped/day-position")
+        mockMvc.perform(get("/api/scheduling/shifts/day-position")
                         .param("startDate", "2026-03-25")
                         .param("endDate", "2026-03-26"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void getShiftsGroupedInRange_invalidDate_returnsBadRequest() throws Exception {
-        mockMvc.perform(get("/api/scheduling/employees")
+    void getShiftEmployees_invalidDate_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/scheduling/shifts/employees")
                         .param("companyId", "7")
                         .param("startDate", "25-03-2026")
                         .param("endDate", "2026-03-26"))

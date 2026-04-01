@@ -57,8 +57,18 @@ public class SchedulingController {
         schedulingService.softDeleteShift(shiftId);
     }
 
+    @Deprecated(forRemoval = false)
     @GetMapping("/employees")
     public List<EmployeeWithShiftsDto> getShiftsGroupedInRange(
+            @RequestParam Integer companyId,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
+    ) {
+        return getShiftEmployees(companyId, startDate, endDate);
+    }
+
+    @GetMapping("/shifts/employees")
+    public List<EmployeeWithShiftsDto> getShiftEmployees(
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
@@ -67,7 +77,7 @@ public class SchedulingController {
         return schedulingService.getEmployeeShiftsGroupedInRange(companyId, startDate, endDate);
     }
 
-    @GetMapping("/shifts/range/grouped/day-position")
+    @GetMapping("/shifts/day-position")
     public List<DayPositionBucketDto> getShiftsGroupedByDayAndPosition(
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,

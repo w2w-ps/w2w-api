@@ -30,7 +30,9 @@
   `GET /api/categories?companyId=...`
 - `scheduling`
   `POST /api/scheduling/shifts`
-  `GET /api/scheduling/shifts/range/grouped?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
+  `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
+  `GET /api/scheduling/shifts/day-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
+  `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd` deprecated
 
 ## Tenanting Rules
 - Reads and writes are tenant-scoped by setting `TenantContext` before repository access.
