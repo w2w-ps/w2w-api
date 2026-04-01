@@ -13,21 +13,24 @@ spec:
       labels:
         app: when-to-work-backend
     spec:
-      containers:
-      - name: when-to-work-backend
-        image: PLACEHOLDER_IMAGE
-        ports:
-        - containerPort: 8080
-        imagePullPolicy: Always
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "10m"
-          limits:
-            memory: "1Gi"
-            cpu: "1"
       imagePullSecrets:
-      - name: ecr-secret
+        - name: ecr-secret
+      containers:
+        - name: when-to-work-backend
+          image: PLACEHOLDER_IMAGE
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "10m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          envFrom:
+            - secretRef:
+                name: when-to-work-backend-secret
 ---
 apiVersion: v1
 kind: Service
@@ -42,4 +45,3 @@ spec:
       port: 8080
       targetPort: 8080
   type: ClusterIP
-
