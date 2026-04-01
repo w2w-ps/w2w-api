@@ -1,59 +1,23 @@
 package com.w2w.api.scheduling.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class UpdateShiftRequest {
-    private Integer employeeId;
-    private String description;
-    
-    @NotNull
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate date;
-    
-    @NotNull
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma")
-    private LocalTime startTime;
-    
-    @NotNull
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma")
-    private LocalTime endTime;
-    
-    private Float duration;
-    
-    @NotNull
-    private Integer position;
-    
-    private Integer category;
-    private String color;
-
-    public UpdateShiftRequest() {}
-
-    public Integer getEmployeeId() { return employeeId; }
-    public void setEmployeeId(Integer employeeId) { this.employeeId = employeeId; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
-
-    public LocalTime getStartTime() { return startTime; }
-    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
-
-    public LocalTime getEndTime() { return endTime; }
-    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
-
-    public Float getDuration() { return duration; }
-    public void setDuration(Float duration) { this.duration = duration; }
-
-    public Integer getPosition() { return position; }
-    public void setPosition(Integer position) { this.position = position; }
-
-    public Integer getCategory() { return category; }
-    public void setCategory(Integer category) { this.category = category; }
-    public String getColor() { return color; }
-    public void setColor(String color) { this.color = color; }
+/**
+ * Record for updating shift details and handling reassignment operations.
+ * Includes shift identifiers and details for modification.
+ *
+ * @param shiftId         The unique identifier of the shift to be updated or reassigned.
+ * @param employeeId      The identifier of the employee assigned to the shift.
+ * @param description     A description of the shift.
+ * @param startTime       The start time of the shift.
+ * @param endTime         The end time of the shift.
+ * @param position        The position or skill required for the shift.
+ * @param category        The category of the shift.
+ * @param color           A color code associated with the shift.
+ * @param date            The date of the shift.
+ * @param duration        The duration of the shift in hours.
+ */
+public record UpdateShiftRequest(Integer shiftId, Integer employeeId, String description, LocalTime startTime, LocalTime endTime, Integer position, Integer category, String color, LocalDate date, Float duration
+) {
 }
