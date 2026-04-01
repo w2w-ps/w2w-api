@@ -3,13 +3,14 @@
 INSERT INTO companies (company_name)
 VALUES ('Default Company');-- emp types
 INSERT INTO emp_type (emp_type_name) VALUES 
-('EMPLOYEE'),
-('MANAGER');
+('Full Time'),
+('Part Time'),
+('Per Diem');
 
 -- roles
 INSERT INTO user_roles (role_name) VALUES 
-('ROLE_EMPLOYEE'),
-('ROLE_MANAGER');
+('Employee'),
+('Manager');
 -- user
 INSERT INTO users (
     user_login_id,
