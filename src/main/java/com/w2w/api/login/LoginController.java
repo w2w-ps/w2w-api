@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -18,7 +19,7 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        java.util.Optional<User> userOpt = loginService.authenticate(request.getUsername(), request.getPassword());
+        Optional<User> userOpt = loginService.authenticate(request.getUsername(), request.getPassword());
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();

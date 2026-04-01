@@ -3,6 +3,8 @@ package com.w2w.api.login;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -21,7 +23,7 @@ public class LoginService {
     /**
      * Authenticates the user and returns the User object if successful.
      */
-    public java.util.Optional<User> authenticate(String username, String password) {
+    public Optional<User> authenticate(String username, String password) {
         if (username == null || password == null) {
             return Optional.empty();
         }
@@ -44,7 +46,7 @@ public class LoginService {
     }
 
     public PasswordValidationResponse validatePassword(String password) {
-        java.util.List<String> errors = new java.util.ArrayList<>();
+        List<String> errors = new ArrayList<>();
         boolean isValid = true;
 
         if (password == null || password.length() < 8) {
@@ -75,7 +77,7 @@ public class LoginService {
     }
 
     public PasswordValidationResponse updatePassword(String username, String oldPassword, String newPassword, String confirmPassword) {
-        java.util.List<String> errors = new java.util.ArrayList<>();
+        List<String> errors = new ArrayList<>();
 
         // 1. Basic matching and identified checks
         if (username == null || username.isEmpty()) {
@@ -93,7 +95,7 @@ public class LoginService {
         }
 
         // 2. User existence or authentication check
-        java.util.Optional<User> userOpt = loginRepository.findByLoginId(username);
+        Optional<User> userOpt = loginRepository.findByLoginId(username);
         if (userOpt.isEmpty()) {
             errors.add("User not found.");
             return new PasswordValidationResponse(false, errors, "User not found.");
@@ -115,6 +117,6 @@ public class LoginService {
         user.setPassword(passwordEncoder.encode(newPassword));
         loginRepository.save(user);
 
-        return new PasswordValidationResponse(true, new java.util.ArrayList<>(), "Password updated successfully.");
+        return new PasswordValidationResponse(true, new ArrayList<>(), "Password updated successfully.");
     }
 }

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.Optional;
 
 class PasswordValidationTest {
 
@@ -33,7 +34,7 @@ class PasswordValidationTest {
         user.setLoginId("testuser");
         user.setPassword("hashedOldPassword");
 
-        Mockito.when(loginRepository.findByLoginId("testuser")).thenReturn(java.util.Optional.of(user));
+        Mockito.when(loginRepository.findByLoginId("testuser")).thenReturn(Optional.of(user));
         Mockito.when(passwordEncoder.matches("oldPassword", "hashedOldPassword")).thenReturn(true);
         Mockito.when(passwordEncoder.encode("Password123!")).thenReturn("hashedNewPassword");
 
@@ -62,7 +63,7 @@ class PasswordValidationTest {
     void testUpdatePassword_IncorrectOld() {
         User user = new User();
         user.setPassword("hashedOld");
-        Mockito.when(loginRepository.findByLoginId("testuser")).thenReturn(java.util.Optional.of(user));
+        Mockito.when(loginRepository.findByLoginId("testuser")).thenReturn(Optional.of(user));
         Mockito.when(passwordEncoder.matches("wrong", "hashedOld")).thenReturn(false);
 
         PasswordValidationResponse response = loginService.updatePassword("testuser", "wrong", "New123!", "New123!");
