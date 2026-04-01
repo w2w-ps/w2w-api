@@ -314,7 +314,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns day buckets for the requested range, with each day grouped by position and each position listing employee-level shift entries. Each day also includes totalDuration for that day.",
+            "description": "Returns day buckets for the requested range, with each day grouped by position and each position listing employee-level shift entries. Each day includes shiftCount and totalDuration, and each position bucket includes its own shiftCount and totalDuration.",
             "url": "{{baseUrl}}/api/scheduling/shifts/range/grouped/day-position?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
           }
         }

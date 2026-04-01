@@ -182,11 +182,13 @@ public class SchedulingService {
                     segment.durationHours(),
                     segment.color()
             ));
+            updatePositionBucket(dayBucket, positionBucket, segment.durationHours());
             grouped.put(
                     segment.date(),
                     new DayPositionBucketDto(
                             dayBucket.date(),
                             dayBucket.positions(),
+                            dayBucket.shiftCount() + 1,
                             dayBucket.totalDuration() + segment.durationHours()
                     )
             );
@@ -362,7 +364,7 @@ public class SchedulingService {
         long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
         for (int i = 0; i <= totalDays; i++) {
             LocalDate bucketDate = startDate.plusDays(i);
-            grouped.put(bucketDate, new DayPositionBucketDto(bucketDate, new ArrayList<>(), 0.0f));
+            grouped.put(bucketDate, new DayPositionBucketDto(bucketDate, new ArrayList<>(), 0, 0.0f));
         }
 
         return grouped;
@@ -375,9 +377,26 @@ public class SchedulingService {
             }
         }
 
-        PositionShiftBucketDto positionBucket = new PositionShiftBucketDto(position, new ArrayList<>());
+        PositionShiftBucketDto positionBucket = new PositionShiftBucketDto(position, new ArrayList<>(), 0, 0.0f);
         dayBucket.positions().add(positionBucket);
         return positionBucket;
+    }
+
+    private void updatePositionBucket(
+            DayPositionBucketDto dayBucket,
+            PositionShiftBucketDto positionBucket,
+            float durationHours
+    ) {
+        int index = dayBucket.positions().indexOf(positionBucket);
+        dayBucket.positions().set(
+                index,
+                new PositionShiftBucketDto(
+                        positionBucket.position(),
+                        positionBucket.shifts(),
+                        positionBucket.shiftCount() + 1,
+                        positionBucket.totalDuration() + durationHours
+                )
+        );
     }
 
     private float resolveDuration(EmployeeShiftProjection row) {

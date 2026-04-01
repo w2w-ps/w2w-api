@@ -500,15 +500,21 @@ class SchedulingServiceTest {
 
         assertEquals(2, result.size());
         assertEquals(startDate, result.get(0).date());
+        assertEquals(2, result.get(0).shiftCount());
         assertEquals(16.0f, result.get(0).totalDuration());
         assertEquals(endDate, result.get(1).date());
+        assertEquals(0, result.get(1).shiftCount());
         assertEquals(0.0f, result.get(1).totalDuration());
         assertTrue(result.get(1).positions().isEmpty());
 
         List<PositionShiftBucketDto> firstDayPositions = result.get(0).positions();
         assertEquals(2, firstDayPositions.size());
         assertEquals("Bartender", firstDayPositions.get(0).position());
+        assertEquals(1, firstDayPositions.get(0).shiftCount());
+        assertEquals(8.0f, firstDayPositions.get(0).totalDuration());
         assertEquals("Server", firstDayPositions.get(1).position());
+        assertEquals(1, firstDayPositions.get(1).shiftCount());
+        assertEquals(8.0f, firstDayPositions.get(1).totalDuration());
         assertEquals(101, firstDayPositions.get(0).shifts().getFirst().employeeId());
         assertEquals("Ava", firstDayPositions.get(0).shifts().getFirst().firstName());
         assertEquals("amber", firstDayPositions.get(0).shifts().getFirst().color());
@@ -545,12 +551,18 @@ class SchedulingServiceTest {
         assertEquals(2, result.size());
         assertEquals(1, result.get(0).positions().size());
         assertEquals(1, result.get(1).positions().size());
+        assertEquals(1, result.get(0).shiftCount());
+        assertEquals(1, result.get(1).shiftCount());
         assertEquals(2.0f, result.get(0).totalDuration());
         assertEquals(6.0f, result.get(1).totalDuration());
         assertEquals("Bartender", result.get(0).positions().getFirst().position());
+        assertEquals(1, result.get(0).positions().getFirst().shiftCount());
+        assertEquals(2.0f, result.get(0).positions().getFirst().totalDuration());
         assertEquals(9003, result.get(0).positions().getFirst().shifts().getFirst().shiftId());
         assertEquals(LocalTime.of(22, 0), result.get(0).positions().getFirst().shifts().getFirst().startTime());
         assertEquals(LocalTime.MIDNIGHT, result.get(0).positions().getFirst().shifts().getFirst().endTime());
+        assertEquals(1, result.get(1).positions().getFirst().shiftCount());
+        assertEquals(6.0f, result.get(1).positions().getFirst().totalDuration());
         assertEquals(LocalTime.MIDNIGHT, result.get(1).positions().getFirst().shifts().getFirst().startTime());
         assertEquals(LocalTime.of(6, 0), result.get(1).positions().getFirst().shifts().getFirst().endTime());
     }

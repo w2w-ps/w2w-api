@@ -200,12 +200,15 @@ class SchedulingControllerTest {
                                                                 8.0f,
                                                                 "amber"
                                                         )
-                                                )
+                                                ),
+                                                1,
+                                                8.0f
                                         )
                                 ),
+                                1,
                                 8.0f
                         ),
-                        new DayPositionBucketDto(LocalDate.of(2026, 3, 26), List.of(), 0.0f)
+                        new DayPositionBucketDto(LocalDate.of(2026, 3, 26), List.of(), 0, 0.0f)
                 ));
 
         mockMvc.perform(get("/api/scheduling/shifts/range/grouped/day-position")
@@ -216,11 +219,15 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].date").value("2026-03-25"))
                 .andExpect(jsonPath("$[0].positions", hasSize(1)))
+                .andExpect(jsonPath("$[0].shiftCount").value(1))
                 .andExpect(jsonPath("$[0].positions[0].position").value("Bartender"))
                 .andExpect(jsonPath("$[0].positions[0].shifts", hasSize(1)))
+                .andExpect(jsonPath("$[0].positions[0].shiftCount").value(1))
+                .andExpect(jsonPath("$[0].positions[0].totalDuration").value(8.0))
                 .andExpect(jsonPath("$[0].positions[0].shifts[0].employeeId").value(101))
                 .andExpect(jsonPath("$[0].positions[0].shifts[0].startTime").value("9:00AM"))
                 .andExpect(jsonPath("$[0].totalDuration").value(8.0))
+                .andExpect(jsonPath("$[1].shiftCount").value(0))
                 .andExpect(jsonPath("$[1].totalDuration").value(0.0))
                 .andExpect(jsonPath("$[1].positions", hasSize(0)));
 

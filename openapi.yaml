@@ -339,6 +339,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/EmployeeScheduledShift'
+        shiftCount:
+          type: integer
+        totalDuration:
+          type: number
+          format: float
     DayPositionBucket:
       type: object
       properties:
@@ -349,6 +354,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PositionShiftBucket'
+        shiftCount:
+          type: integer
         totalDuration:
           type: number
           format: float
