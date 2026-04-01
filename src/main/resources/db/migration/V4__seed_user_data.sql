@@ -1,12 +1,15 @@
 -- Seed data for security tables
 
 INSERT INTO companies (company_name)
-VALUES ('Default Company');
-INSERT INTO emp_type (emp_type_name) VALUES ('ADMIN');
+VALUES ('Default Company');-- emp types
+INSERT INTO emp_type (emp_type_name) VALUES 
+('EMPLOYEE'),
+('MANAGER');
 
--- role
-INSERT INTO user_roles (role_name) VALUES ('ROLE_ADMIN');
-
+-- roles
+INSERT INTO user_roles (role_name) VALUES 
+('ROLE_EMPLOYEE'),
+('ROLE_MANAGER');
 -- user
 INSERT INTO users (
     user_login_id,
