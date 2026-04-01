@@ -1,5 +1,7 @@
 package com.w2w.api.scheduling.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -18,6 +20,16 @@ import java.time.LocalTime;
  * @param date            The date of the shift.
  * @param duration        The duration of the shift in hours.
  */
-public record UpdateShiftRequest(Integer shiftId, Integer employeeId, String description, LocalTime startTime, LocalTime endTime, Integer position, Integer category, String color, LocalDate date, Float duration
+public record UpdateShiftRequest(
+        Integer shiftId,
+        Integer employeeId,
+        String description,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma") LocalTime startTime,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma") LocalTime endTime,
+        Integer position,
+        Integer category,
+        String color,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd") LocalDate date,
+        Float duration
 ) {
 }
