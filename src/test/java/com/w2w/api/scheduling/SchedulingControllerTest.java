@@ -14,8 +14,8 @@ import com.w2w.api.scheduling.dto.ShiftResponseDto;
 import com.w2w.api.scheduling.model.Shift;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -123,8 +123,8 @@ class SchedulingControllerTest {
                   "shiftId": 9001,
                   "employeeId": 101,
                   "description": "Updated opening shift",
-                  "startTime": "10:00:00",
-                  "endTime": "18:00:00",
+                  "startTime": "10:00AM",
+                  "endTime": "6:00PM",
                   "position": 12,
                   "category": 4,
                   "color": "amber",
@@ -302,8 +302,8 @@ class SchedulingControllerTest {
                     "shiftId": 9001,
                     "employeeId": 101,
                     "description": "Updated opening shift",
-                    "startTime": "10:00:00",
-                    "endTime": "18:00:00",
+                    "startTime": "10:00AM",
+                    "endTime": "6:00PM",
                     "position": 12,
                     "category": 4,
                     "color": "amber",
