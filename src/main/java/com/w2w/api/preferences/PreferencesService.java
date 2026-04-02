@@ -9,7 +9,6 @@ import com.w2w.api.preferences.model.WeekPreference;
 import com.w2w.api.preferences.model.WeekPreferenceId;
 import com.w2w.api.preferences.repository.DayPreferenceRepository;
 import com.w2w.api.preferences.repository.WeekPreferenceRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,11 +16,14 @@ import java.util.Optional;
 
 @Service
 public class PreferencesService {
-    @Autowired
-    private DayPreferenceRepository dayPreferenceRepository;
+    private final DayPreferenceRepository dayPreferenceRepository;
+    private final WeekPreferenceRepository weekPreferenceRepository;
 
-    @Autowired
-    private WeekPreferenceRepository weekPreferenceRepository;
+    public PreferencesService(DayPreferenceRepository dayPreferenceRepository,
+                              WeekPreferenceRepository weekPreferenceRepository) {
+        this.dayPreferenceRepository = dayPreferenceRepository;
+        this.weekPreferenceRepository = weekPreferenceRepository;
+    }
 
     public Optional<DayPreferenceDto> getDayPreference(Integer employeeId, LocalDate date) {
         return dayPreferenceRepository.findById(new DayPreferenceId(employeeId, date))
@@ -45,8 +47,8 @@ public class PreferencesService {
 
     private DayPreferenceDto mapToDayDto(DayPreference entity) {
         return new DayPreferenceDto(
-                entity.getEmployeeId(),
                 TenantContext.getCurrentTenant(),
+                entity.getEmployeeId(),
                 entity.getDate(),
                 entity.getPrefs(),
                 entity.getCompression(),
@@ -56,8 +58,8 @@ public class PreferencesService {
 
     private WeekPreferenceDto mapToWeekDto(WeekPreference entity) {
         return new WeekPreferenceDto(
-                entity.getEmployeeId(),
                 TenantContext.getCurrentTenant(),
+                entity.getEmployeeId(),
                 entity.getStartDate(),
                 entity.getPrefs(),
                 entity.getCompression(),
