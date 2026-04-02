@@ -1,13 +1,28 @@
 package com.w2w.api.preferences.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public class DayPreferenceDto {
+    @NotNull
+    @Positive
     private Integer employeeId;
+    
+    @NotNull
+    @Positive
     private Integer companyId;
+    
+    @NotNull
     private LocalDate date;
+    
+    @Size(max = 96)
     private String prefs;
+    
     private Integer compression;
+    
+    @Positive
     private Integer editedBy;
 
     public DayPreferenceDto() {
