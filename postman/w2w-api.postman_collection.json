@@ -319,6 +319,89 @@
           }
         }
       ]
+    },
+    {
+      "name": "Preferences",
+      "item": [
+        {
+          "name": "Get Day Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/preferences/day?employeeId={{employeeId}}&date={{startDate}}&companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Get Week Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/preferences/week?employeeId={{employeeId}}&startDate={{startDate}}&companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Update Day Preference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"DAILY_PREF_STRING_EXAMPLE\",\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/preferences/day"
+          }
+        },
+        {
+          "name": "Update Week Preference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"startDate\": \"{{startDate}}\",\n  \"prefs\": \"WEEKLY_PREF_STRING_EXAMPLE\",\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/preferences/week"
+          }
+        }
+      ]
     }
   ]
 }
