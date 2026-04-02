@@ -16,6 +16,7 @@ import com.w2w.api.scheduling.model.Schedule;
 import com.w2w.api.scheduling.model.Shift;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -169,7 +170,7 @@ class SchedulingServiceTest {
 
         schedulingService.saveShift(request);
 
-        org.mockito.ArgumentCaptor<Schedule> scheduleCaptor = org.mockito.ArgumentCaptor.forClass(Schedule.class);
+        ArgumentCaptor<Schedule> scheduleCaptor = ArgumentCaptor.forClass(Schedule.class);
         verify(scheduleRepository).save(scheduleCaptor.capture());
         assertEquals(false, scheduleCaptor.getValue().isPublished());
     }
