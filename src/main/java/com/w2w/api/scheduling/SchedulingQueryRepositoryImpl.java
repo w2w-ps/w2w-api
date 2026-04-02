@@ -3,7 +3,7 @@ package com.w2w.api.scheduling;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.w2w.api.position.dto.PositionDto;
+import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -28,7 +28,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
     private static final String QUERY_PATH = "classpath:sql/scheduling/find_employee_shifts_in_range.sql";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final JavaType POSITION_LIST_TYPE = OBJECT_MAPPER.getTypeFactory()
-            .constructCollectionType(List.class, PositionDto.class);
+            .constructCollectionType(List.class, PositionSummary.class);
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final String findEmployeeShiftsInRangeSql;
@@ -104,7 +104,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                 .toList();
     }
 
-    List<PositionDto> deserializePositions(String value) {
+    List<PositionSummary> deserializePositions(String value) {
         if (value == null || value.isBlank()) {
             return List.of();
         }
@@ -130,7 +130,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         private final String firstName;
         private final String lastName;
         private final List<String> phones;
-        private final List<PositionDto> availablePositions;
+        private final List<PositionSummary> availablePositions;
         private final LocalDate weekCommencing;
         private final LocalTime startTime;
         private final LocalTime endTime;
@@ -147,7 +147,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                 String firstName,
                 String lastName,
                 List<String> phones,
-                List<PositionDto> availablePositions,
+                List<PositionSummary> availablePositions,
                 LocalDate weekCommencing,
                 LocalTime startTime,
                 LocalTime endTime,
@@ -201,7 +201,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         }
 
         @Override
-        public List<PositionDto> getAvailablePositions() {
+        public List<PositionSummary> getAvailablePositions() {
             return availablePositions;
         }
 

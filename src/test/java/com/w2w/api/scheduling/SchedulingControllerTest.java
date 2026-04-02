@@ -2,15 +2,15 @@ package com.w2w.api.scheduling;
 
 import com.w2w.api.login.JwtAuthFilter;
 import com.w2w.api.login.JwtUtil;
-import com.w2w.api.position.dto.PositionDto;
-import com.w2w.api.scheduling.dto.ConflictDto;
+import com.w2w.api.position.dto.PositionSummary;
+import com.w2w.api.scheduling.dto.ConflictItem;
 import com.w2w.api.scheduling.dto.ConflictResponse;
-import com.w2w.api.scheduling.dto.DayPositionBucketDto;
-import com.w2w.api.scheduling.dto.EmployeeScheduledShiftDto;
-import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
-import com.w2w.api.scheduling.dto.PositionShiftBucketDto;
-import com.w2w.api.scheduling.dto.ShiftDto;
-import com.w2w.api.scheduling.dto.ShiftResponseDto;
+import com.w2w.api.scheduling.dto.DayPositionBucket;
+import com.w2w.api.scheduling.dto.EmployeeSchedule;
+import com.w2w.api.scheduling.dto.EmployeeShift;
+import com.w2w.api.scheduling.dto.PositionShiftBucket;
+import com.w2w.api.scheduling.dto.ShiftResponse;
+import com.w2w.api.scheduling.dto.ShiftSummary;
 import com.w2w.api.scheduling.model.Shift;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,27 +97,33 @@ class SchedulingControllerTest {
                 .andExpect(status().isCreated());
 
         verify(schedulingService).saveShift(argThat(value ->
-                value.getEmployeeId().equals(101)
-                        && value.getCompanyId().equals(7)
-                        && value.getDate().equals(LocalDate.of(2026, 3, 25))
-                        && value.getStartTime().equals(LocalTime.of(9, 0))
-                        && value.getEndTime().equals(LocalTime.of(17, 0))
-                        && value.getPosition().equals(12)
-                        && value.getCategory().equals(4)
-                        && value.getColor().equals("amber")
+                value.employeeId().equals(101)
+                        && value.companyId().equals(7)
+                        && value.date().equals(LocalDate.of(2026, 3, 25))
+                        && value.startTime().equals(LocalTime.of(9, 0))
+                        && value.endTime().equals(LocalTime.of(17, 0))
+                        && value.position().equals(12)
+                        && value.category().equals(4)
+                        && value.color().equals("amber")
         ));
     }
 
     @Test
     void updateShift_returnsUpdatedShift() throws Exception {
-        ShiftResponseDto response = createShiftResponse();
-        response.setShiftId(9001);
-        response.setEmployeeId(101);
-        response.setStartTime(LocalTime.of(10, 0));
-        response.setEndTime(LocalTime.of(18, 0));
-        response.setPosition("Bartender");
-        response.setCategory("Front");
-        response.setColor("amber");
+        ShiftResponse response = new ShiftResponse(
+                9001,
+                101,
+                7,
+                "Opening shift",
+                LocalDate.of(2026, 3, 25),
+                LocalTime.of(10, 0),
+                LocalTime.of(18, 0),
+                8.0f,
+                false,
+                "Bartender",
+                "Front",
+                "amber"
+        );
 
         when(schedulingService.updateShift(
                 eq(9001),
@@ -206,13 +212,13 @@ class SchedulingControllerTest {
     void getShiftsGroupedByDayAndPosition_returnsGroupedBuckets() throws Exception {
         when(schedulingService.getShiftsGroupedByDayAndPosition(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
                 .thenReturn(List.of(
-                        new DayPositionBucketDto(
+                        new DayPositionBucket(
                                 LocalDate.of(2026, 3, 25),
                                 List.of(
-                                        new PositionShiftBucketDto(
+                                        new PositionShiftBucket(
                                                 "Bartender",
                                                 new ArrayList<>(List.of(
-                                                        new EmployeeScheduledShiftDto(
+                                                        new EmployeeShift(
                                                                 9001,
                                                                 101,
                                                                 "Ava",
@@ -229,7 +235,7 @@ class SchedulingControllerTest {
                                                 1,
                                                 8.0f
                                         ),
-                                        new PositionShiftBucketDto(
+                                        new PositionShiftBucket(
                                                 "Server",
                                                 new ArrayList<>(),
                                                 0,
@@ -239,11 +245,11 @@ class SchedulingControllerTest {
                                 1,
                                 8.0f
                         ),
-                        new DayPositionBucketDto(
+                        new DayPositionBucket(
                                 LocalDate.of(2026, 3, 26),
                                 List.of(
-                                        new PositionShiftBucketDto("Bartender", new ArrayList<>(), 0, 0.0f),
-                                        new PositionShiftBucketDto("Server", new ArrayList<>(), 0, 0.0f)
+                                        new PositionShiftBucket("Bartender", new ArrayList<>(), 0, 0.0f),
+                                        new PositionShiftBucket("Server", new ArrayList<>(), 0, 0.0f)
                                 ),
                                 0,
                                 0.0f
@@ -302,7 +308,7 @@ class SchedulingControllerTest {
     void preCheck_withConflicts_returnsConflictPayload() throws Exception {
         when(schedulingService.validate(argThat(value ->
                 value.operationType() != null && "Updated opening shift".equals(value.shift().description()))))
-                .thenReturn(List.of(new ConflictDto("shift", "Overlaps existing shift")));
+                .thenReturn(List.of(new ConflictItem("shift", "Overlaps existing shift")));
 
         String request = """
                 {
@@ -351,13 +357,20 @@ class SchedulingControllerTest {
 
     @Test
     void updateShift_acceptsExplicitDateAndTimeFormats() throws Exception {
-        ShiftResponseDto response = createShiftResponse();
-        response.setShiftId(1001);
-        response.setEmployeeId(101);
-        response.setPosition("Bartender");
-        response.setCategory("Front");
-        response.setStartTime(LocalTime.of(10, 0));
-        response.setEndTime(LocalTime.of(18, 0));
+        ShiftResponse response = new ShiftResponse(
+                1001,
+                101,
+                7,
+                "Opening shift",
+                LocalDate.of(2026, 3, 25),
+                LocalTime.of(10, 0),
+                LocalTime.of(18, 0),
+                8.0f,
+                false,
+                "Bartender",
+                "Front",
+                "amber"
+        );
 
         when(schedulingService.updateShift(
                 eq(1001),
@@ -440,21 +453,21 @@ class SchedulingControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    private ShiftResponseDto createShiftResponse() {
-        ShiftResponseDto dto = new ShiftResponseDto();
-        dto.setShiftId(9001);
-        dto.setEmployeeId(101);
-        dto.setCompanyId(7);
-        dto.setDescription("Opening shift");
-        dto.setDate(LocalDate.of(2026, 3, 25));
-        dto.setStartTime(LocalTime.of(9, 0));
-        dto.setEndTime(LocalTime.of(17, 0));
-        dto.setDuration(8.0f);
-        dto.setIsOvernight(false);
-        dto.setPosition("Bartender");
-        dto.setCategory("Front");
-        dto.setColor("amber");
-        return dto;
+    private ShiftResponse createShiftResponse() {
+        return new ShiftResponse(
+                9001,
+                101,
+                7,
+                "Opening shift",
+                LocalDate.of(2026, 3, 25),
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                8.0f,
+                false,
+                "Bartender",
+                "Front",
+                "amber"
+        );
     }
 
     private Shift createShiftEntity() {
@@ -476,17 +489,17 @@ class SchedulingControllerTest {
         return shift;
     }
 
-    private EmployeeWithShiftsDto createEmployeeWithShifts() {
-        EmployeeWithShiftsDto employee = new EmployeeWithShiftsDto(
+    private EmployeeSchedule createEmployeeWithShifts() {
+        EmployeeSchedule employee = new EmployeeSchedule(
                 101,
                 "Ava",
                 "Stone",
                 List.of("111-222"),
-                List.of(new PositionDto(12, "Bartender")),
+                List.of(new PositionSummary(12, "Bartender")),
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26)
         );
-        employee.addShiftToDay(0, LocalDate.of(2026, 3, 25), new ShiftDto(
+        employee.addShiftToDay(0, LocalDate.of(2026, 3, 25), new ShiftSummary(
                 9001,
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
