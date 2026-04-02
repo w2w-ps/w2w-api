@@ -9,8 +9,8 @@ INSERT INTO emp_type (emp_type_name) VALUES
 
 -- roles
 INSERT INTO user_roles (role_name) VALUES 
-('Employee'),
-('Manager');
+('Manager'),
+('Employee');
 -- user
 INSERT INTO users (
     user_login_id,
