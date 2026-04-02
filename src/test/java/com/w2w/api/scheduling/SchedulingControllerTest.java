@@ -17,6 +17,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
@@ -82,7 +83,7 @@ class SchedulingControllerTest {
         updatedShift.setColor("amber");
 
         when(schedulingService.updateShift(
-                org.mockito.ArgumentMatchers.eq(1001),
+                eq(1001),
                 argThat(request ->
                         request.shiftId().equals(1001)
                                 && request.employeeId().equals(101)
