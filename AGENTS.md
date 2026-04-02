@@ -13,7 +13,7 @@
 - Group supporting types into subfolders only when there are multiple files:
   `dto/`, `model/`, `repository/`.
 - Current features:
-  `tenant`, `employee`, `position`, `category`, `scheduling`, `config`.
+  `tenant`, `employee`, `position`, `category`, `scheduling`, `config`, `preferences`.
 
 ## API Surface
 - `tenant`
@@ -32,6 +32,13 @@
   `POST /api/scheduling/shifts`
   `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
   `GET /api/scheduling/shifts/day-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
+- `preferences`
+  `GET /api/preferences/day?employeeId=...&date=...&companyId=...`
+  `GET /api/preferences/day/range?employeeId=...&startDate=...&endDate=...&companyId=...`
+  `POST /api/preferences/day`
+  `POST /api/preferences/day/repeat`
+  `GET /api/preferences/week?employeeId=...&startDate=...&companyId=...`
+  `POST /api/preferences/week`
   `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd` deprecated
 
 ## Tenanting Rules
@@ -63,3 +70,5 @@
 - Add new database changes as incremental Flyway migrations; do not edit already-applied migrations in a shared environment.
 - When request or response contracts change, update `openapi.yaml`.
 - When request or response contracts change, update request examples in `postman/w2w-api.postman_collection.json`.
+- Any new or changed APIs must be documented in the `API Surface` section of this file and added/updated in the `postman/w2w-api.postman_collection.json` file.
+- Keep the database schema and seed data in `src/main/resources/db/migration` in sync with any model changes.
