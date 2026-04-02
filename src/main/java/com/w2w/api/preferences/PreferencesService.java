@@ -2,6 +2,7 @@ package com.w2w.api.preferences;
 
 import com.w2w.api.config.TenantContext;
 import com.w2w.api.preferences.dto.DayPreferenceDto;
+import com.w2w.api.preferences.dto.DayPreferenceRepeatDto;
 import com.w2w.api.preferences.dto.WeekPreferenceDto;
 import com.w2w.api.preferences.model.DayPreference;
 import com.w2w.api.preferences.model.DayPreferenceId;
@@ -12,7 +13,9 @@ import com.w2w.api.preferences.repository.WeekPreferenceRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PreferencesService {
@@ -30,6 +33,13 @@ public class PreferencesService {
                 .map(this::mapToDayDto);
     }
 
+    public List<DayPreferenceDto> getDayPreferencesInRange(Integer employeeId, LocalDate startDate, LocalDate endDate) {
+        return dayPreferenceRepository.findByEmployeeIdAndDateBetween(employeeId, startDate, endDate)
+                .stream()
+                .map(this::mapToDayDto)
+                .collect(Collectors.toList());
+    }
+
     public Optional<WeekPreferenceDto> getWeekPreference(Integer employeeId, LocalDate startDate) {
         return weekPreferenceRepository.findById(new WeekPreferenceId(employeeId, startDate))
                 .map(this::mapToWeekDto);
@@ -38,6 +48,21 @@ public class PreferencesService {
     public void saveDayPreference(DayPreferenceDto dto) {
         DayPreference entity = mapToDayEntity(dto);
         dayPreferenceRepository.save(entity);
+    }
+
+    public void saveDayPreferenceWithRepeat(DayPreferenceRepeatDto dto) {
+        LocalDate currentDate = dto.getDate();
+        for (int i = 0; i < dto.getRepeatCount(); i++) {
+            DayPreference entity = new DayPreference();
+            entity.setEmployeeId(dto.getEmployeeId());
+            entity.setDate(currentDate);
+            entity.setPrefs(dto.getPrefs());
+            entity.setCompression(dto.getCompression());
+            entity.setEditedBy(dto.getEditedBy());
+            
+            dayPreferenceRepository.save(entity);
+            currentDate = currentDate.plusWeeks(1);
+        }
     }
 
     public void saveWeekPreference(WeekPreferenceDto dto) {

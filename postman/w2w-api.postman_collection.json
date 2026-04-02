@@ -337,6 +337,45 @@
           }
         },
         {
+          "name": "Get Day Preferences Range",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/preferences/day/range?employeeId={{employeeId}}&startDate={{startDate}}&endDate={{endDate}}&companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Repeat Day Preference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"REPEAT_PREF_EXAMPLE\",\n  \"repeatCount\": 5,\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/preferences/day/repeat"
+          }
+        },
+        {
           "name": "Get Week Preferences",
           "request": {
             "method": "GET",
