@@ -48,7 +48,7 @@ public class SchedulingController {
     }
 
     @PutMapping("/shifts/{shiftId}")
-    public Shift updateShift(@PathVariable Integer shiftId, @Valid @RequestBody UpdateShiftRequest request) {
+    public ShiftResponseDto updateShift(@PathVariable Integer shiftId, @Valid @RequestBody UpdateShiftRequest request) {
         return schedulingService.updateShift(shiftId, request);
     }
 

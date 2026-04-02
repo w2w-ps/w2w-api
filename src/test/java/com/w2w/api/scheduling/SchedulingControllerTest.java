@@ -110,13 +110,22 @@ class SchedulingControllerTest {
 
     @Test
     void updateShift_returnsUpdatedShift() throws Exception {
+        ShiftResponseDto response = createShiftResponse();
+        response.setShiftId(9001);
+        response.setEmployeeId(101);
+        response.setStartTime(LocalTime.of(10, 0));
+        response.setEndTime(LocalTime.of(18, 0));
+        response.setPosition("Bartender");
+        response.setCategory("Front");
+        response.setColor("amber");
+
         when(schedulingService.updateShift(
                 eq(9001),
                 argThat(value -> value.shiftId().equals(9001)
                         && value.employeeId().equals(101)
                         && value.position().equals(12)
                         && value.color().equals("amber"))))
-                .thenReturn(createShiftEntity());
+                .thenReturn(response);
 
         String request = """
                 {
@@ -139,8 +148,8 @@ class SchedulingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.shiftId").value(9001))
                 .andExpect(jsonPath("$.employeeId").value(101))
-                .andExpect(jsonPath("$.requiredSkillId").value(12))
-                .andExpect(jsonPath("$.categoryId").value(4))
+                .andExpect(jsonPath("$.position").value("Bartender"))
+                .andExpect(jsonPath("$.category").value("Front"))
                 .andExpect(jsonPath("$.startTime").value("10:00AM"))
                 .andExpect(jsonPath("$.endTime").value("6:00PM"))
                 .andExpect(jsonPath("$.color").value("amber"));
@@ -202,7 +211,7 @@ class SchedulingControllerTest {
                                 List.of(
                                         new PositionShiftBucketDto(
                                                 "Bartender",
-                                                List.of(
+                                                new ArrayList<>(List.of(
                                                         new EmployeeScheduledShiftDto(
                                                                 9001,
                                                                 101,
@@ -216,13 +225,13 @@ class SchedulingControllerTest {
                                                                 8.0f,
                                                                 "amber"
                                                         )
-                                                ),
+                                                )),
                                                 1,
                                                 8.0f
                                         ),
                                         new PositionShiftBucketDto(
                                                 "Server",
-                                                List.of(),
+                                                new ArrayList<>(),
                                                 0,
                                                 0.0f
                                         )
@@ -233,8 +242,8 @@ class SchedulingControllerTest {
                         new DayPositionBucketDto(
                                 LocalDate.of(2026, 3, 26),
                                 List.of(
-                                        new PositionShiftBucketDto("Bartender", List.of(), 0, 0.0f),
-                                        new PositionShiftBucketDto("Server", List.of(), 0, 0.0f)
+                                        new PositionShiftBucketDto("Bartender", new ArrayList<>(), 0, 0.0f),
+                                        new PositionShiftBucketDto("Server", new ArrayList<>(), 0, 0.0f)
                                 ),
                                 0,
                                 0.0f
@@ -342,9 +351,13 @@ class SchedulingControllerTest {
 
     @Test
     void updateShift_acceptsExplicitDateAndTimeFormats() throws Exception {
-        Shift updatedShift = createShiftEntity();
-        updatedShift.setShiftId(1001);
-        updatedShift.setRequiredSkillId(2);
+        ShiftResponseDto response = createShiftResponse();
+        response.setShiftId(1001);
+        response.setEmployeeId(101);
+        response.setPosition("Bartender");
+        response.setCategory("Front");
+        response.setStartTime(LocalTime.of(10, 0));
+        response.setEndTime(LocalTime.of(18, 0));
 
         when(schedulingService.updateShift(
                 eq(1001),
@@ -358,7 +371,7 @@ class SchedulingControllerTest {
                                 && request.category().equals(4)
                                 && request.color().equals("amber")
                 )
-        )).thenReturn(updatedShift);
+        )).thenReturn(response);
 
         String request = """
                 {
@@ -380,8 +393,8 @@ class SchedulingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.shiftId", is(1001)))
                 .andExpect(jsonPath("$.employeeId", is(101)))
-                .andExpect(jsonPath("$.requiredSkillId", is(2)))
-                .andExpect(jsonPath("$.categoryId", is(4)))
+                .andExpect(jsonPath("$.position", is("Bartender")))
+                .andExpect(jsonPath("$.category", is("Front")))
                 .andExpect(jsonPath("$.startTime", is("10:00AM")))
                 .andExpect(jsonPath("$.endTime", is("6:00PM")))
                 .andExpect(jsonPath("$.color", is("amber")));

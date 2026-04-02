@@ -90,7 +90,7 @@ public class SchedulingService {
         return shiftRepository.save(shift);
     }
 
-    public Shift updateShift(Integer shiftId, UpdateShiftRequest request) {
+    public ShiftResponseDto updateShift(Integer shiftId, UpdateShiftRequest request) {
         Shift shift = shiftRepository.findById(shiftId)
                 .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + shiftId));
 
@@ -123,7 +123,8 @@ public class SchedulingService {
 
         applyDerivedShiftFields(shift, request.duration());
         shift.setChangedBy(shift.getEmployeeId());
-        return shiftRepository.save(shift);
+        shiftRepository.save(shift);
+        return getShift(shiftId);
     }
 
     public void softDeleteShift(Integer shiftId) {

@@ -222,16 +222,29 @@ class SchedulingServiceTest {
 
         when(shiftRepository.findById(shiftId)).thenReturn(Optional.of(existingShift));
         when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(shiftRepository.findShiftDetailsByShiftId(shiftId))
+                .thenReturn(Optional.of(new TestShiftDetailsProjection(
+                        shiftId,
+                        101,
+                        1,
+                        "New description",
+                        null,
+                        LocalTime.of(10, 0),
+                        LocalTime.of(18, 0),
+                        8.0f,
+                        false,
+                        "Bartender",
+                        "Front",
+                        "amber"
+                )));
 
-        Shift updated = schedulingService.updateShift(shiftId, request);
+        ShiftResponseDto updated = schedulingService.updateShift(shiftId, request);
 
         assertEquals("New description", updated.getDescription());
         assertEquals(LocalTime.of(10, 0), updated.getStartTime());
         assertEquals(8.0f, updated.getDuration());
-        assertEquals(2, updated.getRequiredSkillId());
+        assertEquals("Bartender", updated.getPosition());
         assertEquals("amber", updated.getColor());
-        assertEquals(null, updated.getScheduleId());
-        assertEquals(101, updated.getChangedBy());
     }
 
     @Test
