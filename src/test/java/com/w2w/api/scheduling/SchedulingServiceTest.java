@@ -1,14 +1,17 @@
 package com.w2w.api.scheduling;
 
+import com.w2w.api.position.PositionService;
 import com.w2w.api.position.dto.PositionDto;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
-import com.w2w.api.scheduling.dto.UpdateShiftRequest; // Now a record
+import com.w2w.api.scheduling.dto.DayPositionBucketDto;
 import com.w2w.api.scheduling.dto.DayShiftBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
+import com.w2w.api.scheduling.dto.PositionShiftBucketDto;
 import com.w2w.api.scheduling.dto.ShiftDetailsProjection;
-import com.w2w.api.scheduling.dto.ShiftDto; // Now a class
+import com.w2w.api.scheduling.dto.ShiftDto;
 import com.w2w.api.scheduling.dto.ShiftResponseDto;
+import com.w2w.api.scheduling.dto.UpdateShiftRequest;
 import com.w2w.api.scheduling.model.Schedule;
 import com.w2w.api.scheduling.model.Shift;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq; // Import eq
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -36,6 +38,7 @@ class SchedulingServiceTest {
     private SchedulingQueryRepository schedulingQueryRepository;
     private ShiftRepository shiftRepository;
     private ScheduleRepository scheduleRepository;
+    private PositionService positionService;
     private SchedulingService schedulingService;
 
     @BeforeEach
@@ -43,10 +46,12 @@ class SchedulingServiceTest {
         schedulingQueryRepository = Mockito.mock(SchedulingQueryRepository.class);
         shiftRepository = Mockito.mock(ShiftRepository.class);
         scheduleRepository = Mockito.mock(ScheduleRepository.class);
+        positionService = Mockito.mock(PositionService.class);
         schedulingService = new SchedulingService();
         ReflectionTestUtils.setField(schedulingService, "schedulingQueryRepository", schedulingQueryRepository);
         ReflectionTestUtils.setField(schedulingService, "shiftRepository", shiftRepository);
         ReflectionTestUtils.setField(schedulingService, "scheduleRepository", scheduleRepository);
+        ReflectionTestUtils.setField(schedulingService, "positionService", positionService);
     }
 
     @Test
@@ -165,7 +170,7 @@ class SchedulingServiceTest {
 
         schedulingService.saveShift(request);
 
-        org.mockito.ArgumentCaptor<Schedule> scheduleCaptor = org.mockito.ArgumentCaptor.forClass(Schedule.class);
+        ArgumentCaptor<Schedule> scheduleCaptor = ArgumentCaptor.forClass(Schedule.class);
         verify(scheduleRepository).save(scheduleCaptor.capture());
         assertEquals(false, scheduleCaptor.getValue().isPublished());
     }
@@ -195,18 +200,17 @@ class SchedulingServiceTest {
     @Test
     void updateShiftUpdatesFieldsAndRecalculates() {
         Integer shiftId = 1001;
-        // Use canonical constructor for UpdateShiftRequest record
         UpdateShiftRequest request = new UpdateShiftRequest(
-                shiftId, // shiftId
-                101, // employeeId
+                shiftId,
+                101,
                 "New description",
-                LocalTime.of(10, 0), // startTime
-                LocalTime.of(18, 0), // endTime
-                2, // position
-                null, // category
-                "amber", // color
-                null, // date
-                null // duration
+                LocalTime.of(10, 0),
+                LocalTime.of(18, 0),
+                2,
+                null,
+                "amber",
+                null,
+                null
         );
 
         Shift existingShift = new Shift();
@@ -219,16 +223,29 @@ class SchedulingServiceTest {
 
         when(shiftRepository.findById(shiftId)).thenReturn(Optional.of(existingShift));
         when(shiftRepository.save(any(Shift.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(shiftRepository.findShiftDetailsByShiftId(shiftId))
+                .thenReturn(Optional.of(new TestShiftDetailsProjection(
+                        shiftId,
+                        101,
+                        1,
+                        "New description",
+                        null,
+                        LocalTime.of(10, 0),
+                        LocalTime.of(18, 0),
+                        8.0f,
+                        false,
+                        "Bartender",
+                        "Front",
+                        "amber"
+                )));
 
-        Shift updated = schedulingService.updateShift(shiftId, request);
+        ShiftResponseDto updated = schedulingService.updateShift(shiftId, request);
 
         assertEquals("New description", updated.getDescription());
         assertEquals(LocalTime.of(10, 0), updated.getStartTime());
-        assertEquals(8.0f, updated.getDuration()); // duration calculated from start/end times
-        assertEquals(2, updated.getRequiredSkillId());
+        assertEquals(8.0f, updated.getDuration());
+        assertEquals("Bartender", updated.getPosition());
         assertEquals("amber", updated.getColor());
-        assertEquals(null, updated.getScheduleId()); // no date was supplied, so schedule remains unchanged
-        assertEquals(101, updated.getChangedBy()); // changedBy updated from existingShift's employeeId
     }
 
     @Test
@@ -454,7 +471,146 @@ class SchedulingServiceTest {
         assertEquals(null, groupedShift.getColor());
     }
 
-    // Mock implementations for interfaces and records used in tests
+    @Test
+    void groupsShiftsByDayAndPositionAndInitializesEmptyDayBuckets() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 26);
+
+        when(positionService.getPositionsByCompanyId(7))
+                .thenReturn(List.of(
+                        new PositionDto(12, "Bartender"),
+                        new PositionDto(19, "Server")
+                ));
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+                .thenReturn(List.of(
+                        new TestProjection(
+                                9001,
+                                101,
+                                "Ava",
+                                "Stone",
+                                List.of("111-222"),
+                                List.of(new PositionDto(12, "Bartender")),
+                                LocalDate.of(2026, 3, 25),
+                                LocalTime.of(9, 0),
+                                LocalTime.of(17, 0),
+                                false,
+                                "Bartender",
+                                "Front",
+                                "Opening shift",
+                                8.0f,
+                                "amber"
+                        ),
+                        new TestProjection(
+                                9002,
+                                102,
+                                "Ben",
+                                "Cole",
+                                List.of("333-444"),
+                                List.of(new PositionDto(19, "Server")),
+                                LocalDate.of(2026, 3, 25),
+                                LocalTime.of(10, 0),
+                                LocalTime.of(18, 0),
+                                false,
+                                "Server",
+                                "Floor",
+                                "Lunch shift",
+                                8.0f,
+                                "blue"
+                        )
+                ));
+
+        List<DayPositionBucketDto> result = schedulingService.getShiftsGroupedByDayAndPosition(7, startDate, endDate);
+
+        assertEquals(2, result.size());
+        assertEquals(startDate, result.get(0).date());
+        assertEquals(2, result.get(0).shiftCount());
+        assertEquals(16.0f, result.get(0).totalDuration());
+        assertEquals(endDate, result.get(1).date());
+        assertEquals(0, result.get(1).shiftCount());
+        assertEquals(0.0f, result.get(1).totalDuration());
+        assertEquals(2, result.get(1).positions().size());
+        assertEquals("Bartender", result.get(1).positions().get(0).position());
+        assertEquals(0, result.get(1).positions().get(0).shiftCount());
+        assertEquals(0.0f, result.get(1).positions().get(0).totalDuration());
+        assertTrue(result.get(1).positions().get(0).shifts().isEmpty());
+        assertEquals("Server", result.get(1).positions().get(1).position());
+        assertEquals(0, result.get(1).positions().get(1).shiftCount());
+        assertEquals(0.0f, result.get(1).positions().get(1).totalDuration());
+        assertTrue(result.get(1).positions().get(1).shifts().isEmpty());
+
+        List<PositionShiftBucketDto> firstDayPositions = result.get(0).positions();
+        assertEquals(2, firstDayPositions.size());
+        assertEquals("Bartender", firstDayPositions.get(0).position());
+        assertEquals(1, firstDayPositions.get(0).shiftCount());
+        assertEquals(8.0f, firstDayPositions.get(0).totalDuration());
+        assertEquals("Server", firstDayPositions.get(1).position());
+        assertEquals(1, firstDayPositions.get(1).shiftCount());
+        assertEquals(8.0f, firstDayPositions.get(1).totalDuration());
+        assertEquals(101, firstDayPositions.get(0).shifts().getFirst().employeeId());
+        assertEquals("Ava", firstDayPositions.get(0).shifts().getFirst().firstName());
+        assertEquals("amber", firstDayPositions.get(0).shifts().getFirst().color());
+        assertEquals(102, firstDayPositions.get(1).shifts().getFirst().employeeId());
+        assertEquals("Lunch shift", firstDayPositions.get(1).shifts().getFirst().description());
+    }
+
+    @Test
+    void dayAndPositionGroupingSplitsOvernightShiftAcrossMatchingBuckets() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 26);
+
+        when(positionService.getPositionsByCompanyId(7))
+                .thenReturn(List.of(
+                        new PositionDto(12, "Bartender"),
+                        new PositionDto(19, "Server")
+                ));
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+                .thenReturn(List.of(new TestProjection(
+                        9003,
+                        101,
+                        "Ava",
+                        "Stone",
+                        List.of("111-222"),
+                        List.of(new PositionDto(12, "Bartender")),
+                        LocalDate.of(2026, 3, 25),
+                        LocalTime.of(22, 0),
+                        LocalTime.of(6, 0),
+                        true,
+                        "Bartender",
+                        "Front",
+                        "Close",
+                        8.0f,
+                        "charcoal"
+                )));
+
+        List<DayPositionBucketDto> result = schedulingService.getShiftsGroupedByDayAndPosition(7, startDate, endDate);
+
+        assertEquals(2, result.size());
+        assertEquals(2, result.get(0).positions().size());
+        assertEquals(2, result.get(1).positions().size());
+        assertEquals(1, result.get(0).shiftCount());
+        assertEquals(1, result.get(1).shiftCount());
+        assertEquals(2.0f, result.get(0).totalDuration());
+        assertEquals(6.0f, result.get(1).totalDuration());
+        assertEquals("Bartender", result.get(0).positions().getFirst().position());
+        assertEquals(1, result.get(0).positions().getFirst().shiftCount());
+        assertEquals(2.0f, result.get(0).positions().getFirst().totalDuration());
+        assertEquals(9003, result.get(0).positions().getFirst().shifts().getFirst().shiftId());
+        assertEquals(LocalTime.of(22, 0), result.get(0).positions().getFirst().shifts().getFirst().startTime());
+        assertEquals(LocalTime.MIDNIGHT, result.get(0).positions().getFirst().shifts().getFirst().endTime());
+        assertEquals(1, result.get(1).positions().getFirst().shiftCount());
+        assertEquals(6.0f, result.get(1).positions().getFirst().totalDuration());
+        assertEquals(LocalTime.MIDNIGHT, result.get(1).positions().getFirst().shifts().getFirst().startTime());
+        assertEquals(LocalTime.of(6, 0), result.get(1).positions().getFirst().shifts().getFirst().endTime());
+        assertEquals("Server", result.get(0).positions().get(1).position());
+        assertEquals(0, result.get(0).positions().get(1).shiftCount());
+        assertEquals(0.0f, result.get(0).positions().get(1).totalDuration());
+        assertTrue(result.get(0).positions().get(1).shifts().isEmpty());
+        assertEquals("Server", result.get(1).positions().get(1).position());
+        assertEquals(0, result.get(1).positions().get(1).shiftCount());
+        assertEquals(0.0f, result.get(1).positions().get(1).totalDuration());
+        assertTrue(result.get(1).positions().get(1).shifts().isEmpty());
+    }
+
     private record TestProjection(
             Integer shiftId,
             Integer employeeId,
