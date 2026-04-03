@@ -145,3 +145,9 @@ CREATE INDEX idx_se_company_employee
 
 CREATE INDEX idx_employee_company_id
   ON employee (company_id);
+
+CREATE INDEX idx_skill_company_id
+  ON skill (company_id);
+
+CREATE INDEX idx_category_company_id
+  ON category (company_id);
