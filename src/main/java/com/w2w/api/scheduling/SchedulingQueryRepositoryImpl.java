@@ -55,28 +55,50 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         return jdbcTemplate.query(
                 findEmployeeShiftsInRangeSql,
                 parameters,
-                (rs, rowNum) -> mapRow(rs)
+                new RowMapperImpl()
         );
     }
 
-    private EmployeeShiftProjection mapRow(ResultSet rs) throws SQLException {
-        return new EmployeeShiftRow(
-                getNullableInteger(rs, "shiftId"),
-                rs.getInt("employeeId"),
-                rs.getString("firstName"),
-                rs.getString("lastName"),
-                deserializeList(rs.getString("phones")),
-                deserializePositions(rs.getString("availablePositions")),
-                rs.getObject("weekCommencing", LocalDate.class),
-                rs.getObject("startTime", LocalTime.class),
-                rs.getObject("endTime", LocalTime.class),
-                getNullableBoolean(rs, "isOvernight"),
-                rs.getString("position"),
-                rs.getString("category"),
-                rs.getString("description"),
-                getNullableFloat(rs, "duration"),
-                rs.getString("color")
-        );
+    private final class RowMapperImpl implements org.springframework.jdbc.core.RowMapper<EmployeeShiftProjection> {
+        private Integer lastEmployeeId = null;
+        private List<String> lastPhones = null;
+        private List<PositionDto> lastPositions = null;
+
+        @Override
+        public EmployeeShiftProjection mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Integer employeeId = getNullableInteger(rs, "employeeId");
+            List<String> phones;
+            List<PositionDto> positions;
+
+            if (employeeId != null && employeeId.equals(lastEmployeeId)) {
+                phones = lastPhones;
+                positions = lastPositions;
+            } else {
+                phones = deserializeList(rs.getString("phones"));
+                positions = deserializePositions(rs.getString("availablePositions"));
+                lastEmployeeId = employeeId;
+                lastPhones = phones;
+                lastPositions = positions;
+            }
+
+            return new EmployeeShiftRow(
+                    getNullableInteger(rs, "shiftId"),
+                    employeeId,
+                    rs.getString("firstName"),
+                    rs.getString("lastName"),
+                    phones,
+                    positions,
+                    rs.getObject("weekCommencing", LocalDate.class),
+                    rs.getObject("startTime", LocalTime.class),
+                    rs.getObject("endTime", LocalTime.class),
+                    getNullableBoolean(rs, "isOvernight"),
+                    rs.getString("position"),
+                    rs.getString("category"),
+                    rs.getString("description"),
+                    getNullableFloat(rs, "duration"),
+                    rs.getString("color")
+            );
+        }
     }
 
     private Integer getNullableInteger(ResultSet rs, String column) throws SQLException {

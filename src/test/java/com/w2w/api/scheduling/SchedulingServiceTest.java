@@ -639,6 +639,39 @@ class SchedulingServiceTest {
         assertTrue(result.get(1).positions().get(1).shifts().isEmpty());
     }
 
+    @Test
+    void includesUnassignedShiftsInGroupedResults() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+                .thenReturn(List.of(new TestProjection(
+                        9005,
+                        null, // Unassigned
+                        null,
+                        null,
+                        List.of(),
+                        List.of(),
+                        LocalDate.of(2026, 3, 25),
+                        LocalTime.of(9, 0),
+                        LocalTime.of(17, 0),
+                        false,
+                        "Bartender",
+                        "Front",
+                        "Open Shift",
+                        8.0f,
+                        "gray"
+                )));
+
+        List<EmployeeWithShiftsDto> result = schedulingService.getEmployeeShiftsGroupedInRange(7, startDate, endDate);
+
+        assertEquals(1, result.size());
+        EmployeeWithShiftsDto unassignedEntry = result.getFirst();
+        assertEquals(null, unassignedEntry.getEmployeeId());
+        assertEquals(1, unassignedEntry.getWeeklyShifts().get(0).getShifts().size());
+        assertEquals(9005, unassignedEntry.getWeeklyShifts().get(0).getShifts().getFirst().getShiftId());
+    }
+
     private record TestProjection(
             Integer shiftId,
             Integer employeeId,
