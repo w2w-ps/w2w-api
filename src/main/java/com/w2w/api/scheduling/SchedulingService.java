@@ -913,9 +913,6 @@ public class SchedulingService {
         );
     }
 
-    private void updatePositionBucket(
-            DayPositionBucket dayBucket,
-            PositionShiftBucket positionBucket,
     private void updateDayPositionBucket(
             DayPositionBucket dayBucket,
             PositionShiftBucket positionBucket,
