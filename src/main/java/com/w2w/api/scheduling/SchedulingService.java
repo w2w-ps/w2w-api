@@ -412,44 +412,44 @@ public class SchedulingService {
         return segments;
     }
 
-    private List<GroupedShiftDate> toGroupedDatesFromPositionBuckets(List<DayPositionBucket> days) {
-        return days.stream()
-                .map(day -> new GroupedShiftDate(
-                        day.date(),
-                        day.positions().stream()
+    private List<GroupedShiftDate> toGroupedDatesFromPositionBuckets(List<DayPositionBucket> dateBuckets) {
+        return dateBuckets.stream()
+                .map(dateBucket -> new GroupedShiftDate(
+                        dateBucket.date(),
+                        dateBucket.positions().stream()
                                 .map(this::toPositionShiftGroup)
                                 .toList()
                 ))
                 .toList();
     }
 
-    private List<GroupedShiftDate> toGroupedDatesFromPositionTimingBuckets(List<DayPositionTimingBucket> days) {
-        return days.stream()
-                .map(day -> new GroupedShiftDate(
-                        day.date(),
-                        day.positions().stream()
+    private List<GroupedShiftDate> toGroupedDatesFromPositionTimingBuckets(List<DayPositionTimingBucket> dateBuckets) {
+        return dateBuckets.stream()
+                .map(dateBucket -> new GroupedShiftDate(
+                        dateBucket.date(),
+                        dateBucket.positions().stream()
                                 .map(this::toPositionTimingShiftGroup)
                                 .toList()
                 ))
                 .toList();
     }
 
-    private List<GroupedShiftDate> toGroupedDatesFromCategoryTimingBuckets(List<DayCategoryTimingBucket> days) {
-        return days.stream()
-                .map(day -> new GroupedShiftDate(
-                        day.date(),
-                        day.categories().stream()
+    private List<GroupedShiftDate> toGroupedDatesFromCategoryTimingBuckets(List<DayCategoryTimingBucket> dateBuckets) {
+        return dateBuckets.stream()
+                .map(dateBucket -> new GroupedShiftDate(
+                        dateBucket.date(),
+                        dateBucket.categories().stream()
                                 .map(this::toCategoryTimingShiftGroup)
                                 .toList()
                 ))
                 .toList();
     }
 
-    private List<GroupedShiftDate> toGroupedDatesFromDayTimingBuckets(List<DayShiftTimingBucket> days) {
-        return days.stream()
-                .map(day -> new GroupedShiftDate(
-                        day.date(),
-                        day.shiftTimings().stream()
+    private List<GroupedShiftDate> toGroupedDatesFromDayTimingBuckets(List<DayShiftTimingBucket> dateBuckets) {
+        return dateBuckets.stream()
+                .map(dateBucket -> new GroupedShiftDate(
+                        dateBucket.date(),
+                        dateBucket.shiftTimings().stream()
                                 .map(this::toTimingShiftGroup)
                                 .toList()
                 ))
