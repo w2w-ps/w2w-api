@@ -7,6 +7,7 @@ import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -59,7 +60,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         );
     }
 
-    private final class RowMapperImpl implements org.springframework.jdbc.core.RowMapper<EmployeeShiftProjection> {
+    private final class RowMapperImpl implements RowMapper<EmployeeShiftProjection> {
         private Integer lastEmployeeId = null;
         private List<String> lastPhones = null;
         private List<PositionDto> lastPositions = null;
