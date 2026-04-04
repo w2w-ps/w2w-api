@@ -165,9 +165,6 @@ public class SchedulingService {
             ShiftGrouping grouping
     ) {
         List<GroupedShiftDate> dates = switch (grouping) {
-            case POSITION -> toGroupedDatesFromPositionBuckets(
-                    getShiftsGroupedByDayAndPosition(companyId, startDate, endDate)
-            );
             case POSITION_SHIFT_TIMINGS -> toGroupedDatesFromPositionTimingBuckets(
                     getShiftsGroupedByDayPositionAndTiming(companyId, startDate, endDate)
             );
@@ -184,7 +181,7 @@ public class SchedulingService {
         return new GroupedShiftsResponse(dates);
     }
 
-    public List<DayPositionBucket> getShiftsGroupedByDayAndPosition(
+    public List<DayPositionBucket> getShiftsGroupedByDateAndPosition(
             Integer companyId,
             LocalDate startDate,
             LocalDate endDate
@@ -412,17 +409,6 @@ public class SchedulingService {
         return segments;
     }
 
-    private List<GroupedShiftDate> toGroupedDatesFromPositionBuckets(List<DayPositionBucket> dateBuckets) {
-        return dateBuckets.stream()
-                .map(dateBucket -> new GroupedShiftDate(
-                        dateBucket.date(),
-                        dateBucket.positions().stream()
-                                .map(this::toPositionShiftGroup)
-                                .toList()
-                ))
-                .toList();
-    }
-
     private List<GroupedShiftDate> toGroupedDatesFromPositionTimingBuckets(List<DayPositionTimingBucket> dateBuckets) {
         return dateBuckets.stream()
                 .map(dateBucket -> new GroupedShiftDate(
@@ -454,16 +440,6 @@ public class SchedulingService {
                                 .toList()
                 ))
                 .toList();
-    }
-
-    private ShiftGroup toPositionShiftGroup(PositionShiftBucket positionBucket) {
-        return new ShiftGroup(
-                positionBucket.position(),
-                List.of(),
-                positionBucket.shifts().stream()
-                        .map(this::toScheduledShift)
-                        .toList()
-        );
     }
 
     private ShiftGroup toPositionTimingShiftGroup(PositionTimingBucket positionBucket) {
@@ -499,22 +475,6 @@ public class SchedulingService {
                 shiftTimingGroup.label(),
                 List.of(),
                 shiftTimingGroup.shifts()
-        );
-    }
-
-    private EmployeeScheduledShift toScheduledShift(EmployeeShift shift) {
-        return new EmployeeScheduledShift(
-                shift.shiftId(),
-                shift.employeeId(),
-                shift.firstName(),
-                shift.lastName(),
-                shift.phones(),
-                shift.startTime(),
-                shift.endTime(),
-                shift.category(),
-                shift.description(),
-                shift.duration(),
-                shift.color()
         );
     }
 

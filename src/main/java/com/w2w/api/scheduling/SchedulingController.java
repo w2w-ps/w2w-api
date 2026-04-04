@@ -5,7 +5,6 @@ import com.w2w.api.scheduling.dto.ConflictItem;
 import com.w2w.api.scheduling.dto.ConflictResponse;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.dto.DayPositionBucket;
-import com.w2w.api.scheduling.dto.DayPositionTimingBucket;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
 import com.w2w.api.scheduling.dto.GroupedShiftsResponse;
@@ -80,23 +79,13 @@ public class SchedulingController {
         return schedulingService.getShiftsGrouped(companyId, startDate, endDate, grouping);
     }
 
-    @GetMapping("/shifts/day-position")
-    public List<DayPositionBucket> getShiftsGroupedByDayAndPosition(
+    @GetMapping("/shifts/date-position")
+    public List<DayPositionBucket> getShiftsGroupedByDateAndPosition(
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         TenantContext.setCurrentTenant(companyId);
-        return schedulingService.getShiftsGroupedByDayAndPosition(companyId, startDate, endDate);
-    }
-
-    @GetMapping("/shifts/day-position-timing")
-    public List<DayPositionTimingBucket> getShiftsGroupedByDayPositionAndTiming(
-            @RequestParam Integer companyId,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
-    ) {
-        TenantContext.setCurrentTenant(companyId);
-        return schedulingService.getShiftsGroupedByDayPositionAndTiming(companyId, startDate, endDate);
+        return schedulingService.getShiftsGroupedByDateAndPosition(companyId, startDate, endDate);
     }
     @PostMapping("/validation/precheck")
     public ResponseEntity<ConflictResponse> preCheck(@RequestBody FindConflictRequest request) {

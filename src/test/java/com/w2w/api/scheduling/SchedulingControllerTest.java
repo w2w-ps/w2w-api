@@ -6,10 +6,9 @@ import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.scheduling.dto.CategoryTimingBucket;
 import com.w2w.api.scheduling.dto.ConflictItem;
 import com.w2w.api.scheduling.dto.ConflictResponse;
-import com.w2w.api.scheduling.dto.DayPositionBucket;
 import com.w2w.api.scheduling.dto.DayCategoryTimingBucket;
-import com.w2w.api.scheduling.dto.DayPositionTimingBucket;
 import com.w2w.api.scheduling.dto.DayShiftTimingBucket;
+import com.w2w.api.scheduling.dto.DayPositionBucket;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
 import com.w2w.api.scheduling.dto.EmployeeScheduledShift;
 import com.w2w.api.scheduling.dto.EmployeeShift;
@@ -221,8 +220,8 @@ class SchedulingControllerTest {
     }
 
     @Test
-    void getShiftsGroupedByDayAndPosition_returnsGroupedBuckets() throws Exception {
-        when(schedulingService.getShiftsGroupedByDayAndPosition(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
+    void getShiftsGroupedByDateAndPosition_returnsGroupedBuckets() throws Exception {
+        when(schedulingService.getShiftsGroupedByDateAndPosition(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
                 .thenReturn(List.of(
                         new DayPositionBucket(
                                 LocalDate.of(2026, 3, 25),
@@ -268,7 +267,7 @@ class SchedulingControllerTest {
                         )
                 ));
 
-        mockMvc.perform(get("/api/scheduling/shifts/day-position")
+        mockMvc.perform(get("/api/scheduling/shifts/date-position")
                         .param("companyId", "7")
                         .param("startDate", "2026-03-25")
                         .param("endDate", "2026-03-26"))
@@ -293,42 +292,7 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$[1].positions[0].position").value("Bartender"))
                 .andExpect(jsonPath("$[1].positions[1].position").value("Server"));
 
-        verify(schedulingService).getShiftsGroupedByDayAndPosition(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
-    }
-
-    @Test
-    void getGroupedShifts_position_returnsNormalizedGroups() throws Exception {
-        when(schedulingService.getShiftsGrouped(
-                7,
-                LocalDate.of(2026, 3, 25),
-                LocalDate.of(2026, 3, 26),
-                ShiftGrouping.POSITION
-        )).thenReturn(new GroupedShiftsResponse(List.of(
-                new GroupedShiftDate(
-                        LocalDate.of(2026, 3, 25),
-                        List.of(new ShiftGroup("Bartender", List.of(), List.of()))
-                )
-        )));
-
-        mockMvc.perform(get("/api/scheduling/shifts/grouped")
-                        .param("companyId", "7")
-                        .param("grouping", "position")
-                        .param("startDate", "2026-03-25")
-                        .param("endDate", "2026-03-26"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.dates", hasSize(1)))
-                .andExpect(jsonPath("$.dates[0].date").value("2026-03-25"))
-                .andExpect(jsonPath("$.dates[0].shiftGroups", hasSize(1)))
-                .andExpect(jsonPath("$.dates[0].shiftGroups[0].label").value("Bartender"))
-                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups", hasSize(0)))
-                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shifts", hasSize(0)));
-
-        verify(schedulingService).getShiftsGrouped(
-                7,
-                LocalDate.of(2026, 3, 25),
-                LocalDate.of(2026, 3, 26),
-                ShiftGrouping.POSITION
-        );
+        verify(schedulingService).getShiftsGroupedByDateAndPosition(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
     }
 
     @Test
@@ -544,8 +508,8 @@ class SchedulingControllerTest {
     }
 
     @Test
-    void getShiftsGroupedByDayAndPosition_missingCompanyId_returnsBadRequest() throws Exception {
-        mockMvc.perform(get("/api/scheduling/shifts/day-position")
+    void getShiftsGroupedByDateAndPosition_missingCompanyId_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/scheduling/shifts/date-position")
                         .param("startDate", "2026-03-25")
                         .param("endDate", "2026-03-26"))
                 .andExpect(status().isBadRequest());

@@ -515,7 +515,7 @@ class SchedulingServiceTest {
     }
 
     @Test
-    void groupsShiftsByDayAndPositionAndInitializesEmptyDayBuckets() {
+    void groupsShiftsByDateAndPositionAndInitializesEmptyDateBuckets() {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 26);
 
@@ -562,7 +562,7 @@ class SchedulingServiceTest {
                         )
                 ));
 
-        List<DayPositionBucket> result = schedulingService.getShiftsGroupedByDayAndPosition(7, startDate, endDate);
+        List<DayPositionBucket> result = schedulingService.getShiftsGroupedByDateAndPosition(7, startDate, endDate);
 
         assertEquals(2, result.size());
         assertEquals(startDate, result.get(0).date());
@@ -599,7 +599,7 @@ class SchedulingServiceTest {
     }
 
     @Test
-    void dayAndPositionGroupingSplitsOvernightShiftAcrossMatchingBuckets() {
+    void dateAndPositionGroupingSplitsOvernightShiftAcrossMatchingBuckets() {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 26);
 
@@ -627,7 +627,7 @@ class SchedulingServiceTest {
                         "charcoal"
                 )));
 
-        List<DayPositionBucket> result = schedulingService.getShiftsGroupedByDayAndPosition(7, startDate, endDate);
+        List<DayPositionBucket> result = schedulingService.getShiftsGroupedByDateAndPosition(7, startDate, endDate);
 
         assertEquals(2, result.size());
         assertEquals(2, result.get(0).positions().size());

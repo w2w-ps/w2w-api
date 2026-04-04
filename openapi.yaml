@@ -115,9 +115,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EmployeeWithShifts'
-  /api/scheduling/shifts/day-position:
+  /api/scheduling/shifts/date-position:
     get:
-      summary: Get shifts grouped by day and position
+      summary: Get shifts grouped by date and position
       parameters:
         - in: query
           name: companyId
@@ -138,7 +138,7 @@ paths:
             format: date
       responses:
         '200':
-          description: Daily shift buckets grouped by position, including empty buckets for company positions without shifts
+          description: Date buckets grouped by position, including empty buckets for company positions without shifts
           content:
             application/json:
               schema:
@@ -160,7 +160,6 @@ paths:
           schema:
             type: string
             enum:
-              - position
               - position_shift_timings
               - shift_timings
               - category_shift_timings
