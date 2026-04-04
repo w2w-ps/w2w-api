@@ -2,28 +2,9 @@ package com.w2w.api.scheduling;
 
 import com.w2w.api.category.CategoryService;
 import com.w2w.api.category.dto.CategorySummary;
-import com.w2w.api.scheduling.dto.CategoryTimingBucket;
 import com.w2w.api.position.PositionService;
 import com.w2w.api.position.dto.PositionSummary;
-import com.w2w.api.scheduling.dto.CreateShiftRequest;
-import com.w2w.api.scheduling.dto.DayPositionBucket;
-import com.w2w.api.scheduling.dto.DayShiftBucket;
-import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
-import com.w2w.api.scheduling.dto.EmployeeSchedule;
-import com.w2w.api.scheduling.dto.PositionShiftBucket;
-import com.w2w.api.scheduling.dto.ShiftDetailsProjection;
-import com.w2w.api.scheduling.dto.ShiftResponse;
-import com.w2w.api.scheduling.dto.DayCategoryTimingBucket;
-import com.w2w.api.scheduling.dto.DayPositionTimingBucket;
-import com.w2w.api.scheduling.dto.DayShiftTimingBucket;
-import com.w2w.api.scheduling.dto.GroupedShiftsResponse;
-import com.w2w.api.scheduling.dto.PositionTimingBucket;
-import com.w2w.api.scheduling.dto.ShiftGroup;
-import com.w2w.api.scheduling.dto.ShiftGrouping;
-import com.w2w.api.scheduling.dto.ShiftSummary;
-import com.w2w.api.scheduling.dto.ShiftTimingBucket;
-import com.w2w.api.scheduling.dto.ShiftTimingGroup;
-import com.w2w.api.scheduling.dto.UpdateShiftRequest;
+import com.w2w.api.scheduling.dto.*;
 import com.w2w.api.scheduling.model.Schedule;
 import com.w2w.api.scheduling.model.Shift;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,14 +18,9 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class SchedulingServiceTest {
     private SchedulingQueryRepository schedulingQueryRepository;
@@ -519,7 +495,7 @@ class SchedulingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 26);
 
-        when(positionService.getAllPositions(7))
+        when(positionService.getPositions(7, "all"))
                 .thenReturn(List.of(
                         new PositionSummary(12, "Bartender"),
                         new PositionSummary(19, "Server")
@@ -603,7 +579,7 @@ class SchedulingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 26);
 
-        when(positionService.getAllPositions(7))
+        when(positionService.getPositions(7, "all"))
                 .thenReturn(List.of(
                         new PositionSummary(12, "Bartender"),
                         new PositionSummary(19, "Server")
@@ -663,7 +639,7 @@ class SchedulingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 26);
 
-        when(positionService.getAllPositions(7))
+        when(positionService.getPositions(7, "all"))
                 .thenReturn(List.of(
                         new PositionSummary(12, "Bartender"),
                         new PositionSummary(19, "Server")
@@ -706,7 +682,7 @@ class SchedulingServiceTest {
                         )
                 ));
 
-        List<DayPositionTimingBucket> result = schedulingService.getShiftsGroupedByDayPositionAndTiming(7, startDate, endDate);
+        List<DayPositionTimingBucketDto> result = schedulingService.getShiftsGroupedByDayPositionAndTiming(7, startDate, endDate);
 
         assertEquals(2, result.size());
         assertEquals(1, result.get(0).positions().get(0).shiftTimings().size());
@@ -764,7 +740,7 @@ class SchedulingServiceTest {
                         )
                 ));
 
-        List<DayCategoryTimingBucket> result = schedulingService.getShiftsGroupedByDayCategoryAndTiming(7, startDate, endDate);
+        List<DayCategoryTimingBucketDto> result = schedulingService.getShiftsGroupedByDayCategoryAndTiming(7, startDate, endDate);
 
         assertEquals(2, result.size());
         assertEquals(2, result.get(0).categories().size());
@@ -824,7 +800,7 @@ class SchedulingServiceTest {
                         )
                 ));
 
-        List<DayCategoryTimingBucket> result =
+        List<DayCategoryTimingBucketDto> result =
                 schedulingService.getShiftsGroupedByDayCategoryShortNameAndTiming(7, startDate, endDate);
 
         assertEquals(2, result.size());
@@ -842,7 +818,7 @@ class SchedulingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 25);
 
-        when(positionService.getAllPositions(7))
+        when(positionService.getPositions(7, "all"))
                 .thenReturn(List.of(new PositionSummary(12, "Bartender")));
         when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
                 .thenReturn(List.of(
@@ -865,52 +841,15 @@ class SchedulingServiceTest {
                         )
                 ));
 
-        GroupedShiftsResponse result =
-                schedulingService.getShiftsGrouped(7, startDate, endDate, ShiftGrouping.POSITION_SHIFT_TIMINGS);
+        Object response = schedulingService.getShiftsGrouped(7, startDate, endDate, ShiftGrouping.POSITION_SHIFT_TIMINGS);
+        assertTrue(response instanceof GroupedShiftsResponse);
+        GroupedShiftsResponse result = (GroupedShiftsResponse) response;
 
         assertEquals(1, result.dates().size());
         assertEquals("Bartender", result.dates().getFirst().shiftGroups().getFirst().label());
         assertEquals(1, result.dates().getFirst().shiftGroups().getFirst().shiftGroups().size());
         assertEquals("9:00AM-5:00PM", result.dates().getFirst().shiftGroups().getFirst().shiftGroups().getFirst().label());
         assertEquals(1, result.dates().getFirst().shiftGroups().getFirst().shiftGroups().getFirst().shifts().size());
-    }
-
-    @Test
-    void getShiftsGrouped_returnsNormalizedCategoryShortNameResponse() {
-        LocalDate startDate = LocalDate.of(2026, 3, 25);
-        LocalDate endDate = LocalDate.of(2026, 3, 25);
-
-        when(categoryService.getCategoriesByCompanyId(7))
-                .thenReturn(List.of(new CategorySummary(2, "Front", "FRT")));
-        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
-                .thenReturn(List.of(
-                        new TestProjection(
-                                9001,
-                                101,
-                                "Ava",
-                                "Stone",
-                                List.of("111-222"),
-                                List.of(new PositionSummary(12, "Bartender")),
-                                LocalDate.of(2026, 3, 25),
-                                LocalTime.of(9, 0),
-                                LocalTime.of(17, 0),
-                                false,
-                                "Bartender",
-                                "Front",
-                                "Opening shift",
-                                8.0f,
-                                "amber"
-                        )
-                ));
-
-        GroupedShiftsResponse result =
-                schedulingService.getShiftsGrouped(7, startDate, endDate, ShiftGrouping.CAT_SHIFT_TIMINGS);
-
-        ShiftGroup categoryGroup = result.dates().getFirst().shiftGroups().getFirst();
-        assertEquals("FRT", categoryGroup.label());
-        assertEquals(1, categoryGroup.shiftGroups().size());
-        assertEquals("9:00AM-5:00PM", categoryGroup.shiftGroups().getFirst().label());
-        assertEquals(1, categoryGroup.shiftGroups().getFirst().shifts().size());
     }
 
     @Test
@@ -956,7 +895,7 @@ class SchedulingServiceTest {
                         )
                 ));
 
-        List<DayShiftTimingBucket> result = schedulingService.getShiftsGroupedByDayAndTiming(7, startDate, endDate);
+        List<DayShiftTimingBucketDto> result = schedulingService.getShiftsGroupedByDayAndTiming(7, startDate, endDate);
 
         assertEquals(2, result.size());
         assertEquals(startDate, result.get(0).date());
@@ -1009,7 +948,7 @@ class SchedulingServiceTest {
                         )
                 ));
 
-        List<DayShiftTimingBucket> result = schedulingService.getShiftsGroupedByDayAndTiming(7, startDate, endDate);
+        List<DayShiftTimingBucketDto> result = schedulingService.getShiftsGroupedByDayAndTiming(7, startDate, endDate);
 
         assertEquals(2, result.getFirst().shiftTimings().size());
         assertEquals("9:00AM-5:00PM", result.getFirst().shiftTimings().get(0).label());

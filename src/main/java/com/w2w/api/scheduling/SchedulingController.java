@@ -5,13 +5,13 @@ import com.w2w.api.scheduling.dto.ConflictItem;
 import com.w2w.api.scheduling.dto.ConflictResponse;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.dto.DayPositionBucket;
+import com.w2w.api.scheduling.dto.DayPositionTimingBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
 import com.w2w.api.scheduling.dto.GroupedShiftsResponse;
 import com.w2w.api.scheduling.dto.ShiftGrouping;
 import com.w2w.api.scheduling.dto.ShiftResponse;
 import com.w2w.api.scheduling.dto.UpdateShiftRequest;
-import com.w2w.api.scheduling.model.Shift;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -76,7 +76,7 @@ public class SchedulingController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
         TenantContext.setCurrentTenant(companyId);
-        return schedulingService.getShiftsGrouped(companyId, startDate, endDate, grouping);
+        return (GroupedShiftsResponse) schedulingService.getShiftsGrouped(companyId, startDate, endDate, grouping);
     }
 
     @GetMapping("/shifts/date-position")
@@ -87,6 +87,17 @@ public class SchedulingController {
         TenantContext.setCurrentTenant(companyId);
         return schedulingService.getShiftsGroupedByDateAndPosition(companyId, startDate, endDate);
     }
+
+    @GetMapping("/shifts/day-position-timing")
+    public List<DayPositionTimingBucketDto> getShiftsGroupedByDayPositionAndTiming(
+            @RequestParam Integer companyId,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
+    ) {
+        TenantContext.setCurrentTenant(companyId);
+        return schedulingService.getShiftsGroupedByDayPositionAndTiming(companyId, startDate, endDate);
+    }
+
     @PostMapping("/validation/precheck")
     public ResponseEntity<ConflictResponse> preCheck(@RequestBody FindConflictRequest request) {
         List<ConflictItem> conflicts = schedulingService.validate(request);

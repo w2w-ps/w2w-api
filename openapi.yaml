@@ -160,6 +160,7 @@ paths:
           schema:
             type: string
             enum:
+              - position
               - position_shift_timings
               - shift_timings
               - category_shift_timings
@@ -182,7 +183,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GroupedShiftsResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/GroupedShiftsResponse'
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/DayPositionBucket'
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/DayPositionTimingBucket'
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/DayShiftTimingBucket'
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/DayCategoryTimingBucket'
   /api/preferences/day:
     get:
       summary: Get day preference
@@ -885,6 +899,31 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/EmployeeScheduledShift'
+    DayPositionTimingBucket:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        positions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionTimingBucket'
+        shiftCount:
+          type: integer
+        totalDuration:
+          type: number
+          format: float
+    DayCategoryTimingBucket:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryTimingBucket'
     DayPreferenceRequest:
       type: object
       required: [employeeId, companyId, date]
