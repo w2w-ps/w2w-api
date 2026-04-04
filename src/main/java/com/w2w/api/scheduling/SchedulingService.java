@@ -166,6 +166,7 @@ public class SchedulingService {
             case POSITION_SHIFT_TIMINGS -> getShiftsGroupedByDayPositionAndTiming(companyId, startDate, endDate);
             case SHIFT_TIMINGS -> getShiftsGroupedByDayAndTiming(companyId, startDate, endDate);
             case CATEGORY_SHIFT_TIMINGS -> getShiftsGroupedByDayCategoryAndTiming(companyId, startDate, endDate);
+            case CAT_SHIFT_TIMINGS -> getShiftsGroupedByDayCategoryShortNameAndTiming(companyId, startDate, endDate);
         };
     }
 
@@ -272,6 +273,19 @@ public class SchedulingService {
                 startDate,
                 endDate,
                 buildCategoryLabelByName(companyId, false)
+        );
+    }
+
+    public List<DayCategoryTimingBucketDto> getShiftsGroupedByDayCategoryShortNameAndTiming(
+            Integer companyId,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        return getShiftsGroupedByDayCategoryAndTiming(
+                companyId,
+                startDate,
+                endDate,
+                buildCategoryLabelByName(companyId, true)
         );
     }
 

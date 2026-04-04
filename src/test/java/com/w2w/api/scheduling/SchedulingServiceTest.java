@@ -774,6 +774,67 @@ class SchedulingServiceTest {
     }
 
     @Test
+    void dayCategoryShortNameTimingGroupingUsesCategoryShortDescriptions() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 26);
+
+        when(categoryService.getCategoriesByCompanyId(7))
+                .thenReturn(List.of(
+                        new CategoryDto(1, "Floor", "FLR"),
+                        new CategoryDto(2, "Front", "FRT")
+                ));
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+                .thenReturn(List.of(
+                        new TestProjection(
+                                9001,
+                                101,
+                                "Ava",
+                                "Stone",
+                                List.of("111-222"),
+                                List.of(new PositionDto(12, "Bartender")),
+                                LocalDate.of(2026, 3, 25),
+                                LocalTime.of(9, 0),
+                                LocalTime.of(17, 0),
+                                false,
+                                "Bartender",
+                                "Front",
+                                "Opening shift",
+                                8.0f,
+                                "amber"
+                        ),
+                        new TestProjection(
+                                9002,
+                                102,
+                                "Ben",
+                                "Cole",
+                                List.of("333-444"),
+                                List.of(new PositionDto(19, "Server")),
+                                LocalDate.of(2026, 3, 25),
+                                LocalTime.of(10, 0),
+                                LocalTime.of(18, 0),
+                                false,
+                                "Server",
+                                "Floor",
+                                "Lunch shift",
+                                8.0f,
+                                "blue"
+                        )
+                ));
+
+        List<DayCategoryTimingBucketDto> result =
+                schedulingService.getShiftsGroupedByDayCategoryShortNameAndTiming(7, startDate, endDate);
+
+        assertEquals(2, result.size());
+        assertEquals(2, result.get(0).categories().size());
+        assertEquals("FLR", result.get(0).categories().get(0).category());
+        assertEquals(1, result.get(0).categories().get(0).shiftTimings().size());
+        assertEquals("FRT", result.get(0).categories().get(1).category());
+        assertEquals(1, result.get(0).categories().get(1).shiftTimings().size());
+        assertTrue(result.get(1).categories().get(0).shiftTimings().isEmpty());
+        assertTrue(result.get(1).categories().get(1).shiftTimings().isEmpty());
+    }
+
+    @Test
     void dayShiftTimingGroupingGroupsShiftsByTimeWindowWithoutAggregates() {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 26);

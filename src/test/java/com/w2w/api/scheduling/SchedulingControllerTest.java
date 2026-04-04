@@ -470,6 +470,45 @@ class SchedulingControllerTest {
     }
 
     @Test
+    void getGroupedShifts_catShiftTimings_returnsShortCategoryBuckets() throws Exception {
+        when(schedulingService.getShiftsGrouped(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.CAT_SHIFT_TIMINGS
+        )).thenReturn(List.of(
+                new DayCategoryTimingBucketDto(
+                        LocalDate.of(2026, 3, 25),
+                        List.of(new CategoryTimingBucketDto(
+                                "FRT",
+                                new ArrayList<>(List.of(new ShiftTimingGroupDto(
+                                        "9:00AM-5:00PM",
+                                        new ArrayList<>()
+                                )))
+                        ))
+                )
+        ));
+
+        mockMvc.perform(get("/api/scheduling/shifts/grouped")
+                        .param("companyId", "7")
+                        .param("grouping", "cat_shift_timings")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].categories[0].category").value("FRT"))
+                .andExpect(jsonPath("$[0].categories[0].shiftTimings", hasSize(1)))
+                .andExpect(jsonPath("$[0].categories[0].shiftTimings[0].label").value("9:00AM-5:00PM"));
+
+        verify(schedulingService).getShiftsGrouped(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.CAT_SHIFT_TIMINGS
+        );
+    }
+
+    @Test
     void getGroupedShifts_dayShiftTimings_returnsDayTimingBuckets() throws Exception {
         when(schedulingService.getShiftsGrouped(
                 7,

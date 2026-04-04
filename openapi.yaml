@@ -164,6 +164,7 @@ paths:
               - position_shift_timings
               - shift_timings
               - category_shift_timings
+              - cat_shift_timings
         - in: query
           name: startDate
           required: true
@@ -178,7 +179,7 @@ paths:
             format: date
       responses:
         '200':
-          description: Grouped shift buckets for the requested strategy. `position` preserves the existing day-position bucket payload. `shift_timings` and `category_shift_timings` omit aggregate count and duration fields.
+          description: Grouped shift buckets for the requested strategy. `position` preserves the existing day-position bucket payload. `shift_timings`, `category_shift_timings`, and `cat_shift_timings` omit aggregate count and duration fields.
           content:
             application/json:
               schema:
