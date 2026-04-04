@@ -90,7 +90,7 @@ class SchedulingQueryRepositoryImplTest {
             ResultSet resultSet = mock(ResultSet.class);
 
             when(resultSet.getInt("shiftId")).thenReturn(0);
-            when(resultSet.wasNull()).thenReturn(true, false, false);
+            when(resultSet.wasNull()).thenReturn(false, true, false, false);
             when(resultSet.getInt("employeeId")).thenReturn(101);
             when(resultSet.getString("firstName")).thenReturn("Ava");
             when(resultSet.getString("lastName")).thenReturn("Stone");

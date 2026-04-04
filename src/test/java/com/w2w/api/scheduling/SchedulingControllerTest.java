@@ -3,14 +3,23 @@ package com.w2w.api.scheduling;
 import com.w2w.api.login.JwtAuthFilter;
 import com.w2w.api.login.JwtUtil;
 import com.w2w.api.position.dto.PositionSummary;
+import com.w2w.api.scheduling.dto.CategoryTimingBucketDto;
 import com.w2w.api.scheduling.dto.ConflictItem;
 import com.w2w.api.scheduling.dto.ConflictResponse;
 import com.w2w.api.scheduling.dto.DayPositionBucket;
+import com.w2w.api.scheduling.dto.DayCategoryTimingBucketDto;
+import com.w2w.api.scheduling.dto.DayPositionTimingBucketDto;
+import com.w2w.api.scheduling.dto.DayShiftTimingBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
+import com.w2w.api.scheduling.dto.EmployeeScheduledShiftDto;
 import com.w2w.api.scheduling.dto.EmployeeShift;
-import com.w2w.api.scheduling.dto.PositionShiftBucket;
 import com.w2w.api.scheduling.dto.ShiftResponse;
 import com.w2w.api.scheduling.dto.ShiftSummary;
+import com.w2w.api.scheduling.dto.PositionShiftBucket;
+import com.w2w.api.scheduling.dto.PositionTimingBucketDto;
+import com.w2w.api.scheduling.dto.ShiftGrouping;
+import com.w2w.api.scheduling.dto.ShiftTimingBucketDto;
+import com.w2w.api.scheduling.dto.ShiftTimingGroupDto;
 import com.w2w.api.scheduling.model.Shift;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -282,6 +291,218 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$[1].positions[1].position").value("Server"));
 
         verify(schedulingService).getShiftsGroupedByDayAndPosition(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
+    }
+
+    @Test
+    void getShiftsGroupedByDayPositionAndTiming_returnsGroupedBuckets() throws Exception {
+        when(schedulingService.getShiftsGroupedByDayPositionAndTiming(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
+                .thenReturn(List.of(
+                        new DayPositionTimingBucketDto(
+                                LocalDate.of(2026, 3, 25),
+                                List.of(
+                                        new PositionTimingBucketDto(
+                                                "Bartender",
+                                                new ArrayList<>(List.of(
+                                                        new ShiftTimingBucketDto(
+                                                                LocalTime.of(9, 0),
+                                                                LocalTime.of(17, 0),
+                                                                new ArrayList<>(List.of(
+                                                                        new EmployeeScheduledShiftDto(
+                                                                                9001,
+                                                                                101,
+                                                                                "Ava",
+                                                                                "Stone",
+                                                                                List.of("111-222"),
+                                                                                LocalTime.of(9, 0),
+                                                                                LocalTime.of(17, 0),
+                                                                                "Front",
+                                                                                "Opening shift",
+                                                                                8.0f,
+                                                                                "amber"
+                                                                        )
+                                                                )),
+                                                                1,
+                                                                8.0f
+                                                        )
+                                                )),
+                                                1,
+                                                8.0f
+                                        )
+                                ),
+                                1,
+                                8.0f
+                        )
+                ));
+
+        mockMvc.perform(get("/api/scheduling/shifts/day-position-timing")
+                        .param("companyId", "7")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].positions[0].position").value("Bartender"))
+                .andExpect(jsonPath("$[0].positions[0].shiftTimings", hasSize(1)))
+                .andExpect(jsonPath("$[0].positions[0].shiftTimings[0].startTime").value("9:00AM"))
+                .andExpect(jsonPath("$[0].positions[0].shiftTimings[0].endTime").value("5:00PM"))
+                .andExpect(jsonPath("$[0].positions[0].shiftTimings[0].shifts[0].employeeId").value(101));
+
+        verify(schedulingService).getShiftsGroupedByDayPositionAndTiming(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
+    }
+
+    @Test
+    void getGroupedShifts_dayPosition_returnsExistingDayPositionContract() throws Exception {
+        when(schedulingService.getShiftsGrouped(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.POSITION
+        )).thenReturn(List.of(
+                new DayPositionBucketDto(
+                        LocalDate.of(2026, 3, 25),
+                        List.of(new PositionShiftBucketDto("Bartender", new ArrayList<>(), 0, 0.0f)),
+                        0,
+                        0.0f
+                )
+        ));
+
+        mockMvc.perform(get("/api/scheduling/shifts/grouped")
+                        .param("companyId", "7")
+                        .param("grouping", "position")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].date").value("2026-03-25"))
+                .andExpect(jsonPath("$[0].positions", hasSize(1)))
+                .andExpect(jsonPath("$[0].positions[0].position").value("Bartender"));
+
+        verify(schedulingService).getShiftsGrouped(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.POSITION
+        );
+    }
+
+    @Test
+    void getGroupedShifts_dayPositionShiftTimings_returnsTimingBuckets() throws Exception {
+        when(schedulingService.getShiftsGrouped(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.POSITION_SHIFT_TIMINGS
+        )).thenReturn(List.of(
+                new DayPositionTimingBucketDto(
+                        LocalDate.of(2026, 3, 25),
+                        List.of(new PositionTimingBucketDto(
+                                "Bartender",
+                                new ArrayList<>(List.of(new ShiftTimingBucketDto(
+                                        LocalTime.of(9, 0),
+                                        LocalTime.of(17, 0),
+                                        new ArrayList<>(),
+                                        0,
+                                        0.0f
+                                ))),
+                                0,
+                                0.0f
+                        )),
+                        0,
+                        0.0f
+                )
+        ));
+
+        mockMvc.perform(get("/api/scheduling/shifts/grouped")
+                        .param("companyId", "7")
+                        .param("grouping", "position_shift_timings")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].positions[0].position").value("Bartender"))
+                .andExpect(jsonPath("$[0].positions[0].shiftTimings", hasSize(1)))
+                .andExpect(jsonPath("$[0].positions[0].shiftTimings[0].startTime").value("9:00AM"));
+
+        verify(schedulingService).getShiftsGrouped(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.POSITION_SHIFT_TIMINGS
+        );
+    }
+
+    @Test
+    void getGroupedShifts_dayCategoryShiftTimings_returnsCategoryBuckets() throws Exception {
+        when(schedulingService.getShiftsGrouped(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.CATEGORY_SHIFT_TIMINGS
+        )).thenReturn(List.of(
+                new DayCategoryTimingBucketDto(
+                        LocalDate.of(2026, 3, 25),
+                        List.of(new CategoryTimingBucketDto(
+                                "Front",
+                                new ArrayList<>(List.of(new ShiftTimingGroupDto(
+                                        "9:00AM-5:00PM",
+                                        new ArrayList<>()
+                                )))
+                        ))
+                )
+        ));
+
+        mockMvc.perform(get("/api/scheduling/shifts/grouped")
+                        .param("companyId", "7")
+                        .param("grouping", "category_shift_timings")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].categories[0].category").value("Front"))
+                .andExpect(jsonPath("$[0].categories[0].shiftTimings", hasSize(1)))
+                .andExpect(jsonPath("$[0].categories[0].shiftTimings[0].label").value("9:00AM-5:00PM"));
+
+        verify(schedulingService).getShiftsGrouped(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.CATEGORY_SHIFT_TIMINGS
+        );
+    }
+
+    @Test
+    void getGroupedShifts_dayShiftTimings_returnsDayTimingBuckets() throws Exception {
+        when(schedulingService.getShiftsGrouped(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.SHIFT_TIMINGS
+        )).thenReturn(List.of(
+                new DayShiftTimingBucketDto(
+                        LocalDate.of(2026, 3, 25),
+                        List.of(new ShiftTimingGroupDto(
+                                "9:00AM-5:00PM",
+                                new ArrayList<>()
+                        ))
+                )
+        ));
+
+        mockMvc.perform(get("/api/scheduling/shifts/grouped")
+                        .param("companyId", "7")
+                        .param("grouping", "shift_timings")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].date").value("2026-03-25"))
+                .andExpect(jsonPath("$[0].shiftTimings", hasSize(1)))
+                .andExpect(jsonPath("$[0].shiftTimings[0].label").value("9:00AM-5:00PM"));
+
+        verify(schedulingService).getShiftsGrouped(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.SHIFT_TIMINGS
+        );
     }
 
     @Test

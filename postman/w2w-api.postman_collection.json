@@ -317,6 +317,76 @@
             "description": "Returns day buckets for the requested range, with each day grouped by position and each position listing employee-level shift entries. All company positions are included even when a given day has no shifts for them. Each day includes shiftCount and totalDuration, and each position bucket includes its own shiftCount and totalDuration.",
             "url": "{{baseUrl}}/api/scheduling/shifts/day-position?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
           }
+        },
+        {
+          "name": "Get Grouped Shifts By Selector (Day Position)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the same day-position bucket payload as /api/scheduling/shifts/day-position, selected through the grouped endpoint via grouping=position.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=position&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Get Grouped Shifts By Day Position And Timing",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns day buckets for the requested range, with each day grouped by position and then by shift timing. Each timing bucket lists employee-level shift entries. All company positions are included even when a given day has no shifts for them. Each day, position bucket, and timing bucket includes shiftCount and totalDuration.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/day-position-timing?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Get Grouped Shifts By Selector (Day Position Shift Timings)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns day-position-shift-timing buckets through the grouped endpoint via grouping=position_shift_timings.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=position_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Get Grouped Shifts By Selector (Day Shift Timings)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns day-shift-timing buckets through the grouped endpoint via grouping=shift_timings. This payload does not include aggregate shift counts or durations.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Get Grouped Shifts By Selector (Day Category Shift Timings)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns day-category-shift-timing buckets through the grouped endpoint via grouping=category_shift_timings. This payload does not include aggregate shift counts or durations.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=category_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
         }
       ]
     },
