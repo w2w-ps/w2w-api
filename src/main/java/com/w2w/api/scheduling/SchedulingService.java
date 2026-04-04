@@ -11,8 +11,11 @@ import com.w2w.api.scheduling.dto.DayPositionTimingBucketDto;
 import com.w2w.api.scheduling.dto.DayShiftTimingBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeScheduledShiftDto;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
-import com.w2w.api.scheduling.dto.ShiftGrouping;
+import com.w2w.api.scheduling.dto.GroupedShiftDateDto;
+import com.w2w.api.scheduling.dto.GroupedShiftsResponseDto;
 import com.w2w.api.scheduling.dto.PositionTimingBucketDto;
+import com.w2w.api.scheduling.dto.ShiftGroupDto;
+import com.w2w.api.scheduling.dto.ShiftGrouping;
 import com.w2w.api.scheduling.dto.ShiftTimingBucketDto;
 import com.w2w.api.scheduling.dto.ShiftTimingGroupDto;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
@@ -155,19 +158,30 @@ public class SchedulingService {
         return new ArrayList<>(grouped.values());
     }
 
-    public Object getShiftsGrouped(
+    public GroupedShiftsResponseDto getShiftsGrouped(
             Integer companyId,
             LocalDate startDate,
             LocalDate endDate,
             ShiftGrouping grouping
     ) {
-        return switch (grouping) {
-            case POSITION -> getShiftsGroupedByDayAndPosition(companyId, startDate, endDate);
-            case POSITION_SHIFT_TIMINGS -> getShiftsGroupedByDayPositionAndTiming(companyId, startDate, endDate);
-            case SHIFT_TIMINGS -> getShiftsGroupedByDayAndTiming(companyId, startDate, endDate);
-            case CATEGORY_SHIFT_TIMINGS -> getShiftsGroupedByDayCategoryAndTiming(companyId, startDate, endDate);
-            case CAT_SHIFT_TIMINGS -> getShiftsGroupedByDayCategoryShortNameAndTiming(companyId, startDate, endDate);
+        List<GroupedShiftDateDto> dates = switch (grouping) {
+            case POSITION -> toGroupedDatesFromPositionBuckets(
+                    getShiftsGroupedByDayAndPosition(companyId, startDate, endDate)
+            );
+            case POSITION_SHIFT_TIMINGS -> toGroupedDatesFromPositionTimingBuckets(
+                    getShiftsGroupedByDayPositionAndTiming(companyId, startDate, endDate)
+            );
+            case SHIFT_TIMINGS -> toGroupedDatesFromDayTimingBuckets(
+                    getShiftsGroupedByDayAndTiming(companyId, startDate, endDate)
+            );
+            case CATEGORY_SHIFT_TIMINGS -> toGroupedDatesFromCategoryTimingBuckets(
+                    getShiftsGroupedByDayCategoryAndTiming(companyId, startDate, endDate)
+            );
+            case CAT_SHIFT_TIMINGS -> toGroupedDatesFromCategoryTimingBuckets(
+                    getShiftsGroupedByDayCategoryShortNameAndTiming(companyId, startDate, endDate)
+            );
         };
+        return new GroupedShiftsResponseDto(dates);
     }
 
     public List<DayPositionBucket> getShiftsGroupedByDayAndPosition(
@@ -396,6 +410,112 @@ public class SchedulingService {
                 .thenComparing(ShiftSegment::endTime)
                 .thenComparing(ShiftSegment::employeeId));
         return segments;
+    }
+
+    private List<GroupedShiftDateDto> toGroupedDatesFromPositionBuckets(List<DayPositionBucket> days) {
+        return days.stream()
+                .map(day -> new GroupedShiftDateDto(
+                        day.date(),
+                        day.positions().stream()
+                                .map(this::toPositionShiftGroup)
+                                .toList()
+                ))
+                .toList();
+    }
+
+    private List<GroupedShiftDateDto> toGroupedDatesFromPositionTimingBuckets(List<DayPositionTimingBucketDto> days) {
+        return days.stream()
+                .map(day -> new GroupedShiftDateDto(
+                        day.date(),
+                        day.positions().stream()
+                                .map(this::toPositionTimingShiftGroup)
+                                .toList()
+                ))
+                .toList();
+    }
+
+    private List<GroupedShiftDateDto> toGroupedDatesFromCategoryTimingBuckets(List<DayCategoryTimingBucketDto> days) {
+        return days.stream()
+                .map(day -> new GroupedShiftDateDto(
+                        day.date(),
+                        day.categories().stream()
+                                .map(this::toCategoryTimingShiftGroup)
+                                .toList()
+                ))
+                .toList();
+    }
+
+    private List<GroupedShiftDateDto> toGroupedDatesFromDayTimingBuckets(List<DayShiftTimingBucketDto> days) {
+        return days.stream()
+                .map(day -> new GroupedShiftDateDto(
+                        day.date(),
+                        day.shiftTimings().stream()
+                                .map(this::toTimingShiftGroup)
+                                .toList()
+                ))
+                .toList();
+    }
+
+    private ShiftGroupDto toPositionShiftGroup(PositionShiftBucket positionBucket) {
+        return new ShiftGroupDto(
+                positionBucket.position(),
+                List.of(),
+                positionBucket.shifts().stream()
+                        .map(this::toScheduledShift)
+                        .toList()
+        );
+    }
+
+    private ShiftGroupDto toPositionTimingShiftGroup(PositionTimingBucketDto positionBucket) {
+        return new ShiftGroupDto(
+                positionBucket.position(),
+                positionBucket.shiftTimings().stream()
+                        .map(this::toTimingShiftGroup)
+                        .toList(),
+                List.of()
+        );
+    }
+
+    private ShiftGroupDto toCategoryTimingShiftGroup(CategoryTimingBucketDto categoryBucket) {
+        return new ShiftGroupDto(
+                categoryBucket.category(),
+                categoryBucket.shiftTimings().stream()
+                        .map(this::toTimingShiftGroup)
+                        .toList(),
+                List.of()
+        );
+    }
+
+    private ShiftGroupDto toTimingShiftGroup(ShiftTimingBucketDto shiftTimingBucket) {
+        return new ShiftGroupDto(
+                formatShiftTimingLabel(shiftTimingBucket.startTime(), shiftTimingBucket.endTime()),
+                List.of(),
+                shiftTimingBucket.shifts()
+        );
+    }
+
+    private ShiftGroupDto toTimingShiftGroup(ShiftTimingGroupDto shiftTimingGroup) {
+        return new ShiftGroupDto(
+                shiftTimingGroup.label(),
+                List.of(),
+                shiftTimingGroup.shifts()
+        );
+    }
+
+    private EmployeeScheduledShiftDto toScheduledShift(EmployeeShift shift) {
+        return new EmployeeScheduledShiftDto(
+                shift.shiftId(),
+                shift.employeeId(),
+                shift.firstName(),
+                shift.lastName(),
+                shift.phones(),
+                shift.startTime(),
+                shift.endTime(),
+                shift.category(),
+                shift.description(),
+                shift.duration(),
+                shift.color()
+        );
     }
 
     public List<ConflictItem> validate(FindConflictRequest request) {

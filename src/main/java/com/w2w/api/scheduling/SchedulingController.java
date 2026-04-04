@@ -8,6 +8,7 @@ import com.w2w.api.scheduling.dto.DayPositionBucket;
 import com.w2w.api.scheduling.dto.DayPositionTimingBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
+import com.w2w.api.scheduling.dto.GroupedShiftsResponseDto;
 import com.w2w.api.scheduling.dto.ShiftGrouping;
 import com.w2w.api.scheduling.dto.ShiftResponse;
 import com.w2w.api.scheduling.dto.UpdateShiftRequest;
@@ -69,7 +70,7 @@ public class SchedulingController {
     }
 
     @GetMapping("/shifts/grouped")
-    public Object getGroupedShifts(
+    public GroupedShiftsResponseDto getGroupedShifts(
             @RequestParam Integer companyId,
             @RequestParam ShiftGrouping grouping,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,

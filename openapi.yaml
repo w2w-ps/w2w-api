@@ -147,7 +147,7 @@ paths:
                   $ref: '#/components/schemas/DayPositionBucket'
   /api/scheduling/shifts/grouped:
     get:
-      summary: Get shifts grouped using the requested grouping strategy
+      summary: Get shifts grouped by date and the requested grouping strategy
       parameters:
         - in: query
           name: companyId
@@ -179,53 +179,11 @@ paths:
             format: date
       responses:
         '200':
-          description: Grouped shift buckets for the requested strategy. `position` preserves the existing day-position bucket payload. `shift_timings`, `category_shift_timings`, and `cat_shift_timings` omit aggregate count and duration fields.
+          description: Grouped shifts in one normalized structure. Results are always grouped by date first, then by the requested grouping strategy under `shiftGroups`.
           content:
             application/json:
               schema:
-                oneOf:
-                  - type: array
-                    items:
-                      $ref: '#/components/schemas/DayPositionBucket'
-                  - type: array
-                    items:
-                      $ref: '#/components/schemas/DayPositionTimingBucket'
-                  - type: array
-                    items:
-                      $ref: '#/components/schemas/DayShiftTimingBucket'
-                  - type: array
-                    items:
-                      $ref: '#/components/schemas/DayCategoryTimingBucket'
-  /api/scheduling/shifts/day-position-timing:
-    get:
-      summary: Get shifts grouped by day, position, and shift timing
-      parameters:
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
-        - in: query
-          name: startDate
-          required: true
-          schema:
-            type: string
-            format: date
-        - in: query
-          name: endDate
-          required: true
-          schema:
-            type: string
-            format: date
-      responses:
-        '200':
-          description: Daily shift buckets grouped by position and shift timing, including empty buckets for company positions without shifts
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DayPositionTimingBucket'
+                $ref: '#/components/schemas/GroupedShiftsResponse'
 components:
   parameters:
     ShiftId:
@@ -531,28 +489,34 @@ components:
         totalDuration:
           type: number
           format: float
-    DayPositionTimingBucket:
+    GroupedShiftsResponse:
+      type: object
+      properties:
+        dates:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupedShiftDate'
+    GroupedShiftDate:
       type: object
       properties:
         date:
           type: string
           format: date
-        positions:
+        shiftGroups:
           type: array
           items:
-            $ref: '#/components/schemas/PositionTimingBucket'
-        shiftCount:
-          type: integer
-        totalDuration:
-          type: number
-          format: float
-    DayCategoryTimingBucket:
+            $ref: '#/components/schemas/ShiftGroup'
+    ShiftGroup:
       type: object
       properties:
-        date:
+        label:
           type: string
-          format: date
-        categories:
+          nullable: true
+        shiftGroups:
           type: array
           items:
-            $ref: '#/components/schemas/CategoryTimingBucket'
+            $ref: '#/components/schemas/ShiftGroup'
+        shifts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeScheduledShift'
