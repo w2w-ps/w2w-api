@@ -830,6 +830,20 @@
             "description": "Returns day-category-shift-timing buckets through the grouped endpoint via grouping=category_shift_timings. This payload does not include aggregate shift counts or durations.",
             "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=category_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
           }
+        },
+        {
+          "name": "Get Grouped Shifts By Selector (Cat Shift Timings)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the same day-category-shift-timing payload shape as grouping=category_shift_timings, but category buckets use the category short description via grouping=cat_shift_timings.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=cat_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
         }
       ]
     }
