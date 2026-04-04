@@ -3,26 +3,26 @@ package com.w2w.api.scheduling;
 import com.w2w.api.login.JwtAuthFilter;
 import com.w2w.api.login.JwtUtil;
 import com.w2w.api.position.dto.PositionSummary;
-import com.w2w.api.scheduling.dto.CategoryTimingBucketDto;
+import com.w2w.api.scheduling.dto.CategoryTimingBucket;
 import com.w2w.api.scheduling.dto.ConflictItem;
 import com.w2w.api.scheduling.dto.ConflictResponse;
 import com.w2w.api.scheduling.dto.DayPositionBucket;
-import com.w2w.api.scheduling.dto.DayCategoryTimingBucketDto;
-import com.w2w.api.scheduling.dto.DayPositionTimingBucketDto;
-import com.w2w.api.scheduling.dto.DayShiftTimingBucketDto;
+import com.w2w.api.scheduling.dto.DayCategoryTimingBucket;
+import com.w2w.api.scheduling.dto.DayPositionTimingBucket;
+import com.w2w.api.scheduling.dto.DayShiftTimingBucket;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
-import com.w2w.api.scheduling.dto.EmployeeScheduledShiftDto;
+import com.w2w.api.scheduling.dto.EmployeeScheduledShift;
 import com.w2w.api.scheduling.dto.EmployeeShift;
-import com.w2w.api.scheduling.dto.GroupedShiftDateDto;
-import com.w2w.api.scheduling.dto.GroupedShiftsResponseDto;
+import com.w2w.api.scheduling.dto.GroupedShiftDate;
+import com.w2w.api.scheduling.dto.GroupedShiftsResponse;
 import com.w2w.api.scheduling.dto.PositionShiftBucket;
-import com.w2w.api.scheduling.dto.PositionTimingBucketDto;
+import com.w2w.api.scheduling.dto.PositionTimingBucket;
 import com.w2w.api.scheduling.dto.ShiftResponse;
-import com.w2w.api.scheduling.dto.ShiftGroupDto;
+import com.w2w.api.scheduling.dto.ShiftGroup;
 import com.w2w.api.scheduling.dto.ShiftGrouping;
 import com.w2w.api.scheduling.dto.ShiftSummary;
-import com.w2w.api.scheduling.dto.ShiftTimingBucketDto;
-import com.w2w.api.scheduling.dto.ShiftTimingGroupDto;
+import com.w2w.api.scheduling.dto.ShiftTimingBucket;
+import com.w2w.api.scheduling.dto.ShiftTimingGroup;
 import com.w2w.api.scheduling.model.Shift;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -303,10 +303,10 @@ class SchedulingControllerTest {
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.POSITION
-        )).thenReturn(new GroupedShiftsResponseDto(List.of(
-                new GroupedShiftDateDto(
+        )).thenReturn(new GroupedShiftsResponse(List.of(
+                new GroupedShiftDate(
                         LocalDate.of(2026, 3, 25),
-                        List.of(new ShiftGroupDto("Bartender", List.of(), List.of()))
+                        List.of(new ShiftGroup("Bartender", List.of(), List.of()))
                 )
         )));
 
@@ -338,12 +338,12 @@ class SchedulingControllerTest {
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.POSITION_SHIFT_TIMINGS
-        )).thenReturn(new GroupedShiftsResponseDto(List.of(
-                new GroupedShiftDateDto(
+        )).thenReturn(new GroupedShiftsResponse(List.of(
+                new GroupedShiftDate(
                         LocalDate.of(2026, 3, 25),
-                        List.of(new ShiftGroupDto(
+                        List.of(new ShiftGroup(
                                 "Bartender",
-                                List.of(new ShiftGroupDto(
+                                List.of(new ShiftGroup(
                                         "9:00AM-5:00PM",
                                         List.of(),
                                         List.of()
@@ -380,12 +380,12 @@ class SchedulingControllerTest {
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.CATEGORY_SHIFT_TIMINGS
-        )).thenReturn(new GroupedShiftsResponseDto(List.of(
-                new GroupedShiftDateDto(
+        )).thenReturn(new GroupedShiftsResponse(List.of(
+                new GroupedShiftDate(
                         LocalDate.of(2026, 3, 25),
-                        List.of(new ShiftGroupDto(
+                        List.of(new ShiftGroup(
                                 "Front",
-                                List.of(new ShiftGroupDto(
+                                List.of(new ShiftGroup(
                                         "9:00AM-5:00PM",
                                         List.of(),
                                         List.of()
@@ -421,12 +421,12 @@ class SchedulingControllerTest {
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.CAT_SHIFT_TIMINGS
-        )).thenReturn(new GroupedShiftsResponseDto(List.of(
-                new GroupedShiftDateDto(
+        )).thenReturn(new GroupedShiftsResponse(List.of(
+                new GroupedShiftDate(
                         LocalDate.of(2026, 3, 25),
-                        List.of(new ShiftGroupDto(
+                        List.of(new ShiftGroup(
                                 "FRT",
-                                List.of(new ShiftGroupDto(
+                                List.of(new ShiftGroup(
                                         "9:00AM-5:00PM",
                                         List.of(),
                                         List.of()
@@ -462,10 +462,10 @@ class SchedulingControllerTest {
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.SHIFT_TIMINGS
-        )).thenReturn(new GroupedShiftsResponseDto(List.of(
-                new GroupedShiftDateDto(
+        )).thenReturn(new GroupedShiftsResponse(List.of(
+                new GroupedShiftDate(
                         LocalDate.of(2026, 3, 25),
-                        List.of(new ShiftGroupDto("9:00AM-5:00PM", List.of(), List.of()))
+                        List.of(new ShiftGroup("9:00AM-5:00PM", List.of(), List.of()))
                 )
         )));
 

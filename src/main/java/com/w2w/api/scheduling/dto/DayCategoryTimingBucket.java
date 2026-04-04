@@ -3,8 +3,8 @@ package com.w2w.api.scheduling.dto;
 import java.time.LocalDate;
 import java.util.List;
 
-public record GroupedShiftDateDto(
+public record DayCategoryTimingBucket(
         LocalDate date,
-        List<ShiftGroupDto> shiftGroups
+        List<CategoryTimingBucket> categories
 ) {
 }
