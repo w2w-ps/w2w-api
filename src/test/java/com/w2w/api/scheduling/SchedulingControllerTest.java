@@ -193,7 +193,7 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].employeeId").value(101))
                 .andExpect(jsonPath("$[0].availablePositions", hasSize(1)))
-                .andExpect(jsonPath("$[0].availablePositions[0].id").value(12))
+                .andExpect(jsonPath("$[0].availablePositions[0].positionId").value(12))
                 .andExpect(jsonPath("$[0].weeklyShifts['0'].date").value("2026-03-25"))
                 .andExpect(jsonPath("$[0].weeklyShifts['0'].shifts", hasSize(1)))
                 .andExpect(jsonPath("$[0].weeklyShifts['0'].shifts[0].startTime").value("9:00AM"))

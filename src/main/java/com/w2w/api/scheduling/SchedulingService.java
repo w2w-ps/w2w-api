@@ -728,8 +728,8 @@ public class SchedulingService {
             return List.of();
         }
 
-        return positionService.getPositionsByCompanyId(companyId).stream()
-                .map(PositionSummary::name)
+        return positionService.getAllPositions(companyId).stream()
+                .map(PositionSummary::description)
                 .filter(Objects::nonNull)
                 .distinct()
                 .sorted()
