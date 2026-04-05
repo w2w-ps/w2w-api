@@ -527,6 +527,102 @@ paths:
           description: Category soft-deleted successfully
         '404':
           description: Category not found
+  /api/category-groups:
+    get:
+      summary: Get category groups for a company
+      parameters:
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of category groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryGroupsResponse'
+    post:
+      summary: Create a new category group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryGroupRequest'
+      responses:
+        '204':
+          description: Category group created successfully
+        '400':
+          description: One or more categories were not found for the company
+  /api/category-groups/{id}:
+    get:
+      summary: Get a category group by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Category group details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryGroupSummary'
+        '404':
+          description: Category group not found
+    put:
+      summary: Update an existing category group
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCategoryGroupRequest'
+      responses:
+        '204':
+          description: Category group updated successfully
+        '400':
+          description: One or more categories were not found for the company
+        '404':
+          description: Category group not found
+    delete:
+      summary: Delete a category group
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Category group deleted successfully
+        '404':
+          description: Category group not found
   /api/position-groups:
     get:
       summary: Get position groups for a company
@@ -1173,6 +1269,51 @@ components:
           type: integer
         color:
           type: integer
+    CreateCategoryGroupRequest:
+      type: object
+      required:
+        - companyId
+        - description
+        - categoryIds
+      properties:
+        companyId:
+          type: integer
+        description:
+          type: string
+        categoryIds:
+          type: array
+          items:
+            type: integer
+    UpdateCategoryGroupRequest:
+      type: object
+      required:
+        - description
+        - categoryIds
+      properties:
+        description:
+          type: string
+        categoryIds:
+          type: array
+          items:
+            type: integer
+    CategoryGroupSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategorySummary'
+    CategoryGroupsResponse:
+      type: object
+      properties:
+        categoryGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryGroupSummary'
     CreatePositionRequest:
       type: object
       required:
