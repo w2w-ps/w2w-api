@@ -31,20 +31,6 @@ public class PositionController {
         return ResponseEntity.ok(new PositionsResponse(positions));
     }
 
-    @GetMapping("/active")
-    public ResponseEntity<PositionsResponse> getActivePositions(@RequestParam Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
-        List<PositionSummary> positions = positionService.getPositions(companyId, "active");
-        return ResponseEntity.ok(new PositionsResponse(positions));
-    }
-
-    @GetMapping("/non-active")
-    public ResponseEntity<PositionsResponse> getNonActivePositions(@RequestParam Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
-        List<PositionSummary> positions = positionService.getPositions(companyId, "inactive");
-        return ResponseEntity.ok(new PositionsResponse(positions));
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<PositionSummary> getPositionById(@PathVariable("id") Integer skillId, @RequestParam Integer companyId) {
         TenantContext.setCurrentTenant(companyId);

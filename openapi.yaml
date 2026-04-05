@@ -349,38 +349,6 @@ paths:
       responses:
         '204':
           description: Position created successfully
-  /api/positions/active:
-    get:
-      summary: Get all active (non-deleted) positions for a company
-      parameters:
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: A list of active positions
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PositionsResponse'
-  /api/positions/non-active:
-    get:
-      summary: Get all non-active (deleted) positions for a company
-      parameters:
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: A list of non-active positions
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PositionsResponse'
   /api/positions/{id}:
     get:
       summary: Get an active position by ID

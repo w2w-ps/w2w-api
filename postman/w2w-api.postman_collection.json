@@ -209,7 +209,7 @@
           }
         },
         {
-          "name": "Get Active Positions",
+          "name": "Get Active Positions By Status",
           "request": {
             "method": "GET",
             "header": [
@@ -218,11 +218,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/positions/active?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/positions?companyId={{companyId}}&status=active"
           }
         },
         {
-          "name": "Get Non-Active Positions",
+          "name": "Get Inactive Positions By Status",
           "request": {
             "method": "GET",
             "header": [
@@ -231,7 +231,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/positions/non-active?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/positions?companyId={{companyId}}&status=inactive"
           }
         },
         {

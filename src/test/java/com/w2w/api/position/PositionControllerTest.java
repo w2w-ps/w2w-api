@@ -76,32 +76,6 @@ class PositionControllerTest {
     }
 
     @Test
-    void getActivePositions_returnsPositions() throws Exception {
-        when(positionService.getPositions(1, "active"))
-                .thenReturn(List.of(new PositionSummary(101, "Bartender")));
-
-        mockMvc.perform(get("/api/positions/active").param("companyId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.positions[0].positionId").value(101))
-                .andExpect(jsonPath("$.positions[0].description").value("Bartender"));
-
-        verify(positionService).getPositions(1, "active");
-    }
-
-    @Test
-    void getNonActivePositions_returnsPositions() throws Exception {
-        when(positionService.getPositions(1, "inactive"))
-                .thenReturn(List.of(new PositionSummary(103, "Archived Server")));
-
-        mockMvc.perform(get("/api/positions/non-active").param("companyId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.positions[0].positionId").value(103))
-                .andExpect(jsonPath("$.positions[0].description").value("Archived Server"));
-
-        verify(positionService).getPositions(1, "inactive");
-    }
-
-    @Test
     void getPositionById_returnsPositionWhenFound() throws Exception {
         when(positionService.getPositionById(101, 1))
                 .thenReturn(Optional.of(new PositionSummary(101, "Bartender")));
