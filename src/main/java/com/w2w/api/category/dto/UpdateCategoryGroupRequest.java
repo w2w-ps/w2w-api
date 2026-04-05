@@ -5,10 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-public record CreateCategoryGroupRequest(
-        @NotNull(message = "Company ID cannot be null")
-        Integer companyId,
-
+public record UpdateCategoryGroupRequest(
         @NotBlank(message = "Description cannot be blank")
         String description,
 
