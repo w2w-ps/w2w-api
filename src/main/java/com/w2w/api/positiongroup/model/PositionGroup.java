@@ -1,13 +1,16 @@
-package com.w2w.api.position.model;
+package com.w2w.api.positiongroup.model;
 
+import com.w2w.api.position.model.Position;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "skill_group")
-public class SkillGroup {
+@SequenceGenerator(name = "skill_group_id_seq", sequenceName = "skill_group_id_seq", allocationSize = 1)
+public class PositionGroup {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "skill_group_id_seq")
     @Column(name = "group_id")
     private Integer groupId;
 
@@ -17,15 +20,18 @@ public class SkillGroup {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
     @ManyToMany
     @JoinTable(
         name = "group_skill",
         joinColumns = @JoinColumn(name = "group_id"),
         inverseJoinColumns = @JoinColumn(name = "skill_id")
     )
-    private List<Skill> skills = new ArrayList<>();
+    private List<Position> positions = new ArrayList<>();
 
-    public SkillGroup() {}
+    public PositionGroup() {}
 
     public Integer getGroupId() {
         return groupId;
@@ -51,11 +57,19 @@ public class SkillGroup {
         this.description = description;
     }
 
-    public List<Skill> getSkills() {
-        return skills;
+    public Boolean getIsDeleted() {
+        return isDeleted;
     }
 
-    public void setSkills(List<Skill> skills) {
-        this.skills = skills;
+    public void setIsDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public List<Position> getPositions() {
+        return positions;
+    }
+
+    public void setPositions(List<Position> positions) {
+        this.positions = positions;
     }
 }
