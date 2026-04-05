@@ -4,6 +4,7 @@ import com.w2w.api.category.dto.CategoryResponse;
 import com.w2w.api.category.dto.CategorySummary;
 import com.w2w.api.category.dto.CreateCategoryRequest;
 import com.w2w.api.category.dto.UpdateCategoryRequest;
+import com.w2w.api.category.model.Category;
 import com.w2w.api.category.repository.CategoryRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -45,25 +46,63 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public Optional<CategoryResponse> getCategoryById(Integer categoryId, Integer companyId) {
-        throw new UnsupportedOperationException("Category get by id is not implemented yet");
+        return categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(categoryId, companyId)
+                .map(this::toResponse);
     }
 
     @Transactional
     public void createCategory(CreateCategoryRequest request) {
-        throw new UnsupportedOperationException("Category create is not implemented yet");
+        Category category = new Category();
+        category.setCompanyId(request.companyId());
+        category.setShortDesc(request.shortName());
+        category.setDescription(request.description());
+        category.setStartTime(request.startTime());
+        category.setEndTime(request.endTime());
+        category.setSkillId(request.skillId());
+        category.setColor(request.color());
+        category.setIsDeleted(false);
+
+        categoryRepository.save(category);
     }
 
     @Transactional
     public void updateCategory(Integer categoryId, Integer companyId, UpdateCategoryRequest request) {
-        throw new UnsupportedOperationException("Category update is not implemented yet");
+        Category category = requireActiveCategory(categoryId, companyId);
+        category.setShortDesc(request.shortName());
+        category.setDescription(request.description());
+        category.setStartTime(request.startTime());
+        category.setEndTime(request.endTime());
+        category.setSkillId(request.skillId());
+        category.setColor(request.color());
+
+        categoryRepository.save(category);
     }
 
     @Transactional
     public void deleteCategory(Integer categoryId, Integer companyId) {
-        throw new UnsupportedOperationException("Category delete is not implemented yet");
+        Category category = requireActiveCategory(categoryId, companyId);
+        category.setIsDeleted(true);
+        categoryRepository.save(category);
     }
 
-    private CategorySummary toSummary(com.w2w.api.category.model.Category category) {
+    private CategorySummary toSummary(Category category) {
         return new CategorySummary(category.getCategoryId(), category.getDescription(), category.getShortDesc());
+    }
+
+    private CategoryResponse toResponse(Category category) {
+        return new CategoryResponse(
+                category.getCategoryId(),
+                category.getDescription(),
+                category.getShortDesc(),
+                category.getStartTime(),
+                category.getEndTime(),
+                category.getSkillId(),
+                category.getColor()
+        );
+    }
+
+    private Category requireActiveCategory(Integer categoryId, Integer companyId) {
+        return categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(categoryId, companyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
     }
 }
