@@ -2,9 +2,9 @@ package com.w2w.api.scheduling.dto;
 
 import java.util.List;
 
-public record PositionShiftBucketDto(
+public record PositionShiftBucket(
         String position,
-        List<EmployeeScheduledShiftDto> shifts,
+        List<EmployeeShift> shifts,
         Integer shiftCount,
         Float totalDuration
 ) {

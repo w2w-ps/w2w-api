@@ -1,21 +1,21 @@
 package com.w2w.api.scheduling.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
+import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 
-public record EmployeeScheduledShiftDto(
+public record ShiftResponse(
         Integer shiftId,
         Integer employeeId,
-        String firstName,
-        String lastName,
-        List<String> phones,
+        Integer companyId,
+        String description,
+        LocalDate date,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma") LocalTime startTime,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma") LocalTime endTime,
-        String category,
-        String description,
         Float duration,
+        Boolean isOvernight,
+        String position,
+        String category,
         String color
 ) {
 }

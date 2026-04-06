@@ -1,24 +1,23 @@
 package com.w2w.api.scheduling;
 
 import com.w2w.api.position.PositionService;
-import com.w2w.api.position.dto.PositionDto;
-import com.w2w.api.scheduling.dto.ConflictDto;
-import com.w2w.api.scheduling.dto.DayPositionBucketDto;
-import com.w2w.api.scheduling.dto.EmployeeScheduledShiftDto;
-import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
-import com.w2w.api.scheduling.dto.EmployeeWithShiftsDto;
-import com.w2w.api.scheduling.dto.FindConflictRequest;
-import com.w2w.api.scheduling.dto.PositionShiftBucketDto;
-import com.w2w.api.scheduling.dto.ShiftDetailsProjection;
-import com.w2w.api.scheduling.dto.ShiftDto;
-import com.w2w.api.scheduling.dto.ShiftResponseDto;
-import com.w2w.api.scheduling.dto.UpdateShiftRequest;
+import com.w2w.api.position.dto.PositionSummary;
+import com.w2w.api.scheduling.dto.ConflictItem;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
+import com.w2w.api.scheduling.dto.DayPositionBucket;
+import com.w2w.api.scheduling.dto.EmployeeSchedule;
+import com.w2w.api.scheduling.dto.EmployeeShift;
+import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
+import com.w2w.api.scheduling.dto.FindConflictRequest;
+import com.w2w.api.scheduling.dto.PositionShiftBucket;
+import com.w2w.api.scheduling.dto.ShiftDetailsProjection;
+import com.w2w.api.scheduling.dto.ShiftResponse;
+import com.w2w.api.scheduling.dto.ShiftSummary;
+import com.w2w.api.scheduling.dto.UpdateShiftRequest;
 import com.w2w.api.scheduling.model.Schedule;
 import com.w2w.api.scheduling.model.Shift;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -47,74 +46,59 @@ public class SchedulingService {
     @Autowired
     private PositionService positionService;
 
-    public ShiftResponseDto getShift(Integer shiftId) {
+    public ShiftResponse getShift(Integer shiftId) {
         ShiftDetailsProjection shift = shiftRepository.findShiftDetailsByShiftId(shiftId)
                 .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + shiftId));
 
-        ShiftResponseDto response = new ShiftResponseDto();
-        response.setShiftId(shift.getShiftId());
-        response.setEmployeeId(shift.getEmployeeId());
-        response.setCompanyId(shift.getCompanyId());
-        response.setDescription(shift.getDescription());
-        response.setStartTime(shift.getStartTime());
-        response.setEndTime(shift.getEndTime());
-        response.setDuration(shift.getDuration());
-        response.setIsOvernight(shift.getIsOvernight());
-        response.setDate(shift.getDate());
-        response.setPosition(shift.getPosition());
-        response.setCategory(shift.getCategory());
-        response.setColor(shift.getColor());
-
-        return response;
+        return new ShiftResponse(
+                shift.getShiftId(),
+                shift.getEmployeeId(),
+                shift.getCompanyId(),
+                shift.getDescription(),
+                shift.getDate(),
+                shift.getStartTime(),
+                shift.getEndTime(),
+                shift.getDuration(),
+                shift.getIsOvernight(),
+                shift.getPosition(),
+                shift.getCategory(),
+                shift.getColor()
+        );
     }
 
     public Shift saveShift(CreateShiftRequest request) {
         Shift shift = new Shift();
-        shift.setEmployeeId(request.getEmployeeId());
-        shift.setCompanyId(request.getCompanyId());
-        shift.setDescription(request.getDescription());
-        shift.setStartTime(request.getStartTime());
-        shift.setEndTime(request.getEndTime());
-        shift.setRequiredSkillId(request.getPosition());
-        shift.setCategoryId(request.getCategory());
-        shift.setColor(request.getColor());
+        shift.setEmployeeId(request.employeeId());
+        shift.setCompanyId(request.companyId());
+        shift.setDescription(request.description());
+        shift.setStartTime(request.startTime());
+        shift.setEndTime(request.endTime());
+        shift.setRequiredSkillId(request.position());
+        shift.setCategoryId(request.category());
+        shift.setColor(request.color());
         shift.setIsDeleted(false);
 
-        if (request.getDate() != null) {
-            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), request.getDate());
+        if (request.date() != null) {
+            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), request.date());
             shift.setScheduleId(schedule.getScheduleId());
         }
 
-        applyDerivedShiftFields(shift, request.getDuration());
+        applyDerivedShiftFields(shift, request.duration());
         shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
     }
 
-    public ShiftResponseDto updateShift(Integer shiftId, UpdateShiftRequest request) {
+    public ShiftResponse updateShift(Integer shiftId, UpdateShiftRequest request) {
         Shift shift = shiftRepository.findById(shiftId)
                 .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + shiftId));
 
-        if (request.employeeId() != null) {
-            shift.setEmployeeId(request.employeeId());
-        }
-        if (request.description() != null) {
-            shift.setDescription(request.description());
-        }
-        if (request.startTime() != null) {
-            shift.setStartTime(request.startTime());
-        }
-        if (request.endTime() != null) {
-            shift.setEndTime(request.endTime());
-        }
-        if (request.position() != null) {
-            shift.setRequiredSkillId(request.position());
-        }
-        if (request.category() != null) {
-            shift.setCategoryId(request.category());
-        }
-        if (request.color() != null) {
-            shift.setColor(request.color());
-        }
+        if (request.employeeId() != null) shift.setEmployeeId(request.employeeId());
+        if (request.description() != null) shift.setDescription(request.description());
+        if (request.startTime() != null) shift.setStartTime(request.startTime());
+        if (request.endTime() != null) shift.setEndTime(request.endTime());
+        if (request.position() != null) shift.setRequiredSkillId(request.position());
+        if (request.category() != null) shift.setCategoryId(request.category());
+        if (request.color() != null) shift.setColor(request.color());
 
         if (request.date() != null) {
             Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), request.date());
@@ -134,12 +118,12 @@ public class SchedulingService {
         shiftRepository.save(shift);
     }
 
-    public List<EmployeeWithShiftsDto> getEmployeeShiftsGroupedInRange(Integer companyId, LocalDate startDate, LocalDate endDate) {
+    public List<EmployeeSchedule> getEmployeeShiftsGroupedInRange(Integer companyId, LocalDate startDate, LocalDate endDate) {
         List<EmployeeShiftProjection> flatResults = findEmployeeShiftRows(companyId, startDate, endDate);
-        Map<Integer, EmployeeWithShiftsDto> grouped = new LinkedHashMap<>();
+        Map<Integer, EmployeeSchedule> grouped = new LinkedHashMap<>();
 
         for (EmployeeShiftProjection row : flatResults) {
-            EmployeeWithShiftsDto employeeDto = getOrCreateEmployeeDto(grouped, row, startDate, endDate);
+            EmployeeSchedule employeeDto = getOrCreateEmployeeDto(grouped, row, startDate, endDate);
 
             List<ShiftSegment> segments = buildShiftSegments(row, startDate, endDate);
             for (ShiftSegment segment : segments) {
@@ -154,12 +138,12 @@ public class SchedulingService {
         return new ArrayList<>(grouped.values());
     }
 
-    public List<DayPositionBucketDto> getShiftsGroupedByDayAndPosition(
+    public List<DayPositionBucket> getShiftsGroupedByDayAndPosition(
             Integer companyId,
             LocalDate startDate,
             LocalDate endDate
     ) {
-        Map<LocalDate, DayPositionBucketDto> grouped = initializeDayBuckets(
+        Map<Integer, DayPositionBucket> grouped = initializeDayBuckets(
                 startDate,
                 endDate,
                 getCompanyPositionNames(companyId)
@@ -177,9 +161,10 @@ public class SchedulingService {
                 .thenComparing(ShiftSegment::employeeId));
 
         for (ShiftSegment segment : segments) {
-            DayPositionBucketDto dayBucket = grouped.get(segment.date());
-            PositionShiftBucketDto positionBucket = getOrCreatePositionBucket(dayBucket, segment.position());
-            positionBucket.shifts().add(new EmployeeScheduledShiftDto(
+            int dayIndex = Math.toIntExact(ChronoUnit.DAYS.between(startDate, segment.date()));
+            DayPositionBucket dayBucket = grouped.get(dayIndex);
+            PositionShiftBucket positionBucket = getOrCreatePositionBucket(dayBucket, segment.position());
+            positionBucket.shifts().add(new EmployeeShift(
                     segment.shiftId(),
                     segment.employeeId(),
                     segment.firstName(),
@@ -194,8 +179,8 @@ public class SchedulingService {
             ));
             updatePositionBucket(dayBucket, positionBucket, segment.durationHours());
             grouped.put(
-                    segment.date(),
-                    new DayPositionBucketDto(
+                    dayIndex,
+                    new DayPositionBucket(
                             dayBucket.date(),
                             dayBucket.positions(),
                             dayBucket.shiftCount() + 1,
@@ -207,8 +192,8 @@ public class SchedulingService {
         return new ArrayList<>(grouped.values());
     }
 
-    public List<ConflictDto> validate(FindConflictRequest request) {
-        List<ConflictDto> conflicts = new ArrayList<>();
+    public List<ConflictItem> validate(FindConflictRequest request) {
+        List<ConflictItem> conflicts = new ArrayList<>();
         conflicts.addAll(ruleEngineService.checkMaxHoursPerDay(request));
         conflicts.addAll(ruleEngineService.checkMaxShiftsPerDay(request));
         conflicts.addAll(ruleEngineService.checkMaxHoursAndShiftsPerWeek(request));
@@ -256,15 +241,15 @@ public class SchedulingService {
         return !date.isBefore(startDate) && !date.isAfter(endDate);
     }
 
-    private EmployeeWithShiftsDto getOrCreateEmployeeDto(
-            Map<Integer, EmployeeWithShiftsDto> grouped,
+    private EmployeeSchedule getOrCreateEmployeeDto(
+            Map<Integer, EmployeeSchedule> grouped,
             EmployeeShiftProjection row,
             LocalDate startDate,
             LocalDate endDate
     ) {
         return grouped.computeIfAbsent(
                 row.getEmployeeId(),
-                id -> new EmployeeWithShiftsDto(
+                id -> new EmployeeSchedule(
                         row.getEmployeeId(),
                         row.getFirstName(),
                         row.getLastName(),
@@ -276,9 +261,9 @@ public class SchedulingService {
         );
     }
 
-    private void addShiftSegment(EmployeeWithShiftsDto employeeDto, LocalDate rangeStartDate, ShiftSegment segment) {
+    private void addShiftSegment(EmployeeSchedule employeeDto, LocalDate rangeStartDate, ShiftSegment segment) {
         int dayIndex = Math.toIntExact(ChronoUnit.DAYS.between(rangeStartDate, segment.date()));
-        employeeDto.addShiftToDay(dayIndex, segment.date(), new ShiftDto(
+        employeeDto.addShiftToDay(dayIndex, segment.date(), new ShiftSummary(
                 segment.shiftId(),
                 segment.startTime(),
                 segment.endTime(),
@@ -365,12 +350,12 @@ public class SchedulingService {
         );
     }
 
-    private Map<LocalDate, DayPositionBucketDto> initializeDayBuckets(
+    private Map<Integer, DayPositionBucket> initializeDayBuckets(
             LocalDate startDate,
             LocalDate endDate,
             List<String> companyPositions
     ) {
-        Map<LocalDate, DayPositionBucketDto> grouped = new LinkedHashMap<>();
+        Map<Integer, DayPositionBucket> grouped = new LinkedHashMap<>();
         if (startDate == null || endDate == null || endDate.isBefore(startDate)) {
             return grouped;
         }
@@ -378,11 +363,11 @@ public class SchedulingService {
         long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
         for (int i = 0; i <= totalDays; i++) {
             LocalDate bucketDate = startDate.plusDays(i);
-            List<PositionShiftBucketDto> positions = new ArrayList<>();
+            List<PositionShiftBucket> positions = new ArrayList<>();
             for (String position : companyPositions) {
-                positions.add(new PositionShiftBucketDto(position, new ArrayList<>(), 0, 0.0f));
+                positions.add(new PositionShiftBucket(position, new ArrayList<>(), 0, 0.0f));
             }
-            grouped.put(bucketDate, new DayPositionBucketDto(bucketDate, positions, 0, 0.0f));
+            grouped.put(i, new DayPositionBucket(bucketDate, positions, 0, 0.0f));
         }
 
         return grouped;
@@ -394,34 +379,34 @@ public class SchedulingService {
         }
 
         return positionService.getPositionsByCompanyId(companyId).stream()
-                .map(PositionDto::getName)
+                .map(PositionSummary::name)
                 .filter(Objects::nonNull)
                 .distinct()
                 .sorted()
                 .toList();
     }
 
-    private PositionShiftBucketDto getOrCreatePositionBucket(DayPositionBucketDto dayBucket, String position) {
-        for (PositionShiftBucketDto positionBucket : dayBucket.positions()) {
+    private PositionShiftBucket getOrCreatePositionBucket(DayPositionBucket dayBucket, String position) {
+        for (PositionShiftBucket positionBucket : dayBucket.positions()) {
             if (Objects.equals(positionBucket.position(), position)) {
                 return positionBucket;
             }
         }
 
-        PositionShiftBucketDto positionBucket = new PositionShiftBucketDto(position, new ArrayList<>(), 0, 0.0f);
+        PositionShiftBucket positionBucket = new PositionShiftBucket(position, new ArrayList<>(), 0, 0.0f);
         dayBucket.positions().add(positionBucket);
         return positionBucket;
     }
 
     private void updatePositionBucket(
-            DayPositionBucketDto dayBucket,
-            PositionShiftBucketDto positionBucket,
+            DayPositionBucket dayBucket,
+            PositionShiftBucket positionBucket,
             float durationHours
     ) {
         int index = dayBucket.positions().indexOf(positionBucket);
         dayBucket.positions().set(
                 index,
-                new PositionShiftBucketDto(
+                new PositionShiftBucket(
                         positionBucket.position(),
                         positionBucket.shifts(),
                         positionBucket.shiftCount() + 1,

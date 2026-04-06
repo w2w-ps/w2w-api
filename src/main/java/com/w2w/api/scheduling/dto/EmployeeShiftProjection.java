@@ -1,6 +1,6 @@
 package com.w2w.api.scheduling.dto;
 
-import com.w2w.api.position.dto.PositionDto;
+import com.w2w.api.position.dto.PositionSummary;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -12,7 +12,7 @@ public interface EmployeeShiftProjection {
     String getFirstName();
     String getLastName();
     List<String> getPhones();
-    List<PositionDto> getAvailablePositions();
+    List<PositionSummary> getAvailablePositions();
     LocalDate getWeekCommencing();
     LocalTime getStartTime();
     LocalTime getEndTime();

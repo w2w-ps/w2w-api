@@ -56,7 +56,10 @@
 - Preserve the feature-first package layout.
 - Do not reintroduce `controller/` or `service/` subpackages for category or position.
 - Keep DTO/model/repository folders grouped only when they contain multiple files.
-- Prefer Java `record`s for newly added request and response DTOs unless mutability or framework constraints require a class.
+- Name top-level inbound payloads `*Request` and top-level outbound payloads `*Response`.
+- Name reusable nested API DTOs by business role rather than `*Dto`; prefer semantic suffixes such as `*Summary`, `*Detail`, `*Reference`, `*Bucket`, or `*Item`.
+- Keep repository and query-mapping types on `*Projection`.
+- Prefer Java `record`s for DTOs whenever possible. Use a class only when mutability, framework binding, or helper methods make a record a poor fit.
 - Add new database changes as incremental Flyway migrations; do not edit already-applied migrations in a shared environment.
 - When request or response contracts change, update `openapi.yaml`.
 - When request or response contracts change, update request examples in `postman/w2w-api.postman_collection.json`.

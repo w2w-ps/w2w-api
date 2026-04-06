@@ -1,8 +1,8 @@
 package com.w2w.api.position;
 
 import com.w2w.api.config.TenantContext;
-import com.w2w.api.position.dto.PositionDto;
-import com.w2w.api.position.dto.PositionGroupDto;
+import com.w2w.api.position.dto.PositionGroupSummary;
+import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.position.dto.PositionsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +18,8 @@ public class PositionController {
     @GetMapping
     public PositionsResponse getPositions(@RequestParam Integer companyId) {
         TenantContext.setCurrentTenant(companyId);
-        List<PositionDto> positions = positionService.getPositionsByCompanyId(companyId);
-        List<PositionGroupDto> groups = positionService.getPositionGroupsByCompanyId(companyId);
+        List<PositionSummary> positions = positionService.getPositionsByCompanyId(companyId);
+        List<PositionGroupSummary> groups = positionService.getPositionGroupsByCompanyId(companyId);
         return new PositionsResponse(positions, groups);
     }
 }
