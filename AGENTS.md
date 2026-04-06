@@ -32,6 +32,7 @@
   `POST /api/scheduling/shifts`
   `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
   `GET /api/scheduling/shifts/day-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
+  `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd` deprecated
 - `preferences`
   `GET /api/preferences/day?employeeId=...&date=...&companyId=...`
   `GET /api/preferences/day/range?employeeId=...&startDate=...&endDate=...&companyId=...`
@@ -39,7 +40,6 @@
   `POST /api/preferences/day/repeat`
   `GET /api/preferences/week?employeeId=...&startDate=...&companyId=...`
   `POST /api/preferences/week`
-  `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd` deprecated
 
 ## Tenanting Rules
 - Reads and writes are tenant-scoped by setting `TenantContext` before repository access.
