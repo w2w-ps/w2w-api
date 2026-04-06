@@ -63,13 +63,13 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
     private final class RowMapperImpl implements RowMapper<EmployeeShiftProjection> {
         private Integer lastEmployeeId = null;
         private List<String> lastPhones = null;
-        private List<PositionDto> lastPositions = null;
+        private List<PositionSummary> lastPositions = null;
 
         @Override
         public EmployeeShiftProjection mapRow(ResultSet rs, int rowNum) throws SQLException {
             Integer employeeId = getNullableInteger(rs, "employeeId");
             List<String> phones;
-            List<PositionDto> positions;
+            List<PositionSummary> positions;
 
             if (employeeId != null && employeeId.equals(lastEmployeeId)) {
                 phones = lastPhones;

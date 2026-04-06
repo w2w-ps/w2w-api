@@ -115,9 +115,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EmployeeWithShifts'
-  /api/scheduling/shifts/day-position:
+  /api/scheduling/shifts/date-position:
     get:
-      summary: Get shifts grouped by day and position
+      summary: Get shifts grouped by date and position
       parameters:
         - in: query
           name: companyId
@@ -138,13 +138,51 @@ paths:
             format: date
       responses:
         '200':
-          description: Daily shift buckets grouped by position, including empty buckets for company positions without shifts
+          description: Date buckets grouped by position, including empty buckets for company positions without shifts
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DayPositionBucket'
+  /api/scheduling/shifts/grouped:
+    get:
+      summary: Get shifts grouped by date and the requested grouping strategy
+      parameters:
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: grouping
+          required: true
+          schema:
+            type: string
+            enum:
+              - position_shift_timings
+              - shift_timings
+              - category_shift_timings
+              - cat_shift_timings
+        - in: query
+          name: startDate
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Grouped shifts in one normalized structure. Results are always grouped by date first, then by the requested grouping strategy under `shiftGroups`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupedShiftsResponse'
 components:
   parameters:
     ShiftId:
@@ -375,6 +413,66 @@ components:
         totalDuration:
           type: number
           format: float
+    PositionTimingBucket:
+      type: object
+      properties:
+        position:
+          type: string
+          nullable: true
+        shiftTimings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftTimingBucket'
+        shiftCount:
+          type: integer
+        totalDuration:
+          type: number
+          format: float
+    ShiftTimingBucket:
+      type: object
+      properties:
+        startTime:
+          type: string
+        endTime:
+          type: string
+        shifts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeScheduledShift'
+        shiftCount:
+          type: integer
+        totalDuration:
+          type: number
+          format: float
+    CategoryTimingBucket:
+      type: object
+      properties:
+        category:
+          type: string
+          nullable: true
+        shiftTimings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftTimingGroup'
+    ShiftTimingGroup:
+      type: object
+      properties:
+        label:
+          type: string
+        shifts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeScheduledShift'
+    DayShiftTimingBucket:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        shiftTimings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftTimingGroup'
     DayPositionBucket:
       type: object
       properties:
@@ -390,3 +488,34 @@ components:
         totalDuration:
           type: number
           format: float
+    GroupedShiftsResponse:
+      type: object
+      properties:
+        dates:
+          type: array
+          items:
+            $ref: '#/components/schemas/GroupedShiftDate'
+    GroupedShiftDate:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        shiftGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftGroup'
+    ShiftGroup:
+      type: object
+      properties:
+        label:
+          type: string
+          nullable: true
+        shiftGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftGroup'
+        shifts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmployeeScheduledShift'

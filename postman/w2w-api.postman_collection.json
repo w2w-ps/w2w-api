@@ -291,7 +291,7 @@
           }
         },
         {
-          "name": "Get Grouped Shifts In Range",
+          "name": "Employee View - /shifts/employees",
           "request": {
             "method": "GET",
             "header": [
@@ -305,7 +305,7 @@
           }
         },
         {
-          "name": "Get Grouped Shifts By Day And Position",
+          "name": "Position View - /shifts/date-position",
           "request": {
             "method": "GET",
             "header": [
@@ -314,8 +314,64 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns day buckets for the requested range, with each day grouped by position and each position listing employee-level shift entries. All company positions are included even when a given day has no shifts for them. Each day includes shiftCount and totalDuration, and each position bucket includes its own shiftCount and totalDuration.",
-            "url": "{{baseUrl}}/api/scheduling/shifts/day-position?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
+            "description": "Returns date buckets for the requested range, with each date grouped by position and each position listing employee-level shift entries. All company positions are included even when a given date has no shifts for them. Each date includes shiftCount and totalDuration, and each position bucket includes its own shiftCount and totalDuration.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/date-position?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Calendar View - Position Shift Timings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by position and shift timing under nested shiftGroups[].",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=position_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Calendar View - Shift Timings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then directly by shift timing under shiftGroups[].",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Calendar View - Category Shift Timings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by category and shift timing under nested shiftGroups[].",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=category_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Calendar View - Category Short Name Shift Timings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by category short description and shift timing under nested shiftGroups[].",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=cat_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
           }
         }
       ]

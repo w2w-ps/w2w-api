@@ -2,11 +2,13 @@ package com.w2w.api.scheduling;
 
 import com.w2w.api.config.TenantContext;
 import com.w2w.api.scheduling.dto.ConflictItem;
-import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.dto.ConflictResponse;
+import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.dto.DayPositionBucket;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
+import com.w2w.api.scheduling.dto.GroupedShiftsResponse;
+import com.w2w.api.scheduling.dto.ShiftGrouping;
 import com.w2w.api.scheduling.dto.ShiftResponse;
 import com.w2w.api.scheduling.dto.UpdateShiftRequest;
 import com.w2w.api.scheduling.model.Shift;
@@ -66,21 +68,25 @@ public class SchedulingController {
         return schedulingService.getEmployeeShiftsGroupedInRange(companyId, startDate, endDate);
     }
 
-    @GetMapping("/shifts/day-position")
-    public List<DayPositionBucket> getShiftsGroupedByDayAndPosition(
+    @GetMapping("/shifts/grouped")
+    public GroupedShiftsResponse getGroupedShifts(
+            @RequestParam Integer companyId,
+            @RequestParam ShiftGrouping grouping,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
+    ) {
+        TenantContext.setCurrentTenant(companyId);
+        return schedulingService.getShiftsGrouped(companyId, startDate, endDate, grouping);
+    }
+
+    @GetMapping("/shifts/date-position")
+    public List<DayPositionBucket> getShiftsGroupedByDateAndPosition(
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         TenantContext.setCurrentTenant(companyId);
-        return schedulingService.getShiftsGroupedByDayAndPosition(companyId, startDate, endDate);
+        return schedulingService.getShiftsGroupedByDateAndPosition(companyId, startDate, endDate);
     }
-
-    /**
-     * Performs pre-checks for create/update/reassign operations and returns any conflicts.
-     *
-     * @param request The validation request containing operation type and shift data (including IDs for reassignment/update).
-     * @return A ConflictResponse containing a boolean indicating conflicts and a list of ConflictItem.
-     */
     @PostMapping("/validation/precheck")
     public ResponseEntity<ConflictResponse> preCheck(@RequestBody FindConflictRequest request) {
         List<ConflictItem> conflicts = schedulingService.validate(request);
