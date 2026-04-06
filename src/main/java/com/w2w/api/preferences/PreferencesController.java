@@ -28,9 +28,8 @@ public class PreferencesController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
             @RequestParam Integer companyId) {
         TenantContext.setCurrentTenant(companyId);
-        return preferencesService.getDayPreference(employeeId, date)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        DayPreferenceDto preference = preferencesService.getDayPreference(employeeId, date).orElse(null);
+        return ResponseEntity.ok(preference);
     }
 
     @GetMapping("/day/range")
@@ -50,9 +49,8 @@ public class PreferencesController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam Integer companyId) {
         TenantContext.setCurrentTenant(companyId);
-        return preferencesService.getWeekPreference(employeeId, startDate)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        WeekPreferenceDto preference = preferencesService.getWeekPreference(employeeId, startDate).orElse(null);
+        return ResponseEntity.ok(preference);
     }
 
     @PostMapping("/day")
