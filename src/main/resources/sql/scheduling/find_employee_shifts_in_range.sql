@@ -5,7 +5,7 @@ WITH filtered_company AS (
 company_skills AS (
     SELECT
         sk.skill_id,
-        json_build_object('id', sk.skill_id, 'name', sk.description) as skill_json,
+        json_build_object('positionId', sk.skill_id, 'description', sk.description) as skill_json,
         sk.description
     FROM skill sk
     JOIN filtered_company fc ON sk.company_id = fc.c_id
