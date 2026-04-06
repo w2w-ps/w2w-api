@@ -51,6 +51,17 @@ public class PreferencesController {
         return ResponseEntity.ok(preference);
     }
 
+    @GetMapping("/resolved")
+    public ResponseEntity<List<ResolvedPreferenceResponse>> getResolvedPreferences(
+            @RequestParam Integer employeeId,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+            @RequestParam Integer companyId) {
+        TenantContext.setCurrentTenant(companyId);
+        List<ResolvedPreferenceResponse> preferences = preferencesService.getResolvedPreferences(employeeId, startDate, endDate);
+        return ResponseEntity.ok(preferences);
+    }
+
     @PostMapping("/day")
     public void saveDayPreference(@Valid @RequestBody DayPreferenceRequest request) {
         TenantContext.setCurrentTenant(request.companyId());

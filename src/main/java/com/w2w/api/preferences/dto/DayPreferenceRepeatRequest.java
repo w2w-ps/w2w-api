@@ -12,5 +12,6 @@ public record DayPreferenceRepeatRequest(
     @Size(max = 96) String prefs,
     Integer compression,
     @Positive Integer editedBy,
-    @NotNull @Positive Integer repeatCount
+    @NotNull @Positive Integer repeatCount,
+    Boolean isDayPrefs
 ) {}

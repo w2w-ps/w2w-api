@@ -183,6 +183,126 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupedShiftsResponse'
+  /api/preferences/day:
+    get:
+      summary: Get day preference
+      parameters:
+        - in: query
+          name: employeeId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DayPreferenceResponse'
+    post:
+      summary: Create or update day preference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DayPreferenceRequest'
+      responses:
+        '200':
+          description: OK
+  /api/preferences/day/range:
+    get:
+      summary: Get day preferences in range
+      parameters:
+        - in: query
+          name: employeeId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: startDate
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DayPreferenceResponse'
+  /api/preferences/day/repeat:
+    post:
+      summary: Create repeating day preference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DayPreferenceRepeatRequest'
+      responses:
+        '200':
+          description: OK
+  /api/preferences/resolved:
+    get:
+      summary: Get resolved preferences for a date range
+      parameters:
+        - in: query
+          name: employeeId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: startDate
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ResolvedPreferenceResponse'
 components:
   parameters:
     ShiftId:
@@ -519,3 +639,63 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/EmployeeScheduledShift'
+    DayPreferenceRequest:
+      type: object
+      required: [employeeId, companyId, date]
+      properties:
+        employeeId:
+          type: integer
+        companyId:
+          type: integer
+        date:
+          type: string
+          format: date
+        prefs:
+          type: string
+        compression:
+          type: integer
+        editedBy:
+          type: integer
+        isDayPrefs:
+          type: boolean
+    DayPreferenceResponse:
+      type: object
+      properties:
+        employeeId:
+          type: integer
+        companyId:
+          type: integer
+        date:
+          type: string
+          format: date
+        prefs:
+          type: string
+        compression:
+          type: integer
+        editedBy:
+          type: integer
+        day:
+          type: string
+        isDayPrefs:
+          type: boolean
+    DayPreferenceRepeatRequest:
+      type: object
+      required: [employeeId, companyId, date, repeatCount]
+      properties:
+        employeeId:
+          type: integer
+        companyId:
+          type: integer
+        date:
+          type: string
+          format: date
+        prefs:
+          type: string
+        compression:
+          type: integer
+        editedBy:
+          type: integer
+        repeatCount:
+          type: integer
+        isDayPrefs:
+          type: boolean

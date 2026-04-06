@@ -11,5 +11,6 @@ public record DayPreferenceRequest(
     @NotNull LocalDate date,
     @Size(max = 96) String prefs,
     Integer compression,
-    @Positive Integer editedBy
+    @Positive Integer editedBy,
+    Boolean isDayPrefs
 ) {}

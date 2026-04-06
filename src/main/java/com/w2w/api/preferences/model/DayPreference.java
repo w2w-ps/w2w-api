@@ -24,6 +24,9 @@ public class DayPreference {
     @Column(name = "edited_by")
     private Integer editedBy;
 
+    @Column(name = "is_day_prefs")
+    private Boolean isDayPrefs;
+
     public DayPreference() {}
 
     public Integer getEmployeeId() {
@@ -64,5 +67,13 @@ public class DayPreference {
 
     public void setEditedBy(Integer editedBy) {
         this.editedBy = editedBy;
+    }
+
+    public Boolean getIsDayPrefs() {
+        return isDayPrefs;
+    }
+
+    public void setIsDayPrefs(Boolean isDayPrefs) {
+        this.isDayPrefs = isDayPrefs;
     }
 }

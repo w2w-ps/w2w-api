@@ -21,7 +21,7 @@ public class PreferencesService {
     private final WeekPreferenceRepository weekPreferenceRepository;
 
     public PreferencesService(DayPreferenceRepository dayPreferenceRepository,
-                              WeekPreferenceRepository weekPreferenceRepository) {
+            WeekPreferenceRepository weekPreferenceRepository) {
         this.dayPreferenceRepository = dayPreferenceRepository;
         this.weekPreferenceRepository = weekPreferenceRepository;
     }
@@ -31,7 +31,8 @@ public class PreferencesService {
                 .map(this::mapToDayResponse);
     }
 
-    public List<DayPreferenceResponse> getDayPreferencesInRange(Integer employeeId, LocalDate startDate, LocalDate endDate) {
+    public List<DayPreferenceResponse> getDayPreferencesInRange(Integer employeeId, LocalDate startDate,
+            LocalDate endDate) {
         return dayPreferenceRepository.findByEmployeeIdAndDateBetween(employeeId, startDate, endDate)
                 .stream()
                 .map(this::mapToDayResponse)
@@ -57,7 +58,8 @@ public class PreferencesService {
             entity.setPrefs(request.prefs());
             entity.setCompression(request.compression());
             entity.setEditedBy(request.editedBy());
-            
+            entity.setIsDayPrefs(request.isDayPrefs());
+
             dayPreferenceRepository.save(entity);
             currentDate = currentDate.plusWeeks(1);
         }
@@ -75,8 +77,8 @@ public class PreferencesService {
                 entity.getDate(),
                 entity.getPrefs(),
                 entity.getCompression(),
-                entity.getEditedBy()
-        );
+                entity.getEditedBy(),
+                entity.getIsDayPrefs());
     }
 
     private WeekPreferenceResponse mapToWeekResponse(WeekPreference entity) {
@@ -86,8 +88,7 @@ public class PreferencesService {
                 entity.getStartDate(),
                 entity.getPrefs(),
                 entity.getCompression(),
-                entity.getEditedBy()
-        );
+                entity.getEditedBy());
     }
 
     private DayPreference mapToDayEntity(DayPreferenceRequest request) {
@@ -97,6 +98,7 @@ public class PreferencesService {
         entity.setPrefs(request.prefs());
         entity.setCompression(request.compression());
         entity.setEditedBy(request.editedBy());
+        entity.setIsDayPrefs(request.isDayPrefs());
         return entity;
     }
 
@@ -108,5 +110,43 @@ public class PreferencesService {
         entity.setCompression(request.compression());
         entity.setEditedBy(request.editedBy());
         return entity;
+    }
+
+    public List<ResolvedPreferenceResponse> getResolvedPreferences(Integer employeeId, LocalDate startDate,
+            LocalDate endDate) {
+        List<ResolvedPreferenceResponse> result = new java.util.ArrayList<>();
+
+        java.util.Map<LocalDate, DayPreference> dayPrefsMap = dayPreferenceRepository
+                .findByEmployeeIdAndDateBetween(employeeId, startDate, endDate)
+                .stream()
+                .collect(Collectors.toMap(DayPreference::getDate, p -> p));
+
+        java.util.Map<LocalDate, WeekPreference> weekPrefsMap = new java.util.HashMap<>();
+
+        LocalDate currentDate = startDate;
+        while (!currentDate.isAfter(endDate)) {
+            WeekPreference weekPref = weekPreferenceRepository
+                    .findFirstByEmployeeIdAndStartDateLessThanEqualOrderByStartDateDesc(employeeId, currentDate)
+                    .orElse(null);
+
+            DayPreference dayPref = dayPrefsMap.get(currentDate);
+            String prefs = null;
+            String type = "NONE";
+
+            if (dayPref != null) {
+                prefs = dayPref.getPrefs();
+                type = Boolean.TRUE.equals(dayPref.getIsDayPrefs()) ? "DAY" : "HOUR";
+            } else if (weekPref != null && weekPref.getPrefs() != null && weekPref.getPrefs().length() >= 672) {
+                int dayIndex = currentDate.getDayOfWeek().getValue() - 1; // 0 for Monday, 6 for Sunday
+                int startIdx = dayIndex * 96;
+                prefs = weekPref.getPrefs().substring(startIdx, Math.min(startIdx + 96, weekPref.getPrefs().length()));
+                type = "WEEK";
+            }
+
+            result.add(new ResolvedPreferenceResponse(currentDate, prefs, type));
+            currentDate = currentDate.plusDays(1);
+        }
+
+        return result;
     }
 }

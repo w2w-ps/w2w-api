@@ -15,7 +15,7 @@ public class WeekPreference {
     @Column(name = "start_date")
     private LocalDate startDate;
 
-    @Column(name = "prefs", length = 700)
+    @Column(name = "prefs", length = 672)
     private String prefs;
 
     @Column(name = "compression")

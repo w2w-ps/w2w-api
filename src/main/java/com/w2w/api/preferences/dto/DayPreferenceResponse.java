@@ -11,7 +11,8 @@ public record DayPreferenceResponse(
     String prefs,
     Integer compression,
     Integer editedBy,
-    String day
+    String day,
+    Boolean isDayPrefs
 ) {
     public DayPreferenceResponse(
             Integer employeeId,
@@ -19,9 +20,11 @@ public record DayPreferenceResponse(
             LocalDate date,
             String prefs,
             Integer compression,
-            Integer editedBy
+            Integer editedBy,
+            Boolean isDayPrefs
     ) {
         this(employeeId, companyId, date, prefs, compression, editedBy,
-                date != null ? date.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH) : null);
+                date != null ? date.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH) : null,
+                isDayPrefs);
     }
 }

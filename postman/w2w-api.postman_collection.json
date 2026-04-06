@@ -421,7 +421,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"REPEAT_PREF_EXAMPLE\",\n  \"repeatCount\": 5,\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}}\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"REPEAT_PREF_EXAMPLE\",\n  \"repeatCount\": 5,\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}},\n  \"isDayPrefs\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -445,6 +445,19 @@
           }
         },
         {
+          "name": "Get Resolved Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/preferences/resolved?employeeId={{employeeId}}&startDate={{startDate}}&endDate={{endDate}}&companyId={{companyId}}"
+          }
+        },
+        {
           "name": "Update Day Preference",
           "request": {
             "method": "POST",
@@ -460,7 +473,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"DAILY_PREF_STRING_EXAMPLE\",\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}}\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"DAILY_PREF_STRING_EXAMPLE\",\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}},\n  \"isDayPrefs\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
