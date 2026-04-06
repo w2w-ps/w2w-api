@@ -1,9 +1,7 @@
 package com.w2w.api.preferences;
 
 import com.w2w.api.config.TenantContext;
-import com.w2w.api.preferences.dto.DayPreferenceDto;
-import com.w2w.api.preferences.dto.DayPreferenceRepeatDto;
-import com.w2w.api.preferences.dto.WeekPreferenceDto;
+import com.w2w.api.preferences.dto.*;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -23,51 +21,51 @@ public class PreferencesController {
     }
 
     @GetMapping("/day")
-    public ResponseEntity<DayPreferenceDto> getDayPreferences(
+    public ResponseEntity<DayPreferenceResponse> getDayPreferences(
             @RequestParam Integer employeeId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
             @RequestParam Integer companyId) {
         TenantContext.setCurrentTenant(companyId);
-        DayPreferenceDto preference = preferencesService.getDayPreference(employeeId, date).orElse(null);
+        DayPreferenceResponse preference = preferencesService.getDayPreference(employeeId, date).orElse(null);
         return ResponseEntity.ok(preference);
     }
 
     @GetMapping("/day/range")
-    public ResponseEntity<List<DayPreferenceDto>> getDayPreferencesRange(
+    public ResponseEntity<List<DayPreferenceResponse>> getDayPreferencesRange(
             @RequestParam Integer employeeId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
             @RequestParam Integer companyId) {
         TenantContext.setCurrentTenant(companyId);
-        List<DayPreferenceDto> preferences = preferencesService.getDayPreferencesInRange(employeeId, startDate, endDate);
+        List<DayPreferenceResponse> preferences = preferencesService.getDayPreferencesInRange(employeeId, startDate, endDate);
         return ResponseEntity.ok(preferences);
     }
 
     @GetMapping("/week")
-    public ResponseEntity<WeekPreferenceDto> getWeekPreferences(
+    public ResponseEntity<WeekPreferenceResponse> getWeekPreferences(
             @RequestParam Integer employeeId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam Integer companyId) {
         TenantContext.setCurrentTenant(companyId);
-        WeekPreferenceDto preference = preferencesService.getWeekPreference(employeeId, startDate).orElse(null);
+        WeekPreferenceResponse preference = preferencesService.getWeekPreference(employeeId, startDate).orElse(null);
         return ResponseEntity.ok(preference);
     }
 
     @PostMapping("/day")
-    public void saveDayPreference(@Valid @RequestBody DayPreferenceDto dto) {
-        TenantContext.setCurrentTenant(dto.getCompanyId());
-        preferencesService.saveDayPreference(dto);
+    public void saveDayPreference(@Valid @RequestBody DayPreferenceRequest request) {
+        TenantContext.setCurrentTenant(request.companyId());
+        preferencesService.saveDayPreference(request);
     }
 
     @PostMapping("/day/repeat")
-    public void saveDayPreferenceWithRepeat(@Valid @RequestBody DayPreferenceRepeatDto dto) {
-        TenantContext.setCurrentTenant(dto.getCompanyId());
-        preferencesService.saveDayPreferenceWithRepeat(dto);
+    public void saveDayPreferenceWithRepeat(@Valid @RequestBody DayPreferenceRepeatRequest request) {
+        TenantContext.setCurrentTenant(request.companyId());
+        preferencesService.saveDayPreferenceWithRepeat(request);
     }
 
     @PostMapping("/week")
-    public void saveWeekPreference(@Valid @RequestBody WeekPreferenceDto dto) {
-        TenantContext.setCurrentTenant(dto.getCompanyId());
-        preferencesService.saveWeekPreference(dto);
+    public void saveWeekPreference(@Valid @RequestBody WeekPreferenceRequest request) {
+        TenantContext.setCurrentTenant(request.companyId());
+        preferencesService.saveWeekPreference(request);
     }
 }

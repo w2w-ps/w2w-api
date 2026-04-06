@@ -1,9 +1,7 @@
 package com.w2w.api.preferences;
 
 import com.w2w.api.config.TenantContext;
-import com.w2w.api.preferences.dto.DayPreferenceDto;
-import com.w2w.api.preferences.dto.DayPreferenceRepeatDto;
-import com.w2w.api.preferences.dto.WeekPreferenceDto;
+import com.w2w.api.preferences.dto.*;
 import com.w2w.api.preferences.model.DayPreference;
 import com.w2w.api.preferences.model.DayPreferenceId;
 import com.w2w.api.preferences.model.WeekPreference;
@@ -28,52 +26,52 @@ public class PreferencesService {
         this.weekPreferenceRepository = weekPreferenceRepository;
     }
 
-    public Optional<DayPreferenceDto> getDayPreference(Integer employeeId, LocalDate date) {
+    public Optional<DayPreferenceResponse> getDayPreference(Integer employeeId, LocalDate date) {
         return dayPreferenceRepository.findById(new DayPreferenceId(employeeId, date))
-                .map(this::mapToDayDto);
+                .map(this::mapToDayResponse);
     }
 
-    public List<DayPreferenceDto> getDayPreferencesInRange(Integer employeeId, LocalDate startDate, LocalDate endDate) {
+    public List<DayPreferenceResponse> getDayPreferencesInRange(Integer employeeId, LocalDate startDate, LocalDate endDate) {
         return dayPreferenceRepository.findByEmployeeIdAndDateBetween(employeeId, startDate, endDate)
                 .stream()
-                .map(this::mapToDayDto)
+                .map(this::mapToDayResponse)
                 .collect(Collectors.toList());
     }
 
-    public Optional<WeekPreferenceDto> getWeekPreference(Integer employeeId, LocalDate startDate) {
+    public Optional<WeekPreferenceResponse> getWeekPreference(Integer employeeId, LocalDate startDate) {
         return weekPreferenceRepository.findById(new WeekPreferenceId(employeeId, startDate))
-                .map(this::mapToWeekDto);
+                .map(this::mapToWeekResponse);
     }
 
-    public void saveDayPreference(DayPreferenceDto dto) {
-        DayPreference entity = mapToDayEntity(dto);
+    public void saveDayPreference(DayPreferenceRequest request) {
+        DayPreference entity = mapToDayEntity(request);
         dayPreferenceRepository.save(entity);
     }
 
-    public void saveDayPreferenceWithRepeat(DayPreferenceRepeatDto dto) {
-        LocalDate currentDate = dto.getDate();
-        for (int i = 0; i < dto.getRepeatCount(); i++) {
+    public void saveDayPreferenceWithRepeat(DayPreferenceRepeatRequest request) {
+        LocalDate currentDate = request.date();
+        for (int i = 0; i < request.repeatCount(); i++) {
             DayPreference entity = new DayPreference();
-            entity.setEmployeeId(dto.getEmployeeId());
+            entity.setEmployeeId(request.employeeId());
             entity.setDate(currentDate);
-            entity.setPrefs(dto.getPrefs());
-            entity.setCompression(dto.getCompression());
-            entity.setEditedBy(dto.getEditedBy());
+            entity.setPrefs(request.prefs());
+            entity.setCompression(request.compression());
+            entity.setEditedBy(request.editedBy());
             
             dayPreferenceRepository.save(entity);
             currentDate = currentDate.plusWeeks(1);
         }
     }
 
-    public void saveWeekPreference(WeekPreferenceDto dto) {
-        WeekPreference entity = mapToWeekEntity(dto);
+    public void saveWeekPreference(WeekPreferenceRequest request) {
+        WeekPreference entity = mapToWeekEntity(request);
         weekPreferenceRepository.save(entity);
     }
 
-    private DayPreferenceDto mapToDayDto(DayPreference entity) {
-        return new DayPreferenceDto(
-                TenantContext.getCurrentTenant(),
+    private DayPreferenceResponse mapToDayResponse(DayPreference entity) {
+        return new DayPreferenceResponse(
                 entity.getEmployeeId(),
+                TenantContext.getCurrentTenant(),
                 entity.getDate(),
                 entity.getPrefs(),
                 entity.getCompression(),
@@ -81,10 +79,10 @@ public class PreferencesService {
         );
     }
 
-    private WeekPreferenceDto mapToWeekDto(WeekPreference entity) {
-        return new WeekPreferenceDto(
-                TenantContext.getCurrentTenant(),
+    private WeekPreferenceResponse mapToWeekResponse(WeekPreference entity) {
+        return new WeekPreferenceResponse(
                 entity.getEmployeeId(),
+                TenantContext.getCurrentTenant(),
                 entity.getStartDate(),
                 entity.getPrefs(),
                 entity.getCompression(),
@@ -92,23 +90,23 @@ public class PreferencesService {
         );
     }
 
-    private DayPreference mapToDayEntity(DayPreferenceDto dto) {
+    private DayPreference mapToDayEntity(DayPreferenceRequest request) {
         DayPreference entity = new DayPreference();
-        entity.setEmployeeId(dto.getEmployeeId());
-        entity.setDate(dto.getDate());
-        entity.setPrefs(dto.getPrefs());
-        entity.setCompression(dto.getCompression());
-        entity.setEditedBy(dto.getEditedBy());
+        entity.setEmployeeId(request.employeeId());
+        entity.setDate(request.date());
+        entity.setPrefs(request.prefs());
+        entity.setCompression(request.compression());
+        entity.setEditedBy(request.editedBy());
         return entity;
     }
 
-    private WeekPreference mapToWeekEntity(WeekPreferenceDto dto) {
+    private WeekPreference mapToWeekEntity(WeekPreferenceRequest request) {
         WeekPreference entity = new WeekPreference();
-        entity.setEmployeeId(dto.getEmployeeId());
-        entity.setStartDate(dto.getStartDate());
-        entity.setPrefs(dto.getPrefs());
-        entity.setCompression(dto.getCompression());
-        entity.setEditedBy(dto.getEditedBy());
+        entity.setEmployeeId(request.employeeId());
+        entity.setStartDate(request.startDate());
+        entity.setPrefs(request.prefs());
+        entity.setCompression(request.compression());
+        entity.setEditedBy(request.editedBy());
         return entity;
     }
 }
