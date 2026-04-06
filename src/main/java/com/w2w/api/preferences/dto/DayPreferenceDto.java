@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
+import java.time.format.TextStyle;
+import java.util.Locale;
 
 public class DayPreferenceDto {
     @NotNull
@@ -24,6 +26,8 @@ public class DayPreferenceDto {
     
     @Positive
     private Integer editedBy;
+    
+    private String day;
 
     public DayPreferenceDto() {
     }
@@ -33,6 +37,20 @@ public class DayPreferenceDto {
         this.companyId = companyId;
         this.employeeId = employeeId;
         this.date = date;
+        this.prefs = prefs;
+        this.compression = compression;
+        this.editedBy = editedBy;
+        if (date != null) {
+            this.day = date.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+        }
+    }
+
+    public DayPreferenceDto(Integer companyId, Integer employeeId, LocalDate date, String day, String prefs, Integer compression,
+            Integer editedBy) {
+        this.companyId = companyId;
+        this.employeeId = employeeId;
+        this.date = date;
+        this.day = day;
         this.prefs = prefs;
         this.compression = compression;
         this.editedBy = editedBy;
@@ -60,6 +78,9 @@ public class DayPreferenceDto {
 
     public void setDate(LocalDate date) {
         this.date = date;
+        if (date != null) {
+            this.day = date.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+        }
     }
 
     public String getPrefs() {
@@ -84,5 +105,13 @@ public class DayPreferenceDto {
 
     public void setEditedBy(Integer editedBy) {
         this.editedBy = editedBy;
+    }
+
+    public String getDay() {
+        return day;
+    }
+
+    public void setDay(String day) {
+        this.day = day;
     }
 }
