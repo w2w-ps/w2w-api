@@ -30,6 +30,9 @@ public class TenantDatabaseConfig {
         return Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:db/migration")
+                .defaultSchema("public")
+                .baselineVersion("0")
+                .baselineOnMigrate(true)
                 .load();
     }
 
