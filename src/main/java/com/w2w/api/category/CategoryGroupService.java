@@ -36,11 +36,11 @@ public class CategoryGroupService {
     }
 
     /**
-     * Returns the category groups for a company.
+     * Returns the category groups for a company filtered by status.
      */
     @Transactional(readOnly = true)
-    public List<CategoryGroupSummary> getCategoryGroups(Integer companyId) {
-        return categoryGroupRepository.findByCompanyId(companyId).stream()
+    public List<CategoryGroupSummary> getCategoryGroups(Integer companyId, String status) {
+        return findCategoryGroupsByStatus(companyId, status).stream()
                 .map(this::toSummary)
                 .toList();
     }
@@ -50,7 +50,7 @@ public class CategoryGroupService {
      */
     @Transactional(readOnly = true)
     public Optional<CategoryGroupSummary> getCategoryGroupById(Integer groupId, Integer companyId) {
-        return categoryGroupRepository.findByGroupIdAndCompanyId(groupId, companyId)
+        return categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(groupId, companyId)
                 .map(this::toSummary);
     }
 
@@ -62,6 +62,7 @@ public class CategoryGroupService {
         CategoryGroup categoryGroup = new CategoryGroup();
         categoryGroup.setCompanyId(request.companyId());
         categoryGroup.setDescription(request.description());
+        categoryGroup.setIsDeleted(false);
         categoryGroup.setCategories(resolveCategories(request.categoryIds(), request.companyId()));
         categoryGroupRepository.save(categoryGroup);
     }
@@ -71,20 +72,20 @@ public class CategoryGroupService {
      */
     @Transactional
     public void updateCategoryGroup(Integer groupId, Integer companyId, UpdateCategoryGroupRequest request) {
-        CategoryGroup categoryGroup = requireCategoryGroup(groupId, companyId);
+        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, companyId);
         categoryGroup.setDescription(request.description());
         categoryGroup.setCategories(resolveCategories(request.categoryIds(), companyId));
         categoryGroupRepository.save(categoryGroup);
     }
 
     /**
-     * Deletes a category group and clears its join-table memberships first.
+     * Soft-deletes a category group.
      */
     @Transactional
     public void deleteCategoryGroup(Integer groupId, Integer companyId) {
-        CategoryGroup categoryGroup = requireCategoryGroup(groupId, companyId);
-        categoryGroupRepository.deleteCategoryMemberships(groupId);
-        categoryGroupRepository.delete(categoryGroup);
+        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, companyId);
+        categoryGroup.setIsDeleted(true);
+        categoryGroupRepository.save(categoryGroup);
     }
 
     /**
@@ -109,11 +110,23 @@ public class CategoryGroupService {
     }
 
     /**
-     * Loads a category group for the requested tenant or raises a 404.
+     * Loads an active category group for the requested tenant or raises a 404.
      */
-    private CategoryGroup requireCategoryGroup(Integer groupId, Integer companyId) {
-        return categoryGroupRepository.findByGroupIdAndCompanyId(groupId, companyId)
+    private CategoryGroup requireActiveCategoryGroup(Integer groupId, Integer companyId) {
+        return categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(groupId, companyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category group not found"));
+    }
+
+    /**
+     * Finds category groups for the requested tenant and status filter.
+     */
+    private List<CategoryGroup> findCategoryGroupsByStatus(Integer companyId, String status) {
+        return switch (status.toLowerCase()) {
+            case "all" -> categoryGroupRepository.findByCompanyId(companyId);
+            case "active" -> categoryGroupRepository.findByCompanyIdAndIsDeletedFalse(companyId);
+            case "non-active" -> categoryGroupRepository.findByCompanyIdAndIsDeletedTrue(companyId);
+            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported status filter");
+        };
     }
 
     /**

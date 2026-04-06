@@ -22,7 +22,7 @@ public class CategoryGroup {
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany
     @JoinTable(
         name = "group_cat",
         joinColumns = @JoinColumn(name = "group_id"),

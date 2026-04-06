@@ -14,9 +14,12 @@ public interface CategoryGroupRepository extends JpaRepository<CategoryGroup, In
     @EntityGraph(attributePaths = "categories")
     List<CategoryGroup> findByCompanyId(Integer companyId);
 
+    @EntityGraph(attributePaths = "categories")
     List<CategoryGroup> findByCompanyIdAndIsDeletedFalse(Integer companyId);
 
+    @EntityGraph(attributePaths = "categories")
     List<CategoryGroup> findByCompanyIdAndIsDeletedTrue(Integer companyId);
 
+    @EntityGraph(attributePaths = "categories")
     Optional<CategoryGroup> findByGroupIdAndCompanyIdAndIsDeletedFalse(Integer groupId, Integer companyId);
 }

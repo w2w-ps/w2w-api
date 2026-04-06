@@ -48,7 +48,7 @@ class CategoryGroupControllerTest {
 
     @Test
     void getCategoryGroups_returnsGroups() throws Exception {
-        when(categoryGroupService.getCategoryGroups(1))
+        when(categoryGroupService.getCategoryGroups(1, "all"))
                 .thenReturn(List.of(
                         new CategoryGroupSummary(
                                 301,
@@ -65,7 +65,36 @@ class CategoryGroupControllerTest {
                 .andExpect(jsonPath("$.categoryGroups[0].categories[0].name").value("Floor"))
                 .andExpect(jsonPath("$.categoryGroups[0].categories[0].shortName").value("FLR"));
 
-        verify(categoryGroupService).getCategoryGroups(1);
+        verify(categoryGroupService).getCategoryGroups(1, "all");
+    }
+
+    @Test
+    void getCategoryGroups_withStatusFilter_returnsGroups() throws Exception {
+        when(categoryGroupService.getCategoryGroups(1, "non-active"))
+                .thenReturn(List.of(
+                        new CategoryGroupSummary(
+                                302,
+                                "Archived Shifts",
+                                List.of(new CategorySummary(5, "Front", "FRT"))
+                        )
+                ));
+
+        mockMvc.perform(get("/api/category-groups").param("companyId", "1").param("status", "non-active"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categoryGroups[0].id").value(302))
+                .andExpect(jsonPath("$.categoryGroups[0].name").value("Archived Shifts"));
+
+        verify(categoryGroupService).getCategoryGroups(1, "non-active");
+    }
+
+    @Test
+    void getCategoryGroups_returnsBadRequestWhenStatusInvalid() throws Exception {
+        doThrow(new ResponseStatusException(BAD_REQUEST, "Unsupported status filter"))
+                .when(categoryGroupService)
+                .getCategoryGroups(1, "archived");
+
+        mockMvc.perform(get("/api/category-groups").param("companyId", "1").param("status", "archived"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

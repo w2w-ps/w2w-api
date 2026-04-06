@@ -448,7 +448,33 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/category-groups?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/category-groups?companyId={{companyId}}&status=all"
+          }
+        },
+        {
+          "name": "Get Active Category Groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/category-groups?companyId={{companyId}}&status=active"
+          }
+        },
+        {
+          "name": "Get Non-Active Category Groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/category-groups?companyId={{companyId}}&status=non-active"
           }
         },
         {

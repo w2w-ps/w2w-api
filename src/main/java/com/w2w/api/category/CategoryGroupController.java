@@ -26,9 +26,12 @@ public class CategoryGroupController {
      * Returns the category groups for the requested company.
      */
     @GetMapping
-    public ResponseEntity<CategoryGroupsResponse> getCategoryGroups(@RequestParam Integer companyId) {
+    public ResponseEntity<CategoryGroupsResponse> getCategoryGroups(
+            @RequestParam Integer companyId,
+            @RequestParam(defaultValue = "all") String status
+    ) {
         TenantContext.setCurrentTenant(companyId);
-        return ResponseEntity.ok(new CategoryGroupsResponse(categoryGroupService.getCategoryGroups(companyId)));
+        return ResponseEntity.ok(new CategoryGroupsResponse(categoryGroupService.getCategoryGroups(companyId, status)));
     }
 
     /**

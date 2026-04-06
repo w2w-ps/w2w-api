@@ -536,6 +536,13 @@ paths:
           required: true
           schema:
             type: integer
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [all, active, non-active]
+            default: all
       responses:
         '200':
           description: A list of category groups
@@ -558,7 +565,7 @@ paths:
           description: One or more categories were not found for the company
   /api/category-groups/{id}:
     get:
-      summary: Get a category group by ID
+      summary: Get an active category group by ID
       parameters:
         - in: path
           name: id
@@ -606,7 +613,7 @@ paths:
         '404':
           description: Category group not found
     delete:
-      summary: Delete a category group
+      summary: Soft-delete a category group
       parameters:
         - in: path
           name: id
@@ -620,7 +627,7 @@ paths:
             type: integer
       responses:
         '204':
-          description: Category group deleted successfully
+          description: Category group soft-deleted successfully
         '404':
           description: Category group not found
   /api/position-groups:

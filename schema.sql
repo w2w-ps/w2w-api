@@ -95,7 +95,8 @@ CREATE TABLE category (
 CREATE TABLE cat_group (
   group_id INTEGER PRIMARY KEY DEFAULT nextval('category_group_id_seq'),
   company_id INTEGER NOT NULL REFERENCES company(company_id),
-  description VARCHAR(255)
+  description VARCHAR(255),
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE group_cat (
