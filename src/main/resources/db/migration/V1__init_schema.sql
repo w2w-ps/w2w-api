@@ -5,6 +5,8 @@ CREATE SEQUENCE IF NOT EXISTS scheduled_employee_shift_id_seq START WITH 100000;
 CREATE SEQUENCE IF NOT EXISTS schedule_id_seq START WITH 100000;
 CREATE SEQUENCE IF NOT EXISTS employee_id_seq START WITH 100000;
 CREATE SEQUENCE IF NOT EXISTS position_group_id_seq START WITH 100000;
+CREATE SEQUENCE IF NOT EXISTS category_id_seq START WITH 100000;
+CREATE SEQUENCE IF NOT EXISTS category_group_id_seq START WITH 100000;
 
 -- Core Tables
 CREATE TABLE company (
@@ -82,20 +84,22 @@ CREATE TABLE group_position (
 );
 
 CREATE TABLE category (
-  category_id INTEGER PRIMARY KEY,
+  category_id INTEGER PRIMARY KEY DEFAULT nextval('category_id_seq'),
   company_id INTEGER NOT NULL REFERENCES company(company_id),
   short_desc VARCHAR(255),
   description VARCHAR(255),
   start_time VARCHAR(255),
   end_time VARCHAR(255),
   position_id INTEGER REFERENCES position(position_id),
-  color SMALLINT
+  color SMALLINT,
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE cat_group (
-  group_id INTEGER PRIMARY KEY,
+  group_id INTEGER PRIMARY KEY DEFAULT nextval('category_group_id_seq'),
   company_id INTEGER NOT NULL REFERENCES company(company_id),
-  description VARCHAR(255)
+  description VARCHAR(255),
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE group_cat (

@@ -12,7 +12,7 @@ public record UpdateCategoryRequest(
 
         String endTime,
 
-        Integer skillId,
+        Integer positionId,
 
         Short color
 ) {

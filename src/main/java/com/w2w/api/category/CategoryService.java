@@ -1,10 +1,8 @@
 package com.w2w.api.category;
 
-import com.w2w.api.category.dto.CategoryResponse;
-import com.w2w.api.category.dto.CategorySummary;
-import com.w2w.api.category.dto.CreateCategoryRequest;
-import com.w2w.api.category.dto.UpdateCategoryRequest;
+import com.w2w.api.category.dto.*;
 import com.w2w.api.category.model.Category;
+import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -13,14 +11,17 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoryGroupRepository categoryGroupRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, CategoryGroupRepository categoryGroupRepository) {
         this.categoryRepository = categoryRepository;
+        this.categoryGroupRepository = categoryGroupRepository;
     }
 
     @Transactional(readOnly = true)
@@ -45,6 +46,19 @@ public class CategoryService {
     }
 
     @Transactional(readOnly = true)
+    public List<CategoryGroupSummary> getCategoryGroupsByCompanyId(Integer companyId) {
+        return categoryGroupRepository.findByCompanyId(companyId).stream()
+                .map(group -> new CategoryGroupSummary(
+                        group.getGroupId(),
+                        group.getDescription(),
+                        group.getCategories().stream()
+                                .map(cat -> new CategorySummary(cat.getCategoryId(), cat.getDescription(), cat.getShortDesc()))
+                                .collect(Collectors.toList())
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public Optional<CategoryResponse> getCategoryById(Integer categoryId, Integer companyId) {
         return categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(categoryId, companyId)
                 .map(this::toResponse);
@@ -58,7 +72,7 @@ public class CategoryService {
         category.setDescription(request.description());
         category.setStartTime(request.startTime());
         category.setEndTime(request.endTime());
-        category.setSkillId(request.skillId());
+        category.setPositionId(request.positionId());
         category.setColor(request.color());
         category.setIsDeleted(false);
 
@@ -72,7 +86,7 @@ public class CategoryService {
         category.setDescription(request.description());
         category.setStartTime(request.startTime());
         category.setEndTime(request.endTime());
-        category.setSkillId(request.skillId());
+        category.setPositionId(request.positionId());
         category.setColor(request.color());
 
         categoryRepository.save(category);
@@ -96,7 +110,7 @@ public class CategoryService {
                 category.getShortDesc(),
                 category.getStartTime(),
                 category.getEndTime(),
-                category.getSkillId(),
+                category.getPositionId(),
                 category.getColor()
         );
     }

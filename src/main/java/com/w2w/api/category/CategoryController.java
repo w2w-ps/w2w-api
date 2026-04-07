@@ -1,10 +1,6 @@
 package com.w2w.api.category;
 
-import com.w2w.api.category.dto.CategoriesResponse;
-import com.w2w.api.category.dto.CategoryResponse;
-import com.w2w.api.category.dto.CategorySummary;
-import com.w2w.api.category.dto.CreateCategoryRequest;
-import com.w2w.api.category.dto.UpdateCategoryRequest;
+import com.w2w.api.category.dto.*;
 import com.w2w.api.config.TenantContext;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +25,8 @@ public class CategoryController {
     ) {
         TenantContext.setCurrentTenant(companyId);
         List<CategorySummary> categories = categoryService.getCategories(companyId, status);
-        return ResponseEntity.ok(new CategoriesResponse(categories));
+        List<CategoryGroupSummary> groups = categoryService.getCategoryGroupsByCompanyId(companyId);
+        return ResponseEntity.ok(new CategoriesResponse(categories, groups));
     }
 
     @GetMapping("/{id}")

@@ -6,7 +6,7 @@ public record CategoryResponse(
         String shortName,
         String startTime,
         String endTime,
-        Integer skillId,
+        Integer positionId,
         Short color
 ) {
 }
