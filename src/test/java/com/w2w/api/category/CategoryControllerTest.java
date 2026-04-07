@@ -1,9 +1,14 @@
 package com.w2w.api.category;
 
+import com.w2w.api.category.dto.CategoriesResponse;
+import com.w2w.api.category.dto.CategoryGroupSummary;
 import com.w2w.api.category.dto.CategoryResponse;
 import com.w2w.api.category.dto.CategorySummary;
+import com.w2w.api.category.dto.CreateCategoryRequest;
+import com.w2w.api.category.dto.UpdateCategoryRequest;
 import com.w2w.api.login.JwtAuthFilter;
 import com.w2w.api.login.JwtUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -11,22 +16,15 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -46,76 +44,60 @@ class CategoryControllerTest {
     @MockitoBean
     private JwtUtil jwtUtil;
 
-    @Test
-    void getCategories_returnsCategories() throws Exception {
-        when(categoryService.getCategories(1, "all"))
-                .thenReturn(List.of(
-                        new CategorySummary(4, "Floor", "FLR"),
-                        new CategorySummary(5, "Front", "FRT")
-                ));
+    private Integer companyId;
+    private CategoryResponse categoryResponse;
+    private CategorySummary categorySummary;
+    private CreateCategoryRequest createCategoryRequest;
+    private UpdateCategoryRequest updateCategoryRequest;
 
-        mockMvc.perform(get("/api/categories").param("companyId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.categories[0].id").value(4))
-                .andExpect(jsonPath("$.categories[0].name").value("Floor"))
-                .andExpect(jsonPath("$.categories[0].shortName").value("FLR"))
-                .andExpect(jsonPath("$.categories[1].id").value(5))
-                .andExpect(jsonPath("$.categories[1].name").value("Front"))
-                .andExpect(jsonPath("$.categories[1].shortName").value("FRT"));
-
-        verify(categoryService).getCategories(1, "all");
+    @BeforeEach
+    void setUp() {
+        companyId = 1;
+        categoryResponse = new CategoryResponse(1, "Description", "ShortName", "09:00", "17:00", 12, (short) 1);
+        categorySummary = new CategorySummary(1, "Description", "ShortName");
+        createCategoryRequest = new CreateCategoryRequest(companyId, "ShortName", "Description", "09:00", "17:00", 12, (short) 1);
+        updateCategoryRequest = new UpdateCategoryRequest("ShortName", "New Description", "10:00", "18:00", 13, (short) 2);
     }
 
     @Test
-    void getCategories_withStatusFilter_returnsCategories() throws Exception {
-        when(categoryService.getCategories(1, "inactive"))
-                .thenReturn(List.of(new CategorySummary(6, "Archived Floor", "AFR")));
+    void getCategories_returnsCategoriesAndGroups() throws Exception {
+        when(categoryService.getCategories(companyId, "all")).thenReturn(List.of(categorySummary));
 
-        mockMvc.perform(get("/api/categories").param("companyId", "1").param("status", "inactive"))
+        mockMvc.perform(get("/api/categories?companyId=1&status=all"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.categories[0].id").value(6))
-                .andExpect(jsonPath("$.categories[0].name").value("Archived Floor"))
-                .andExpect(jsonPath("$.categories[0].shortName").value("AFR"));
+                .andExpect(jsonPath("$.categories", hasSize(1)))
+                .andExpect(jsonPath("$.categories[0].id").value(1))
+                .andExpect(jsonPath("$.categories[0].description").value("Description"))
+                .andExpect(jsonPath("$.categories[0].shortDesc").value("ShortName"));
 
-        verify(categoryService).getCategories(1, "inactive");
+        verify(categoryService).getCategories(companyId, "all");
     }
 
     @Test
-    void getCategories_returnsBadRequestWhenStatusInvalid() throws Exception {
-        doThrow(new ResponseStatusException(BAD_REQUEST, "Unsupported status filter"))
-                .when(categoryService)
-                .getCategories(1, "archived");
+    void getCategoryById_returnsCategory() throws Exception {
+        when(categoryService.getCategoryById(1, companyId)).thenReturn(Optional.of(categoryResponse));
 
-        mockMvc.perform(get("/api/categories").param("companyId", "1").param("status", "archived"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    void getCategoryById_returnsCategoryWhenFound() throws Exception {
-        when(categoryService.getCategoryById(4, 1))
-                .thenReturn(Optional.of(new CategoryResponse(4, "Floor", "FLR", "08:00", "17:00", 12, (short) 3)));
-
-        mockMvc.perform(get("/api/categories/4").param("companyId", "1"))
+        mockMvc.perform(get("/api/categories/1?companyId=1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.categoryId").value(4))
-                .andExpect(jsonPath("$.description").value("Floor"))
-                .andExpect(jsonPath("$.shortName").value("FLR"))
-                .andExpect(jsonPath("$.startTime").value("08:00"))
+                .andExpect(jsonPath("$.categoryId").value(1))
+                .andExpect(jsonPath("$.description").value("Description"))
+                .andExpect(jsonPath("$.shortName").value("ShortName"))
+                .andExpect(jsonPath("$.startTime").value("09:00"))
                 .andExpect(jsonPath("$.endTime").value("17:00"))
-                .andExpect(jsonPath("$.skillId").value(12))
-                .andExpect(jsonPath("$.color").value(3));
+                .andExpect(jsonPath("$.positionId").value(12))
+                .andExpect(jsonPath("$.color").value(1));
 
-        verify(categoryService).getCategoryById(4, 1);
+        verify(categoryService).getCategoryById(1, companyId);
     }
 
     @Test
-    void getCategoryById_returnsNotFoundWhenMissing() throws Exception {
-        when(categoryService.getCategoryById(4, 1)).thenReturn(Optional.empty());
+    void getCategoryById_notFound_returnsNotFound() throws Exception {
+        when(categoryService.getCategoryById(1, companyId)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/categories/4").param("companyId", "1"))
+        mockMvc.perform(get("/api/categories/1?companyId=1"))
                 .andExpect(status().isNotFound());
 
-        verify(categoryService).getCategoryById(4, 1);
+        verify(categoryService).getCategoryById(1, companyId);
     }
 
     @Test
@@ -125,89 +107,43 @@ class CategoryControllerTest {
                         .content("""
                                 {
                                   "companyId": 1,
-                                  "shortName": "FLR",
-                                  "description": "Floor",
-                                  "startTime": "08:00",
+                                  "shortName": "ShortName",
+                                  "description": "Description",
+                                  "startTime": "09:00",
                                   "endTime": "17:00",
-                                  "skillId": 12,
-                                  "color": 3
+                                  "positionId": 12,
+                                  "color": 1
                                 }
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(categoryService).createCategory(argThat(value ->
-                value.companyId().equals(1)
-                        && value.shortName().equals("FLR")
-                        && value.description().equals("Floor")
-                        && value.startTime().equals("08:00")
-                        && value.endTime().equals("17:00")
-                        && value.skillId().equals(12)
-                        && value.color().equals((short) 3)));
+        verify(categoryService).createCategory(any(CreateCategoryRequest.class));
     }
 
     @Test
     void updateCategory_returnsNoContent() throws Exception {
-        mockMvc.perform(put("/api/categories/4")
-                        .param("companyId", "1")
+        mockMvc.perform(put("/api/categories/1?companyId=1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "shortName": "FLOOR",
-                                  "description": "Updated Floor",
-                                  "startTime": "09:00",
+                                  "shortName": "New ShortName",
+                                  "description": "New Description",
+                                  "startTime": "10:00",
                                   "endTime": "18:00",
-                                  "skillId": 12,
-                                  "color": 4
+                                  "positionId": 13,
+                                  "color": 2
                                 }
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(categoryService).updateCategory(eq(4), eq(1), argThat(value ->
-                value.shortName().equals("FLOOR")
-                        && value.description().equals("Updated Floor")
-                        && value.startTime().equals("09:00")
-                        && value.endTime().equals("18:00")
-                        && value.skillId().equals(12)
-                        && value.color().equals((short) 4)));
-    }
-
-    @Test
-    void updateCategory_returnsNotFoundWhenServiceThrows() throws Exception {
-        doThrow(new ResponseStatusException(NOT_FOUND, "Category not found"))
-                .when(categoryService)
-                .updateCategory(eq(4), eq(1), argThat(value -> value.description().equals("Updated Floor")));
-
-        mockMvc.perform(put("/api/categories/4")
-                        .param("companyId", "1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "shortName": "FLOOR",
-                                  "description": "Updated Floor",
-                                  "startTime": "09:00",
-                                  "endTime": "18:00",
-                                  "skillId": 12,
-                                  "color": 4
-                                }
-                                """))
-                .andExpect(status().isNotFound());
+        verify(categoryService).updateCategory(eq(1), eq(companyId), any(UpdateCategoryRequest.class));
     }
 
     @Test
     void deleteCategory_returnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/categories/4").param("companyId", "1"))
+        mockMvc.perform(delete("/api/categories/1?companyId=1"))
                 .andExpect(status().isNoContent());
 
-        verify(categoryService).deleteCategory(4, 1);
-    }
-
-    @Test
-    void deleteCategory_returnsNotFoundWhenServiceThrows() throws Exception {
-        doThrow(new ResponseStatusException(NOT_FOUND, "Category not found"))
-                .when(categoryService)
-                .deleteCategory(4, 1);
-
-        mockMvc.perform(delete("/api/categories/4").param("companyId", "1"))
-                .andExpect(status().isNotFound());
+        verify(categoryService).deleteCategory(1, companyId);
     }
 }

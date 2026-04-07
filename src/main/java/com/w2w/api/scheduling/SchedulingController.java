@@ -1,5 +1,24 @@
 package com.w2w.api.scheduling;
 
+import jakarta.validation.Valid;
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.w2w.api.config.TenantContext;
 import com.w2w.api.scheduling.dto.ConflictItem;
 import com.w2w.api.scheduling.dto.ConflictResponse;
@@ -8,19 +27,9 @@ import com.w2w.api.scheduling.dto.DayPositionBucket;
 import com.w2w.api.scheduling.dto.DayPositionTimingBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
-import com.w2w.api.scheduling.dto.GroupedShiftsResponse;
 import com.w2w.api.scheduling.dto.ShiftGrouping;
 import com.w2w.api.scheduling.dto.ShiftResponse;
 import com.w2w.api.scheduling.dto.UpdateShiftRequest;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/scheduling")
@@ -69,14 +78,14 @@ public class SchedulingController {
     }
 
     @GetMapping("/shifts/grouped")
-    public GroupedShiftsResponse getGroupedShifts(
+    public Object getGroupedShifts(
             @RequestParam Integer companyId,
             @RequestParam ShiftGrouping grouping,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
         TenantContext.setCurrentTenant(companyId);
-        return (GroupedShiftsResponse) schedulingService.getShiftsGrouped(companyId, startDate, endDate, grouping);
+        return schedulingService.getShiftsGrouped(companyId, startDate, endDate, grouping);
     }
 
     @GetMapping("/shifts/date-position")
@@ -100,6 +109,7 @@ public class SchedulingController {
 
     @PostMapping("/validation/precheck")
     public ResponseEntity<ConflictResponse> preCheck(@RequestBody FindConflictRequest request) {
+        TenantContext.setCurrentTenant(request.companyId());
         List<ConflictItem> conflicts = schedulingService.validate(request);
         return ResponseEntity.ok(new ConflictResponse(!conflicts.isEmpty(), conflicts));
     }

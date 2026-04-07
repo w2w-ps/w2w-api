@@ -25,8 +25,7 @@ public class CategoryController {
     ) {
         TenantContext.setCurrentTenant(companyId);
         List<CategorySummary> categories = categoryService.getCategories(companyId, status);
-        List<CategoryGroupSummary> groups = categoryService.getCategoryGroupsByCompanyId(companyId);
-        return ResponseEntity.ok(new CategoriesResponse(categories, groups));
+        return ResponseEntity.ok(new CategoriesResponse(categories));
     }
 
     @GetMapping("/{id}")
