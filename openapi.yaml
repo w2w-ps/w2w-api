@@ -268,6 +268,18 @@ paths:
       responses:
         '200':
           description: OK
+  /api/preferences/day/list:
+    post:
+      summary: Update multiple day preferences in a single call
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DayPreferenceListRequest'
+      responses:
+        '200':
+          description: OK
   /api/preferences/resolved:
     get:
       summary: Get resolved preferences for a date range
@@ -692,3 +704,11 @@ components:
           type: integer
         isDayPrefs:
           type: boolean
+    DayPreferenceListRequest:
+      type: object
+      required: [preferences]
+      properties:
+        preferences:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayPreferenceRequest'

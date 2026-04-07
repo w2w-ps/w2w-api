@@ -79,4 +79,12 @@ public class PreferencesController {
         TenantContext.setCurrentTenant(request.companyId());
         preferencesService.saveWeekPreference(request);
     }
+
+    @PostMapping("/day/list")
+    public void saveDayPreferenceList(@Valid @RequestBody DayPreferenceListRequest request) {
+        if (request.preferences() != null && !request.preferences().isEmpty()) {
+            TenantContext.setCurrentTenant(request.preferences().get(0).companyId());
+            preferencesService.saveDayPreferenceList(request);
+        }
+    }
 }

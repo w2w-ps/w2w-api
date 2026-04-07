@@ -1,6 +1,5 @@
 package com.w2w.api.preferences;
 
-
 import com.w2w.api.preferences.dto.*;
 import com.w2w.api.preferences.model.DayPreference;
 import com.w2w.api.preferences.model.DayPreferenceId;
@@ -50,6 +49,7 @@ public class PreferencesService {
     }
 
     public void saveDayPreferenceWithRepeat(DayPreferenceRepeatRequest request) {
+        validateDayPrefs(request.isDayPrefs(), request.prefs());
         LocalDate currentDate = request.date();
         for (int i = 0; i < request.repeatCount(); i++) {
             DayPreference entity = new DayPreference();
@@ -70,6 +70,13 @@ public class PreferencesService {
         weekPreferenceRepository.save(entity);
     }
 
+    public void saveDayPreferenceList(DayPreferenceListRequest request) {
+        List<DayPreference> entities = request.preferences().stream()
+                .map(this::mapToDayEntity)
+                .collect(Collectors.toList());
+        dayPreferenceRepository.saveAll(entities);
+    }
+
     private DayPreferenceResponse mapToDayResponse(DayPreference entity) {
         return new DayPreferenceResponse(
                 entity.getDate(),
@@ -84,6 +91,7 @@ public class PreferencesService {
     }
 
     private DayPreference mapToDayEntity(DayPreferenceRequest request) {
+        validateDayPrefs(request.isDayPrefs(), request.prefs());
         DayPreference entity = new DayPreference();
         entity.setEmployeeId(request.employeeId());
         entity.setDate(request.date());
@@ -92,6 +100,17 @@ public class PreferencesService {
         entity.setEditedBy(request.editedBy());
         entity.setIsDayPrefs(request.isDayPrefs());
         return entity;
+    }
+
+    private void validateDayPrefs(Boolean isDayPrefs, String prefs) {
+        if (Boolean.TRUE.equals(isDayPrefs) && prefs != null && prefs.length() > 1) {
+            char firstChar = prefs.charAt(0);
+            for (int i = 1; i < prefs.length(); i++) {
+                if (prefs.charAt(i) != firstChar) {
+                    throw new IllegalArgumentException("When isDayPrefs is true, all the prefs must be the same.");
+                }
+            }
+        }
     }
 
     private WeekPreference mapToWeekEntity(WeekPreferenceRequest request) {

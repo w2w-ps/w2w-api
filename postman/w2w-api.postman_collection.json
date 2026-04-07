@@ -508,6 +508,28 @@
             },
             "url": "{{baseUrl}}/api/preferences/week"
           }
+        },
+        {
+          "name": "Day Preference List Update",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferences\": [\n    {\n      \"companyId\": {{companyId}},\n      \"employeeId\": {{employeeId}},\n      \"date\": \"2026-04-06\",\n      \"prefs\": \"LIST_PREF_1\",\n      \"compression\": 0,\n      \"editedBy\": {{employeeId}},\n      \"isDayPrefs\": true\n    },\n    {\n      \"companyId\": {{companyId}},\n      \"employeeId\": {{employeeId}},\n      \"date\": \"2026-04-07\",\n      \"prefs\": \"LIST_PREF_2\",\n      \"compression\": 0,\n      \"editedBy\": {{employeeId}},\n      \"isDayPrefs\": true\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/preferences/day/list"
+          }
         }
       ]
     }
