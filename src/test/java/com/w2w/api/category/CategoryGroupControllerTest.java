@@ -62,8 +62,8 @@ class CategoryGroupControllerTest {
                 .andExpect(jsonPath("$.categoryGroups[0].id").value(301))
                 .andExpect(jsonPath("$.categoryGroups[0].name").value("Standard Shifts"))
                 .andExpect(jsonPath("$.categoryGroups[0].categories[0].id").value(4))
-                .andExpect(jsonPath("$.categoryGroups[0].categories[0].name").value("Floor"))
-                .andExpect(jsonPath("$.categoryGroups[0].categories[0].shortName").value("FLR"));
+                .andExpect(jsonPath("$.categoryGroups[0].categories[0].description").value("Floor"))
+                .andExpect(jsonPath("$.categoryGroups[0].categories[0].shortDesc").value("FLR"));
 
         verify(categoryGroupService).getCategoryGroups(1, "all");
     }
