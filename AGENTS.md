@@ -36,6 +36,7 @@
 - `preferences`
   `GET /api/preferences/day?employeeId=...&date=...&companyId=...`
   `GET /api/preferences/day/range?employeeId=...&startDate=...&endDate=...&companyId=...`
+  `GET /api/preferences/resolved?employeeId=...&startDate=...&endDate=...&companyId=...`
   `POST /api/preferences/day`
   `POST /api/preferences/day/repeat`
   `GET /api/preferences/week?employeeId=...&startDate=...&companyId=...`

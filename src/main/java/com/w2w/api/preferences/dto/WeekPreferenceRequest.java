@@ -9,7 +9,7 @@ public record WeekPreferenceRequest(
     @NotNull @Positive Integer employeeId,
     @NotNull @Positive Integer companyId,
     @NotNull LocalDate startDate,
-    @Size(max = 700) String prefs,
+    @Size(max = 672) String prefs,
     Integer compression,
     @Positive Integer editedBy
 ) {}

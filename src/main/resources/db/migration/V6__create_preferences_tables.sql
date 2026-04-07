@@ -6,6 +6,7 @@ CREATE TABLE day_prefs (
     prefs CHAR(96),
     compression INT,
     edited_by INT,
+    is_day_prefs BOOLEAN DEFAULT FALSE,
 
     PRIMARY KEY (employee_id, date),
 
@@ -21,7 +22,7 @@ CREATE TABLE day_prefs (
 CREATE TABLE week_prefs (
     employee_id INT NOT NULL,
     start_date DATE NOT NULL,
-    prefs CHAR(700),
+    prefs CHAR(672),
     compression INT,
     edited_by INT,
 
