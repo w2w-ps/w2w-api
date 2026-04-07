@@ -45,7 +45,6 @@ public class SchedulingController {
     @PostMapping("/shifts")
     @ResponseStatus(HttpStatus.CREATED)
     public void createShift(@Valid @RequestBody CreateShiftRequest request) {
-        TenantContext.setCurrentTenant(request.companyId());
         schedulingService.saveShift(request);
     }
 
@@ -73,7 +72,6 @@ public class SchedulingController {
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        TenantContext.setCurrentTenant(companyId);
         return schedulingService.getEmployeeShiftsGroupedInRange(companyId, startDate, endDate);
     }
 
@@ -84,7 +82,6 @@ public class SchedulingController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
-        TenantContext.setCurrentTenant(companyId);
         return schedulingService.getShiftsGrouped(companyId, startDate, endDate, grouping);
     }
 
@@ -93,7 +90,6 @@ public class SchedulingController {
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        TenantContext.setCurrentTenant(companyId);
         return schedulingService.getShiftsGroupedByDateAndPosition(companyId, startDate, endDate);
     }
 

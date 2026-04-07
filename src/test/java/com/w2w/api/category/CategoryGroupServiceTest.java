@@ -1,5 +1,6 @@
 package com.w2w.api.category;
 
+import com.w2w.api.config.TenantContext;
 import com.w2w.api.category.dto.CategoryGroupSummary;
 import com.w2w.api.category.dto.CreateCategoryGroupRequest;
 import com.w2w.api.category.dto.UpdateCategoryGroupRequest;
@@ -7,6 +8,7 @@ import com.w2w.api.category.model.Category;
 import com.w2w.api.category.model.CategoryGroup;
 import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,8 +46,14 @@ class CategoryGroupServiceTest {
     private Category front;
     private CategoryGroup categoryGroup;
 
+    @AfterEach
+    void clearTenantContext() {
+        TenantContext.clear();
+    }
+
     @BeforeEach
     void setUp() {
+        TenantContext.setCurrentTenant(1);
         floor = new Category();
         floor.setCategoryId(4);
         floor.setCompanyId(1);

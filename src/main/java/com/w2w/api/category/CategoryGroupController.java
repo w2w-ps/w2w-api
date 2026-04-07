@@ -30,7 +30,6 @@ public class CategoryGroupController {
             @RequestParam Integer companyId,
             @RequestParam(defaultValue = "all") String status
     ) {
-        TenantContext.setCurrentTenant(companyId);
         return ResponseEntity.ok(new CategoryGroupsResponse(categoryGroupService.getCategoryGroups(companyId, status)));
     }
 
@@ -42,7 +41,6 @@ public class CategoryGroupController {
             @PathVariable("id") Integer groupId,
             @RequestParam Integer companyId
     ) {
-        TenantContext.setCurrentTenant(companyId);
         return categoryGroupService.getCategoryGroupById(groupId, companyId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -53,7 +51,6 @@ public class CategoryGroupController {
      */
     @PostMapping
     public ResponseEntity<Void> createCategoryGroup(@Valid @RequestBody CreateCategoryGroupRequest request) {
-        TenantContext.setCurrentTenant(request.companyId());
         categoryGroupService.createCategoryGroup(request);
         return ResponseEntity.noContent().build();
     }
@@ -67,7 +64,6 @@ public class CategoryGroupController {
             @RequestParam Integer companyId,
             @Valid @RequestBody UpdateCategoryGroupRequest request
     ) {
-        TenantContext.setCurrentTenant(companyId);
         categoryGroupService.updateCategoryGroup(groupId, companyId, request);
         return ResponseEntity.noContent().build();
     }
@@ -77,7 +73,6 @@ public class CategoryGroupController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategoryGroup(@PathVariable("id") Integer groupId, @RequestParam Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
         categoryGroupService.deleteCategoryGroup(groupId, companyId);
         return ResponseEntity.noContent().build();
     }

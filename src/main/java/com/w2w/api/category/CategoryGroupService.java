@@ -8,6 +8,7 @@ import com.w2w.api.category.model.Category;
 import com.w2w.api.category.model.CategoryGroup;
 import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
+import com.w2w.api.config.TenantContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +41,8 @@ public class CategoryGroupService {
      */
     @Transactional(readOnly = true)
     public List<CategoryGroupSummary> getCategoryGroups(Integer companyId, String status) {
-        return findCategoryGroupsByStatus(companyId, status).stream()
+        Integer resolvedCompanyId = TenantContext.resolveTenant(companyId);
+        return findCategoryGroupsByStatus(resolvedCompanyId, status).stream()
                 .map(this::toSummary)
                 .toList();
     }
@@ -50,7 +52,10 @@ public class CategoryGroupService {
      */
     @Transactional(readOnly = true)
     public Optional<CategoryGroupSummary> getCategoryGroupById(Integer groupId, Integer companyId) {
-        return categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(groupId, companyId)
+        return categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(
+                        groupId,
+                        TenantContext.resolveTenant(companyId)
+                )
                 .map(this::toSummary);
     }
 
@@ -59,11 +64,12 @@ public class CategoryGroupService {
      */
     @Transactional
     public void createCategoryGroup(CreateCategoryGroupRequest request) {
+        Integer resolvedCompanyId = TenantContext.resolveTenant(request.companyId());
         CategoryGroup categoryGroup = new CategoryGroup();
-        categoryGroup.setCompanyId(request.companyId());
+        categoryGroup.setCompanyId(resolvedCompanyId);
         categoryGroup.setDescription(request.description());
         categoryGroup.setIsDeleted(false);
-        categoryGroup.setCategories(resolveCategories(request.categoryIds(), request.companyId()));
+        categoryGroup.setCategories(resolveCategories(request.categoryIds(), resolvedCompanyId));
         categoryGroupRepository.save(categoryGroup);
     }
 
@@ -72,9 +78,10 @@ public class CategoryGroupService {
      */
     @Transactional
     public void updateCategoryGroup(Integer groupId, Integer companyId, UpdateCategoryGroupRequest request) {
-        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, companyId);
+        Integer resolvedCompanyId = TenantContext.resolveTenant(companyId);
+        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, resolvedCompanyId);
         categoryGroup.setDescription(request.description());
-        categoryGroup.setCategories(resolveCategories(request.categoryIds(), companyId));
+        categoryGroup.setCategories(resolveCategories(request.categoryIds(), resolvedCompanyId));
         categoryGroupRepository.save(categoryGroup);
     }
 
@@ -83,7 +90,7 @@ public class CategoryGroupService {
      */
     @Transactional
     public void deleteCategoryGroup(Integer groupId, Integer companyId) {
-        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, companyId);
+        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, TenantContext.resolveTenant(companyId));
         categoryGroup.setIsDeleted(true);
         categoryGroupRepository.save(categoryGroup);
     }

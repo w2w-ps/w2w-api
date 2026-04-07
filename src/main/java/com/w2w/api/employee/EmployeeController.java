@@ -13,19 +13,16 @@ public class EmployeeController {
 
     @GetMapping("/company/{companyId}")
     public List<Employee> getByCompany(@PathVariable Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
         return employeeService.getEmployeesByCompany(companyId);
     }
 
     @GetMapping("/{id}")
     public Employee getById(@PathVariable Integer id, @RequestParam Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
-        return employeeService.getEmployeeById(id).orElse(null);
+        return employeeService.getEmployeeById(id, companyId).orElse(null);
     }
 
     @PostMapping
     public Employee create(@RequestBody Employee employee) {
-        TenantContext.setCurrentTenant(employee.getCompanyId());
         return employeeService.saveEmployee(employee);
     }
 }

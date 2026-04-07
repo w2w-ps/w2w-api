@@ -1,20 +1,31 @@
 package com.w2w.api.config;
 
+import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.flywaydb.core.Flyway;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 
 @Configuration
 public class TenantDatabaseConfig {
+
+    static int resolveDatabaseTenantId() {
+        Integer tenantId = TenantContext.getCurrentTenant();
+        return tenantId != null ? tenantId : -1;
+    }
+
+    static boolean isInternalSystemLookup(int tenantId) {
+        return tenantId == 0;
+    }
 
     @Bean
     @Primary
@@ -26,13 +37,22 @@ public class TenantDatabaseConfig {
     }
 
     @Bean(initMethod = "migrate")
-    public Flyway flyway(DataSource dataSource) {
+    public Flyway flyway(@Value("${spring.flyway.url:${spring.datasource.url}}") String flywayUrl,
+                         @Value("${spring.flyway.user:${spring.datasource.username}}") String flywayUser,
+                         @Value("${spring.flyway.password:${spring.datasource.password}}") String flywayPassword,
+                         @Value("${spring.datasource.username}") String appDatabaseUser,
+                         @Value("${spring.datasource.password}") String appDatabasePassword) {
         return Flyway.configure()
-                .dataSource(dataSource)
+                .dataSource(flywayUrl, flywayUser, flywayPassword)
                 .locations("classpath:db/migration")
                 .defaultSchema("public")
                 .baselineVersion("0")
                 .baselineOnMigrate(true)
+                .placeholders(Map.of(
+                        "app.db.user", appDatabaseUser,
+                        "app.db.password", appDatabasePassword,
+                        "flyway.db.user", flywayUser
+                ))
                 .load();
     }
 
@@ -48,15 +68,14 @@ public class TenantDatabaseConfig {
         }
 
         private Connection configureTenant(Connection connection) throws SQLException {
+            int tenantId = resolveDatabaseTenantId();
+            boolean isSystemLookup = isInternalSystemLookup(tenantId);
+
             try (Statement sql = connection.createStatement()) {
-                sql.execute("SET app.current_tenant = '" + resolveTenantId() + "'");
+                sql.execute("SET app.current_tenant = '" + tenantId + "'");
+                sql.execute("SET app.internal_system_lookup = '" + isSystemLookup + "'");
             }
             return connection;
-        }
-
-        private int resolveTenantId() {
-            Integer tenantId = TenantContext.getCurrentTenant();
-            return tenantId != null ? tenantId : 0;
         }
     }
 }

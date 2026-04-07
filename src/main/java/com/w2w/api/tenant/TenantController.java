@@ -23,7 +23,6 @@ public class TenantController {
 
     @GetMapping("/{id}")
     public Company getById(@PathVariable Integer id) {
-        TenantContext.setCurrentTenant(id);
         return tenantService.getCompanyById(id).orElse(null);
     }
 }

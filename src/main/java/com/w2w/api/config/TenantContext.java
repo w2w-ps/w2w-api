@@ -14,6 +14,11 @@ public final class TenantContext {
         return CURRENT_TENANT.get();
     }
 
+    public static Integer resolveTenant(Integer requestedTenantId) {
+        Integer currentTenant = CURRENT_TENANT.get();
+        return currentTenant != null ? currentTenant : -1;
+    }
+
     public static void clear() {
         CURRENT_TENANT.remove();
     }

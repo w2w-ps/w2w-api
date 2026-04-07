@@ -4,6 +4,7 @@ import com.w2w.api.category.dto.*;
 import com.w2w.api.category.model.Category;
 import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
+import com.w2w.api.config.TenantContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,14 +27,15 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public List<CategorySummary> getCategories(Integer companyId, String status) {
+        Integer resolvedCompanyId = TenantContext.resolveTenant(companyId);
         return switch (status.toLowerCase()) {
-            case "all" -> categoryRepository.findByCompanyId(companyId).stream()
+            case "all" -> categoryRepository.findByCompanyId(resolvedCompanyId).stream()
                     .map(this::toSummary)
                     .toList();
-            case "active" -> categoryRepository.findByCompanyIdAndIsDeletedFalse(companyId).stream()
+            case "active" -> categoryRepository.findByCompanyIdAndIsDeletedFalse(resolvedCompanyId).stream()
                     .map(this::toSummary)
                     .toList();
-            case "inactive" -> categoryRepository.findByCompanyIdAndIsDeletedTrue(companyId).stream()
+            case "inactive" -> categoryRepository.findByCompanyIdAndIsDeletedTrue(resolvedCompanyId).stream()
                     .map(this::toSummary)
                     .toList();
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported status filter");
@@ -60,14 +62,17 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public Optional<CategoryResponse> getCategoryById(Integer categoryId, Integer companyId) {
-        return categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(categoryId, companyId)
+        return categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(
+                        categoryId,
+                        TenantContext.resolveTenant(companyId)
+                )
                 .map(this::toResponse);
     }
 
     @Transactional
     public void createCategory(CreateCategoryRequest request) {
         Category category = new Category();
-        category.setCompanyId(request.companyId());
+        category.setCompanyId(TenantContext.resolveTenant(request.companyId()));
         category.setShortDesc(request.shortName());
         category.setDescription(request.description());
         category.setStartTime(request.startTime());
@@ -81,7 +86,7 @@ public class CategoryService {
 
     @Transactional
     public void updateCategory(Integer categoryId, Integer companyId, UpdateCategoryRequest request) {
-        Category category = requireActiveCategory(categoryId, companyId);
+        Category category = requireActiveCategory(categoryId, TenantContext.resolveTenant(companyId));
         category.setShortDesc(request.shortName());
         category.setDescription(request.description());
         category.setStartTime(request.startTime());
@@ -94,7 +99,7 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategory(Integer categoryId, Integer companyId) {
-        Category category = requireActiveCategory(categoryId, companyId);
+        Category category = requireActiveCategory(categoryId, TenantContext.resolveTenant(companyId));
         category.setIsDeleted(true);
         categoryRepository.save(category);
     }
