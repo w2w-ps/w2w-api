@@ -1,5 +1,6 @@
 package com.w2w.api.login;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,6 +24,7 @@ public class User {
     @Column(name = "user_login_id", unique = true)
     private String loginId;
 
+    @JsonIgnore
     @Column(name = "user_login_pw")
     private String password;
 
