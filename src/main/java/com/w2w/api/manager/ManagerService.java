@@ -30,12 +30,12 @@ public class ManagerService {
     private final EmpTypeRepository empTypeRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public ManagerService(EmployeeRepository employeeRepository, 
-                          LoginRepository loginRepository, 
-                          ManagerPermissionsRepository permissionsRepository,
-                          UserRoleRepository roleRepository,
-                          EmpTypeRepository empTypeRepository,
-                          PasswordEncoder passwordEncoder) {
+    public ManagerService(EmployeeRepository employeeRepository,
+            LoginRepository loginRepository,
+            ManagerPermissionsRepository permissionsRepository,
+            UserRoleRepository roleRepository,
+            EmpTypeRepository empTypeRepository,
+            PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.loginRepository = loginRepository;
         this.permissionsRepository = permissionsRepository;
@@ -51,11 +51,11 @@ public class ManagerService {
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             throw new AccessDeniedException("User must be authenticated to add a manager.");
         }
-        
+
         String currentUsername = auth.getName();
         User currentUser = loginRepository.findByLoginId(currentUsername)
-            .orElseThrow(() -> new AccessDeniedException("Current user not found."));
-            
+                .orElseThrow(() -> new AccessDeniedException("Current user not found."));
+
         // Determine if user is a Main Manager
         boolean isMainManager = false;
 
@@ -77,7 +77,7 @@ public class ManagerService {
         employee.setEmail(request.email());
         employee.setCompanyId(request.companyId());
         employee.setStatus("Active");
-        
+
         employee = employeeRepository.save(employee);
 
         // 2. Create User
@@ -86,16 +86,16 @@ public class ManagerService {
         user.setPassword(passwordEncoder.encode("Welcome123!")); // In real usage, this might be temporary
         user.setCompanyId(request.companyId());
         user.setEmployee(employee);
-        
-        // Find and assign Manager Role
-        UserRole managerRole = roleRepository.findByName("Manager")
-            .orElseThrow(() -> new RuntimeException("Manager role not found in database."));
+
+        // Find and assign Additonal Manager Role
+        UserRole managerRole = roleRepository.findByName("AddManager")
+                .orElseThrow(() -> new RuntimeException("AddManager role not found in database."));
         user.setRole(managerRole);
-        
+
         // Use default/first EmpType (e.g. Full Time)
         EmpType defaultType = empTypeRepository.findByName("Full Time")
-            .orElseGet(() -> empTypeRepository.findAll().stream().findFirst()
-                .orElseThrow(() -> new RuntimeException("No employee types found in database.")));
+                .orElseGet(() -> empTypeRepository.findAll().stream().findFirst()
+                        .orElseThrow(() -> new RuntimeException("No employee types found in database.")));
         user.setEmpType(defaultType);
 
         user = loginRepository.save(user);
@@ -103,10 +103,10 @@ public class ManagerService {
         // 3. Create Manager Permissions
         ManagerPermissions permissions = new ManagerPermissions();
         permissions.setUser(user);
-        
+
         // Always force the newly created manager to be an Additional Manager
         permissions.setMainManager(false);
-        
+
         ManagerPermissionsDto pDto = request.permissions();
         if (pDto != null) {
             permissions.setCanAddShifts(Boolean.TRUE.equals(pDto.canAddShifts()));
@@ -119,21 +119,21 @@ public class ManagerService {
             permissions.setCanPublishSchedules(Boolean.TRUE.equals(pDto.canPublishSchedules()));
             permissions.setCanUnpublishSchedules(Boolean.TRUE.equals(pDto.canUnpublishSchedules()));
             permissions.setCanManageCategories(Boolean.TRUE.equals(pDto.canManageCategories()));
-            
+
             permissions.setCanAddEmployees(Boolean.TRUE.equals(pDto.canAddEmployees()));
             permissions.setCanViewPayRates(Boolean.TRUE.equals(pDto.canViewPayRates()));
             permissions.setCanEditEmployees(Boolean.TRUE.equals(pDto.canEditEmployees()));
-            
+
             permissions.setCanApproveTrades(Boolean.TRUE.equals(pDto.canApproveTrades()));
             permissions.setCanApproveTimeOff(Boolean.TRUE.equals(pDto.canApproveTimeOff()));
-            
+
             permissions.setCanChangeCompanySettings(Boolean.TRUE.equals(pDto.canChangeCompanySettings()));
             permissions.setCanManagePositions(Boolean.TRUE.equals(pDto.canManagePositions()));
             permissions.setCanManageTeamMembers(Boolean.TRUE.equals(pDto.canManageTeamMembers()));
-            
+
             permissions.setCanReceiveManagerNotifications(Boolean.TRUE.equals(pDto.canReceiveManagerNotifications()));
         }
-        
+
         permissionsRepository.save(permissions);
 
         if (Boolean.TRUE.equals(request.emailInstructions())) {
