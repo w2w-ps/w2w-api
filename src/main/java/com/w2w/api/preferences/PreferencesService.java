@@ -1,6 +1,6 @@
 package com.w2w.api.preferences;
 
-import com.w2w.api.config.TenantContext;
+
 import com.w2w.api.preferences.dto.*;
 import com.w2w.api.preferences.model.DayPreference;
 import com.w2w.api.preferences.model.DayPreferenceId;
@@ -72,23 +72,15 @@ public class PreferencesService {
 
     private DayPreferenceResponse mapToDayResponse(DayPreference entity) {
         return new DayPreferenceResponse(
-                entity.getEmployeeId(),
-                TenantContext.getCurrentTenant(),
                 entity.getDate(),
                 entity.getPrefs(),
-                entity.getCompression(),
-                entity.getEditedBy(),
                 entity.getIsDayPrefs());
     }
 
     private WeekPreferenceResponse mapToWeekResponse(WeekPreference entity) {
         return new WeekPreferenceResponse(
-                entity.getEmployeeId(),
-                TenantContext.getCurrentTenant(),
                 entity.getStartDate(),
-                entity.getPrefs(),
-                entity.getCompression(),
-                entity.getEditedBy());
+                entity.getPrefs());
     }
 
     private DayPreference mapToDayEntity(DayPreferenceRequest request) {

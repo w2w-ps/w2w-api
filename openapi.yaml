@@ -661,19 +661,12 @@ components:
     DayPreferenceResponse:
       type: object
       properties:
-        employeeId:
-          type: integer
-        companyId:
-          type: integer
         date:
           type: string
           format: date
         prefs:
           type: string
-        compression:
-          type: integer
-        editedBy:
-          type: integer
+
         day:
           type: string
         isDayPrefs:
