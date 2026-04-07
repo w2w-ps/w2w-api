@@ -19,7 +19,7 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        Optional<User> userOpt = loginService.authenticate(request.getUsername(), request.getPassword());
+        Optional<User> userOpt = loginService.authenticate(request.username(), request.password());
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
@@ -40,20 +40,20 @@ public class LoginController {
     @PostMapping("/login/update-password")
     public ResponseEntity<PasswordValidationResponse> updatePassword(@RequestBody PasswordValidationRequest request) {
         return ResponseEntity.ok(loginService.updatePassword(
-            request.getUsername(), 
-            request.getOldPassword(), 
-            request.getNewPassword(), 
-            request.getConfirmPassword()
+            request.username(),
+            request.oldPassword(),
+            request.newPassword(),
+            request.confirmPassword()
         ));
     }
 
     @PostMapping("/login/reset-user-account")
     public ResponseEntity<PasswordValidationResponse> resetUserAccount(@RequestBody UserAccountResetRequest request) {
         return ResponseEntity.ok(loginService.resetUserAccount(
-            request.getCurrentUsername(),
-            request.getNewUsername(),
-            request.getNewPassword(),
-            request.getConfirmPassword()
+            request.currentUsername(),
+            request.newUsername(),
+            request.newPassword(),
+            request.confirmPassword()
         ));
     }
 }

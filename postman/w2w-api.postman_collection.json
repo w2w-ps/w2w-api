@@ -291,7 +291,7 @@
           }
         },
         {
-          "name": "Get Grouped Shifts In Range",
+          "name": "Employee View - /shifts/employees",
           "request": {
             "method": "GET",
             "header": [
@@ -300,8 +300,200 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns employees with grouped day buckets relative to the requested startDate. Each bucket contains a date and its shifts; availablePositions are returned as id/name objects.",
-            "url": "{{baseUrl}}/api/scheduling/employees?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
+            "description": "Returns employees with grouped day buckets relative to the requested startDate. Each bucket contains a date and its shifts; availablePositions are returned as id/name objects. Preferred path: /api/scheduling/shifts/employees. The legacy /api/scheduling/employees path is deprecated.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/employees?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Position View - /shifts/date-position",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns date buckets for the requested range, with each date grouped by position and each position listing employee-level shift entries. All company positions are included even when a given date has no shifts for them. Each date includes shiftCount and totalDuration, and each position bucket includes its own shiftCount and totalDuration.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/date-position?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Calendar View - Position Shift Timings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by position and shift timing under nested shiftGroups[].",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=position_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Calendar View - Shift Timings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then directly by shift timing under shiftGroups[].",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Calendar View - Category Shift Timings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by category and shift timing under nested shiftGroups[].",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=category_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Calendar View - Category Short Name Shift Timings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by category short description and shift timing under nested shiftGroups[].",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=cat_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Preferences",
+      "item": [
+        {
+          "name": "Get Day Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/preferences/day?employeeId={{employeeId}}&date={{startDate}}&companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Get Day Preferences Range",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/preferences/day/range?employeeId={{employeeId}}&startDate={{startDate}}&endDate={{endDate}}&companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Repeat Day Preference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"REPEAT_PREF_EXAMPLE\",\n  \"repeatCount\": 5,\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/preferences/day/repeat"
+          }
+        },
+        {
+          "name": "Get Week Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/preferences/week?employeeId={{employeeId}}&startDate={{startDate}}&companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Update Day Preference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"DAILY_PREF_STRING_EXAMPLE\",\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/preferences/day"
+          }
+        },
+        {
+          "name": "Update Week Preference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"startDate\": \"{{startDate}}\",\n  \"prefs\": \"WEEKLY_PREF_STRING_EXAMPLE\",\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/preferences/week"
           }
         }
       ]

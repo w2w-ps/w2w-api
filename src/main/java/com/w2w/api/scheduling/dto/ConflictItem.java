@@ -6,5 +6,5 @@ package com.w2w.api.scheduling.dto;
  * @param field   The name of the field or property where the conflict occurred.
  * @param message A human-readable description of the conflict.
  */
-public record ConflictDto(String field, String message) {
+public record ConflictItem(String field, String message) {
 }

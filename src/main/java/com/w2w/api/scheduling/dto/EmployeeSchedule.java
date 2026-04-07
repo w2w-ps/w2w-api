@@ -1,6 +1,6 @@
 package com.w2w.api.scheduling.dto;
 
-import com.w2w.api.position.dto.PositionDto;
+import com.w2w.api.position.dto.PositionSummary;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -9,24 +9,24 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class EmployeeWithShiftsDto {
+public class EmployeeSchedule {
     private Integer employeeId;
     private String firstName;
     private String lastName;
     private List<String> phones;
-    private List<PositionDto> availablePositions;
-    private Map<Integer, DayShiftBucketDto> weeklyShifts = new LinkedHashMap<>();
+    private List<PositionSummary> availablePositions;
+    private Map<Integer, DayShiftBucket> weeklyShifts = new LinkedHashMap<>();
     private double totalHours;
     private int shiftCount;
 
-    public EmployeeWithShiftsDto() {}
+    public EmployeeSchedule() {}
 
-    public EmployeeWithShiftsDto(
+    public EmployeeSchedule(
             Integer employeeId,
             String firstName,
             String lastName,
             List<String> phones,
-            List<PositionDto> availablePositions,
+            List<PositionSummary> availablePositions,
             LocalDate startDate,
             LocalDate endDate
     ) {
@@ -48,7 +48,7 @@ public class EmployeeWithShiftsDto {
         long totalDays = ChronoUnit.DAYS.between(startDate, endDate);
         for (int i = 0; i <= totalDays; i++) {
             LocalDate bucketDate = startDate.plusDays(i);
-            weeklyShifts.put(i, new DayShiftBucketDto(bucketDate, new ArrayList<>()));
+            weeklyShifts.put(i, new DayShiftBucket(bucketDate, new ArrayList<>()));
         }
     }
 
@@ -84,33 +84,29 @@ public class EmployeeWithShiftsDto {
         this.phones = phones;
     }
 
-    public List<PositionDto> getAvailablePositions() {
+    public List<PositionSummary> getAvailablePositions() {
         return availablePositions;
     }
 
-    public void setAvailablePositions(List<PositionDto> availablePositions) {
+    public void setAvailablePositions(List<PositionSummary> availablePositions) {
         this.availablePositions = availablePositions;
     }
 
-    public Map<Integer, DayShiftBucketDto> getWeeklyShifts() {
+    public Map<Integer, DayShiftBucket> getWeeklyShifts() {
         return weeklyShifts;
     }
 
-    public void setWeeklyShifts(Map<Integer, DayShiftBucketDto> weeklyShifts) {
+    public void setWeeklyShifts(Map<Integer, DayShiftBucket> weeklyShifts) {
         this.weeklyShifts = weeklyShifts;
     }
 
-    public void addShiftToDay(int dayIndex, LocalDate date, ShiftDto shift) {
-        DayShiftBucketDto bucket = weeklyShifts.computeIfAbsent(
+    public void addShiftToDay(int dayIndex, LocalDate date, ShiftSummary shift) {
+        DayShiftBucket bucket = weeklyShifts.computeIfAbsent(
                 dayIndex,
-                ignored -> new DayShiftBucketDto(date, new ArrayList<>())
+                ignored -> new DayShiftBucket(date, new ArrayList<>())
         );
 
-        if (bucket.getDate() == null) {
-            bucket.setDate(date);
-        }
-
-        bucket.getShifts().add(shift);
+        bucket.shifts().add(shift);
     }
 
     public double getTotalHours() {

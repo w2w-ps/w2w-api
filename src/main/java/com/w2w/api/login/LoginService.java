@@ -73,7 +73,7 @@ public class LoginService {
             }
         }
 
-        return new PasswordValidationResponse(isValid, errors);
+        return new PasswordValidationResponse(isValid, errors, null);
     }
 
     public PasswordValidationResponse updatePassword(String username, String oldPassword, String newPassword, String confirmPassword) {
@@ -109,7 +109,7 @@ public class LoginService {
 
         // 3. Complexity validation
         PasswordValidationResponse valResponse = validatePassword(newPassword);
-        if (!valResponse.getIsValid()) {
+        if (!valResponse.isValid()) {
             return valResponse;
         }
 
@@ -148,7 +148,7 @@ public class LoginService {
 
         // Complexity validation
         PasswordValidationResponse valResponse = validatePassword(newPassword);
-        if (!valResponse.getIsValid()) {
+        if (!valResponse.isValid()) {
             return valResponse;
         }
 

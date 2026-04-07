@@ -3,10 +3,11 @@ package com.w2w.api.scheduling;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.w2w.api.position.dto.PositionDto;
+import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -28,7 +29,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
     private static final String QUERY_PATH = "classpath:sql/scheduling/find_employee_shifts_in_range.sql";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final JavaType POSITION_LIST_TYPE = OBJECT_MAPPER.getTypeFactory()
-            .constructCollectionType(List.class, PositionDto.class);
+            .constructCollectionType(List.class, PositionSummary.class);
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final String findEmployeeShiftsInRangeSql;
@@ -55,28 +56,50 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         return jdbcTemplate.query(
                 findEmployeeShiftsInRangeSql,
                 parameters,
-                (rs, rowNum) -> mapRow(rs)
+                new RowMapperImpl()
         );
     }
 
-    private EmployeeShiftProjection mapRow(ResultSet rs) throws SQLException {
-        return new EmployeeShiftRow(
-                getNullableInteger(rs, "shiftId"),
-                rs.getInt("employeeId"),
-                rs.getString("firstName"),
-                rs.getString("lastName"),
-                deserializeList(rs.getString("phones")),
-                deserializePositions(rs.getString("availablePositions")),
-                rs.getObject("weekCommencing", LocalDate.class),
-                rs.getObject("startTime", LocalTime.class),
-                rs.getObject("endTime", LocalTime.class),
-                getNullableBoolean(rs, "isOvernight"),
-                rs.getString("position"),
-                rs.getString("category"),
-                rs.getString("description"),
-                getNullableFloat(rs, "duration"),
-                rs.getString("color")
-        );
+    private final class RowMapperImpl implements RowMapper<EmployeeShiftProjection> {
+        private Integer lastEmployeeId = null;
+        private List<String> lastPhones = null;
+        private List<PositionSummary> lastPositions = null;
+
+        @Override
+        public EmployeeShiftProjection mapRow(ResultSet rs, int rowNum) throws SQLException {
+            Integer employeeId = getNullableInteger(rs, "employeeId");
+            List<String> phones;
+            List<PositionSummary> positions;
+
+            if (employeeId != null && employeeId.equals(lastEmployeeId)) {
+                phones = lastPhones;
+                positions = lastPositions;
+            } else {
+                phones = deserializeList(rs.getString("phones"));
+                positions = deserializePositions(rs.getString("availablePositions"));
+                lastEmployeeId = employeeId;
+                lastPhones = phones;
+                lastPositions = positions;
+            }
+
+            return new EmployeeShiftRow(
+                    getNullableInteger(rs, "shiftId"),
+                    employeeId,
+                    rs.getString("firstName"),
+                    rs.getString("lastName"),
+                    phones,
+                    positions,
+                    rs.getObject("weekCommencing", LocalDate.class),
+                    rs.getObject("startTime", LocalTime.class),
+                    rs.getObject("endTime", LocalTime.class),
+                    getNullableBoolean(rs, "isOvernight"),
+                    rs.getString("position"),
+                    rs.getString("category"),
+                    rs.getString("description"),
+                    getNullableFloat(rs, "duration"),
+                    rs.getString("color")
+            );
+        }
     }
 
     private Integer getNullableInteger(ResultSet rs, String column) throws SQLException {
@@ -104,7 +127,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                 .toList();
     }
 
-    List<PositionDto> deserializePositions(String value) {
+    List<PositionSummary> deserializePositions(String value) {
         if (value == null || value.isBlank()) {
             return List.of();
         }
@@ -130,7 +153,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         private final String firstName;
         private final String lastName;
         private final List<String> phones;
-        private final List<PositionDto> availablePositions;
+        private final List<PositionSummary> availablePositions;
         private final LocalDate weekCommencing;
         private final LocalTime startTime;
         private final LocalTime endTime;
@@ -147,7 +170,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                 String firstName,
                 String lastName,
                 List<String> phones,
-                List<PositionDto> availablePositions,
+                List<PositionSummary> availablePositions,
                 LocalDate weekCommencing,
                 LocalTime startTime,
                 LocalTime endTime,
@@ -201,7 +224,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         }
 
         @Override
-        public List<PositionDto> getAvailablePositions() {
+        public List<PositionSummary> getAvailablePositions() {
             return availablePositions;
         }
 

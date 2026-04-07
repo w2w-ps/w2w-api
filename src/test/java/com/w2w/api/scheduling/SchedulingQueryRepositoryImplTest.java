@@ -66,8 +66,8 @@ class SchedulingQueryRepositoryImplTest {
         assertEquals(1, result.size());
         assertEquals(1001, result.getFirst().getShiftId());
         assertEquals(2, result.getFirst().getAvailablePositions().size());
-        assertEquals(12, result.getFirst().getAvailablePositions().getFirst().getId());
-        assertEquals("Bartender", result.getFirst().getAvailablePositions().getFirst().getName());
+        assertEquals(12, result.getFirst().getAvailablePositions().getFirst().id());
+        assertEquals("Bartender", result.getFirst().getAvailablePositions().getFirst().name());
         assertEquals(List.of("111-222", "333-444"), result.getFirst().getPhones());
         assertEquals("amber", result.getFirst().getColor());
     }
@@ -90,7 +90,7 @@ class SchedulingQueryRepositoryImplTest {
             ResultSet resultSet = mock(ResultSet.class);
 
             when(resultSet.getInt("shiftId")).thenReturn(0);
-            when(resultSet.wasNull()).thenReturn(true, false, false);
+            when(resultSet.wasNull()).thenReturn(false, true, false, false);
             when(resultSet.getInt("employeeId")).thenReturn(101);
             when(resultSet.getString("firstName")).thenReturn("Ava");
             when(resultSet.getString("lastName")).thenReturn("Stone");

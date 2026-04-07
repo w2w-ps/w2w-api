@@ -136,3 +136,18 @@ CREATE TABLE "user" (
 
 CREATE INDEX idx_schedule_start_date
   ON schedule (start_date);
+
+CREATE INDEX idx_se_company_schedule
+  ON scheduled_employee (company_id, schedule_id);
+
+CREATE INDEX idx_se_company_employee
+  ON scheduled_employee (company_id, employee_id);
+
+CREATE INDEX idx_employee_company_id
+  ON employee (company_id);
+
+CREATE INDEX idx_skill_company_id
+  ON skill (company_id);
+
+CREATE INDEX idx_category_company_id
+  ON category (company_id);
