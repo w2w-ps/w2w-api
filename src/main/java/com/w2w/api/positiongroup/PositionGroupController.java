@@ -1,0 +1,78 @@
+package com.w2w.api.positiongroup;
+
+import com.w2w.api.config.TenantContext;
+import com.w2w.api.positiongroup.dto.CreatePositionGroupRequest;
+import com.w2w.api.positiongroup.dto.PositionGroupSummary;
+import com.w2w.api.positiongroup.dto.PositionGroupsResponse;
+import com.w2w.api.positiongroup.dto.UpdatePositionGroupRequest;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/position-groups")
+public class PositionGroupController {
+
+    private final PositionGroupService positionGroupService;
+
+    public PositionGroupController(PositionGroupService positionGroupService) {
+        this.positionGroupService = positionGroupService;
+    }
+
+    @GetMapping
+    public ResponseEntity<PositionGroupsResponse> getPositionGroups(
+            @RequestParam Integer companyId,
+            @RequestParam(defaultValue = "all") String status
+    ) {
+        TenantContext.setCurrentTenant(companyId);
+        return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups(companyId, status)));
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<PositionGroupsResponse> getActivePositionGroups(@RequestParam Integer companyId) {
+        TenantContext.setCurrentTenant(companyId);
+        return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups(companyId, "active")));
+    }
+
+    @GetMapping("/non-active")
+    public ResponseEntity<PositionGroupsResponse> getInactivePositionGroups(@RequestParam Integer companyId) {
+        TenantContext.setCurrentTenant(companyId);
+        return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups(companyId, "inactive")));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PositionGroupSummary> getPositionGroupById(
+            @PathVariable("id") Integer groupId,
+            @RequestParam Integer companyId
+    ) {
+        TenantContext.setCurrentTenant(companyId);
+        return positionGroupService.getPositionGroupById(groupId, companyId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> createPositionGroup(@Valid @RequestBody CreatePositionGroupRequest request) {
+        TenantContext.setCurrentTenant(request.companyId());
+        positionGroupService.createPositionGroup(request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updatePositionGroup(
+            @PathVariable("id") Integer groupId,
+            @RequestParam Integer companyId,
+            @Valid @RequestBody UpdatePositionGroupRequest request
+    ) {
+        TenantContext.setCurrentTenant(companyId);
+        positionGroupService.updatePositionGroup(groupId, companyId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePositionGroup(@PathVariable("id") Integer groupId, @RequestParam Integer companyId) {
+        TenantContext.setCurrentTenant(companyId);
+        positionGroupService.deletePositionGroup(groupId, companyId);
+        return ResponseEntity.noContent().build();
+    }
+}

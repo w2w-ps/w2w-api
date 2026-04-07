@@ -1,4 +1,4 @@
--- Seed Data
+-- Seed Data (DML)
 DO $$
 DECLARE
     first_names TEXT[] := ARRAY['James', 'Mary', 'Robert', 'Patricia', 'John', 'Jennifer', 'Michael', 'Linda', 'David', 'Elizabeth', 'William', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen', 'Christopher', 'Nancy', 'Daniel', 'Margaret', 'Matthew', 'Lisa', 'Anthony', 'Betty', 'Mark', 'Dorothy', 'Donald', 'Sandra', 'Steven', 'Ashley', 'Paul', 'Kimberly', 'Andrew', 'Donna', 'Joshua', 'Emily', 'Kenneth', 'Michelle', 'Kevin', 'Carol', 'Brian', 'Amanda', 'George', 'Melissa', 'Edward', 'Deborah'];
@@ -11,26 +11,26 @@ DECLARE
         '{"name": "Urban Threads Store", "industry": "Clothing Store", "count": 2500}'::JSONB,
         '{"name": "Global Logistics Center", "industry": "Logistics Center", "count": 10000}'::JSONB
     ];
-    hotel_skills TEXT[] := ARRAY['Front Desk', 'Housekeeping', 'Bellhop', 'Chef', 'Concierge', 'Valet', 'Lifeguard', 'Event Coordinator', 'Room Service', 'Security', 'Maintenance', 'Mixologist', 'Server', 'Host', 'Pastry Chef'];
-    hospital_skills TEXT[] := ARRAY['Registered Nurse', 'Radiologist', 'Surgeon', 'Anesthesiologist', 'Pharmacist', 'Physical Therapist', 'Lab Technician', 'ER Specialist', 'Pediatrician', 'Receptionist', 'Janitorial', 'Dietitian', 'Phlebotomist', 'Social Worker', 'Orderly'];
-    warehouse_skills TEXT[] := ARRAY['Forklift Operator', 'Inventory Manager', 'Picker/Packer', 'Quality Control', 'Shipping Lead', 'Receiver', 'Dock Worker', 'Safety Officer', 'Data Entry', 'Loader', 'Maintenance', 'Team Lead', 'Order Clerk', 'Cycle Counter', 'Scanner Operator'];
-    supermarket_skills TEXT[] := ARRAY['Cashier', 'Stock Clerk', 'Butcher', 'Baker', 'Produce Clerk', 'Deli Assistant', 'Customer Service', 'Bagger', 'Dairy Specialist', 'Frozen Food lead', 'Cart Attendant', 'Pharmacy Aide', 'Wine Steward', 'Florist', 'Receiver'];
-    store_skills TEXT[] := ARRAY['Sales Associate', 'Visual Merchandiser', 'Cashier', 'Store Manager', 'Inventory Specialist', 'Loss Prevention', 'Personal Stylist', 'Tailor', 'Fulfillment lead', 'Janitorial', 'Stock Associate', 'Customer Support', 'Floor Lead', 'Key Holder', 'Display Coordinator'];
-    logistics_skills TEXT[] := ARRAY['Dispatcher', 'Route Planner', 'Fleet Manager', 'Truck Driver', 'Operations Lead', 'Supply Chain Analyst', 'Warehouse Coordinator', 'Customs Specialist', 'Broker', 'Inventory Controller', 'Dock Manager', 'Safety Manager', 'Maintenance Tech', 'Compliance Officer', 'Project Manager'];
+    hotel_positions TEXT[] := ARRAY['Front Desk', 'Housekeeping', 'Bellhop', 'Chef', 'Concierge', 'Valet', 'Lifeguard', 'Event Coordinator', 'Room Service', 'Security', 'Maintenance', 'Mixologist', 'Server', 'Host', 'Pastry Chef'];
+    hospital_positions TEXT[] := ARRAY['Registered Nurse', 'Radiologist', 'Surgeon', 'Anesthesiologist', 'Pharmacist', 'Physical Therapist', 'Lab Technician', 'ER Specialist', 'Pediatrician', 'Receptionist', 'Janitorial', 'Dietitian', 'Phlebotomist', 'Social Worker', 'Orderly'];
+    warehouse_positions TEXT[] := ARRAY['Forklift Operator', 'Inventory Manager', 'Picker/Packer', 'Quality Control', 'Shipping Lead', 'Receiver', 'Dock Worker', 'Safety Officer', 'Data Entry', 'Loader', 'Maintenance', 'Team Lead', 'Order Clerk', 'Cycle Counter', 'Scanner Operator'];
+    supermarket_positions TEXT[] := ARRAY['Cashier', 'Stock Clerk', 'Butcher', 'Baker', 'Produce Clerk', 'Deli Assistant', 'Customer Service', 'Bagger', 'Dairy Specialist', 'Frozen Food lead', 'Cart Attendant', 'Pharmacy Aide', 'Wine Steward', 'Florist', 'Receiver'];
+    store_positions TEXT[] := ARRAY['Sales Associate', 'Visual Merchandiser', 'Cashier', 'Store Manager', 'Inventory Specialist', 'Loss Prevention', 'Personal Stylist', 'Tailor', 'Fulfillment lead', 'Janitorial', 'Stock Associate', 'Customer Support', 'Floor Lead', 'Key Holder', 'Display Coordinator'];
+    logistics_positions TEXT[] := ARRAY['Dispatcher', 'Route Planner', 'Fleet Manager', 'Truck Driver', 'Operations Lead', 'Supply Chain Analyst', 'Warehouse Coordinator', 'Customs Specialist', 'Broker', 'Inventory Controller', 'Dock Manager', 'Safety Manager', 'Maintenance Tech', 'Compliance Officer', 'Project Manager'];
     category_names TEXT[] := ARRAY['Morning Shift', 'Afternoon Shift', 'Night Shift', 'Weekend Shift', 'Emergency', 'Holiday Shift', 'On-Call', 'Split Shift', 'Graveyard', 'Training'];
 
     comp JSONB;
     c_id INT := 1;
     e_id INT := 1;
-    s_id INT := 1;
+    p_id INT := 1;
     cat_id INT := 1;
     sched_id INT := 1;
     trans_id INT := 1;
     
     target_count INT;
-    industry_skills TEXT[];
-    skill_desc TEXT;
-    skill_count INT;
+    industry_positions TEXT[];
+    pos_desc TEXT;
+    pos_count INT;
     f_name TEXT;
     l_name TEXT;
     i INT;
@@ -40,7 +40,7 @@ DECLARE
     v_end_date DATE := '2026-04-30'::DATE;
     
     emp_ids INT[];
-    comp_skill_ids INT[];
+    comp_pos_ids INT[];
     comp_cat_ids INT[];
     
     is_overnight BOOLEAN;
@@ -52,27 +52,27 @@ BEGIN
         comp := companies[i];
         target_count := (comp->>'count')::INT;
         emp_ids := ARRAY[]::INT[];
-        comp_skill_ids := ARRAY[]::INT[];
+        comp_pos_ids := ARRAY[]::INT[];
         comp_cat_ids := ARRAY[]::INT[];
         INSERT INTO company (company_id, company_name, department_name, status)
         VALUES (c_id, comp->>'name', comp->>'industry', 'active');
         
         CASE comp->>'industry'
-            WHEN 'Hotel' THEN industry_skills := hotel_skills;
-            WHEN 'Hospital' THEN industry_skills := hospital_skills;
-            WHEN 'Warehouse' THEN industry_skills := warehouse_skills;
-            WHEN 'Supermarket' THEN industry_skills := supermarket_skills;
-            WHEN 'Clothing Store' THEN industry_skills := store_skills;
-            ELSE industry_skills := logistics_skills;
+            WHEN 'Hotel' THEN industry_positions := hotel_positions;
+            WHEN 'Hospital' THEN industry_positions := hospital_positions;
+            WHEN 'Warehouse' THEN industry_positions := warehouse_positions;
+            WHEN 'Supermarket' THEN industry_positions := supermarket_positions;
+            WHEN 'Clothing Store' THEN industry_positions := store_positions;
+            ELSE industry_positions := logistics_positions;
         END CASE;
         
-        skill_count := 15 + floor(random() * 11)::INT;
-        FOR j IN 1..skill_count LOOP
-            skill_desc := industry_skills[((j-1) % array_length(industry_skills, 1)) + 1];
-            INSERT INTO skill (skill_id, company_id, description, status, timestamp)
-            VALUES (s_id, c_id, skill_desc, 'active', NOW());
-            comp_skill_ids := array_append(comp_skill_ids, s_id);
-            s_id := s_id + 1;
+        pos_count := 15 + floor(random() * 11)::INT;
+        FOR j IN 1..pos_count LOOP
+            pos_desc := industry_positions[((j-1) % array_length(industry_positions, 1)) + 1];
+            INSERT INTO position (position_id, company_id, description, is_deleted, timestamp)
+            VALUES (p_id, c_id, pos_desc, FALSE, NOW());
+            comp_pos_ids := array_append(comp_pos_ids, p_id);
+            p_id := p_id + 1;
         END LOOP;
         
         FOR j IN 1..(5 + floor(random() * 6)::INT) LOOP
@@ -95,30 +95,30 @@ BEGIN
             e_id := e_id + 1;
         END LOOP;
 
-        -- Seed Skill Groups
-        INSERT INTO skill_group (group_id, company_id, description) VALUES ((c_id * 10) + 1, c_id, 'Core Team');
-        INSERT INTO skill_group (group_id, company_id, description) VALUES ((c_id * 10) + 2, c_id, 'Support Staff');
+        -- Seed Position Groups
+        INSERT INTO position_group (group_id, company_id, description) VALUES ((c_id * 10) + 1, c_id, 'Core Team');
+        INSERT INTO position_group (group_id, company_id, description) VALUES ((c_id * 10) + 2, c_id, 'Support Staff');
         
-        INSERT INTO group_skill (group_id, skill_id)
-        SELECT (c_id * 10) + 1, s.skill_id FROM skill s WHERE s.company_id = c_id AND random() < 0.3;
+        INSERT INTO group_position (group_id, position_id)
+        SELECT (c_id * 10) + 1, p.position_id FROM position p WHERE p.company_id = c_id AND random() < 0.3;
         
         -- Seed Category Groups
         INSERT INTO cat_group (group_id, company_id, description) VALUES ((c_id * 10) + 1, c_id, 'Standard Shifts');
         INSERT INTO group_cat (group_id, cat_id)
         SELECT (c_id * 10) + 1, cat.category_id FROM category cat WHERE cat.company_id = c_id AND random() < 0.5;
 
-        -- Seed Employee Skills
-        INSERT INTO employee_skill (employee_id, skill_id)
-        SELECT e.employee_id, s.skill_id
+        -- Seed Employee Positions
+        INSERT INTO employee_position (employee_id, position_id)
+        SELECT e.employee_id, p.position_id
         FROM employee e
-        JOIN skill s ON e.company_id = s.company_id
+        JOIN position p ON e.company_id = p.company_id
         WHERE e.company_id = c_id AND random() < 0.2;
 
-        -- Ensure every employee has at least one skill
-        INSERT INTO employee_skill (employee_id, skill_id)
-        SELECT e.employee_id, (SELECT s.skill_id FROM skill s WHERE s.company_id = c_id LIMIT 1)
+        -- Ensure every employee has at least one position
+        INSERT INTO employee_position (employee_id, position_id)
+        SELECT e.employee_id, (SELECT p.position_id FROM position p WHERE p.company_id = c_id LIMIT 1)
         FROM employee e
-        WHERE e.company_id = c_id AND NOT EXISTS (SELECT 1 FROM employee_skill es WHERE es.employee_id = e.employee_id);
+        WHERE e.company_id = c_id AND NOT EXISTS (SELECT 1 FROM employee_position ep WHERE ep.employee_id = e.employee_id);
 
         v_current_date := '2026-03-01'::DATE;
         WHILE v_current_date <= v_end_date LOOP
@@ -140,12 +140,12 @@ BEGIN
                     INSERT INTO scheduled_employee (
                         shift_id, employee_id, schedule_id, company_id,
                         description, start_time, end_time, is_overnight, duration,
-                        required_skill_id, category_id
+                        required_position_id, category_id
                     )
                     VALUES (
                                trans_id, emp_ids[m], sched_id, c_id,
                                'Generated Shift ' || trans_id, s_time, e_time, is_overnight, current_duration,
-                               comp_skill_ids[floor(random() * array_length(comp_skill_ids, 1)) + 1],
+                               comp_pos_ids[floor(random() * array_length(comp_pos_ids, 1)) + 1],
                                comp_cat_ids[floor(random() * array_length(comp_cat_ids, 1)) + 1]
                            );
                     trans_id := trans_id + 1;
@@ -157,3 +157,54 @@ BEGIN
         c_id := c_id + 1;
     END LOOP;
 END $$;
+
+-- Fix sequences after mass insert
+SELECT setval('employee_id_seq', (SELECT MAX(employee_id) FROM employee));
+SELECT setval('schedule_id_seq', (SELECT MAX(schedule_id) FROM schedule));
+SELECT setval('scheduled_employee_shift_id_seq', (SELECT MAX(shift_id) FROM scheduled_employee));
+SELECT setval('position_group_id_seq', (SELECT MAX(group_id) FROM position_group));
+SELECT setval('position_position_id_seq', (SELECT MAX(position_id) FROM position));
+
+-- Seed security tables
+INSERT INTO companies (company_name) VALUES ('Default Company');
+
+INSERT INTO emp_type (emp_type_name) VALUES 
+('Full Time'),
+('Part Time'),
+('Per Diem');
+
+INSERT INTO user_roles (role_name) VALUES 
+('Manager'),
+('Employee'),
+('AddManager');
+
+INSERT INTO users (
+    user_login_id,
+    user_login_pw,
+    company_id,
+    emp_type_id,
+    role_id,
+    employee_id,
+    encryption_type,
+    login_failures
+) VALUES (
+    'admin',
+    '$2a$12$9B69QSXuEqf6bgZcWbJXMOc0RHlFkwHQ4iInRtrIwiC9nAJSTgdk.',
+    1,
+    1,
+    1,
+    1,
+    0,
+    0
+);
+
+INSERT INTO manager_permissions (user_id, is_main_manager, can_manage_positions, can_manage_team_members, can_edit_shifts)
+VALUES (1, TRUE, TRUE, TRUE, TRUE);
+
+-- Seed preferences
+INSERT INTO day_prefs (employee_id, date, prefs, compression, edited_by, is_day_prefs)
+SELECT 1, '2026-04-01'::DATE + i, 'DDDDDDDDDDDDDDDDDDDDPPPPPPPPDDDPPPPPPDDDDPPPPPPPPPPPPPPCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCNNNNN', 0, 1, FALSE
+FROM generate_series(0, 30) i;
+
+INSERT INTO week_prefs (employee_id, start_date, prefs, compression, edited_by)
+VALUES (1, '2026-04-06', 'DDDDDDDDDDDDDNDDDDDDPPPPPPPPDDDPPPPPPDDDDPPPPPPPPPPPPPPCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPNNNNNNPPPPPPPPPPPPPPPCCCCCCCCCCCCCCCCCCCCPPPPPPPPCPPPPPPPPPPPPPPPPPPPPPPPPCCCPPCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPCCCCCCCCCCCCCCCCCCCCPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPCCPCPPCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCDDDDDDDDDDDDDDDDDDDDPPPPPPPPDDDDDDDDDDDDDDDDDPPPPPPPPPPPPPPPPPPPDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP', 0, 1);

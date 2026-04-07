@@ -41,7 +41,7 @@ class SchedulingQueryRepositoryImplTest {
             when(resultSet.getString("lastName")).thenReturn("Stone");
             when(resultSet.getString("phones")).thenReturn("111-222,333-444");
             when(resultSet.getString("availablePositions")).thenReturn(
-                    "[{\"id\":12,\"name\":\"Bartender\"},{\"id\":19,\"name\":\"Server\"}]"
+                    "[{\"positionId\":12,\"description\":\"Bartender\"},{\"positionId\":19,\"description\":\"Server\"}]"
             );
             when(resultSet.getObject("weekCommencing", LocalDate.class)).thenReturn(LocalDate.of(2026, 3, 25));
             when(resultSet.getObject("startTime", LocalTime.class)).thenReturn(LocalTime.of(9, 0));
@@ -66,8 +66,8 @@ class SchedulingQueryRepositoryImplTest {
         assertEquals(1, result.size());
         assertEquals(1001, result.getFirst().getShiftId());
         assertEquals(2, result.getFirst().getAvailablePositions().size());
-        assertEquals(12, result.getFirst().getAvailablePositions().getFirst().id());
-        assertEquals("Bartender", result.getFirst().getAvailablePositions().getFirst().name());
+        assertEquals(12, result.getFirst().getAvailablePositions().getFirst().positionId());
+        assertEquals("Bartender", result.getFirst().getAvailablePositions().getFirst().description());
         assertEquals(List.of("111-222", "333-444"), result.getFirst().getPhones());
         assertEquals("amber", result.getFirst().getColor());
     }

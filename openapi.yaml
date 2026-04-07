@@ -315,6 +315,240 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ResolvedPreferenceResponse'
+  /api/positions:
+    get:
+      summary: Get positions for a company
+      parameters:
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [all, active, inactive]
+            default: all
+      responses:
+        '200':
+          description: A list of positions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionsResponse'
+    post:
+      summary: Create a new position
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePositionRequest'
+      responses:
+        '204':
+          description: Position created successfully
+  /api/positions/{id}:
+    get:
+      summary: Get an active position by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Position details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionSummary'
+        '404':
+          description: Position not found
+    put:
+      summary: Update an existing position
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePositionRequest'
+      responses:
+        '204':
+          description: Position updated successfully
+        '404':
+          description: Position not found
+    delete:
+      summary: Soft-delete a position
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Position soft-deleted successfully
+        '404':
+          description: Position not found
+  /api/position-groups:
+    get:
+      summary: Get position groups for a company
+      parameters:
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [all, active, inactive]
+            default: all
+      responses:
+        '200':
+          description: A list of position groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionGroupsResponse'
+    post:
+      summary: Create a new position group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePositionGroupRequest'
+      responses:
+        '204':
+          description: Position group created successfully
+        '400':
+          description: One or more position ids were invalid for the company
+  /api/position-groups/active:
+    get:
+      summary: Get all active position groups for a company
+      parameters:
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of active position groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionGroupsResponse'
+  /api/position-groups/non-active:
+    get:
+      summary: Get all inactive position groups for a company
+      parameters:
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of inactive position groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionGroupsResponse'
+  /api/position-groups/{id}:
+    get:
+      summary: Get an active position group by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Position group details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositionGroupSummary'
+        '404':
+          description: Position group not found
+    put:
+      summary: Update an existing position group
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePositionGroupRequest'
+      responses:
+        '204':
+          description: Position group updated successfully
+        '400':
+          description: One or more position ids were invalid for the company
+        '404':
+          description: Position group not found
+    delete:
+      summary: Soft-delete a position group
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Position group soft-deleted successfully
+        '404':
+          description: Position group not found
 components:
   parameters:
     ShiftId:
@@ -429,7 +663,7 @@ components:
           format: float
         isOvernight:
           type: boolean
-        requiredSkillId:
+        requiredPositionId:
           type: integer
         categoryId:
           type: integer
@@ -724,3 +958,79 @@ components:
           type: string
         day:
           type: string
+    PositionSummary:
+      type: object
+      properties:
+        positionId:
+          type: integer
+        description:
+          type: string
+    CreatePositionRequest:
+      type: object
+      required:
+        - companyId
+        - description
+      properties:
+        companyId:
+          type: integer
+        description:
+          type: string
+    UpdatePositionRequest:
+      type: object
+      required:
+        - description
+      properties:
+        description:
+          type: string
+    PositionsResponse:
+      type: object
+      properties:
+        positions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionSummary'
+    CreatePositionGroupRequest:
+      type: object
+      required:
+        - companyId
+        - description
+        - positionIds
+      properties:
+        companyId:
+          type: integer
+        description:
+          type: string
+        positionIds:
+          type: array
+          items:
+            type: integer
+    UpdatePositionGroupRequest:
+      type: object
+      required:
+        - description
+        - positionIds
+      properties:
+        description:
+          type: string
+        positionIds:
+          type: array
+          items:
+            type: integer
+    PositionGroupSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        positions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionSummary'
+    PositionGroupsResponse:
+      type: object
+      properties:
+        positionGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionGroupSummary'

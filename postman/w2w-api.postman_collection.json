@@ -42,6 +42,10 @@
       "key": "bearerToken",
       "value": "",
       "description": "JWT token — populate by running the Login request first, then copy the token value here."
+    },
+    {
+      "key": "positionId",
+      "value": "1"
     }
   ],
   "item": [
@@ -191,7 +195,7 @@
       "name": "Positions",
       "item": [
         {
-          "name": "Get Positions",
+          "name": "Get All Positions",
           "request": {
             "method": "GET",
             "header": [
@@ -200,7 +204,111 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/positions?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/positions?companyId={{companyId}}&status=all"
+          }
+        },
+        {
+          "name": "Get Active Positions By Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/positions?companyId={{companyId}}&status=active"
+          }
+        },
+        {
+          "name": "Get Inactive Positions By Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/positions?companyId={{companyId}}&status=inactive"
+          }
+        },
+        {
+          "name": "Get Position by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/positions/{{positionId}}?companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Create Position",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"description\": \"New Position Example\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/positions"
+          }
+        },
+        {
+          "name": "Update Position",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated Position Description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/positions/{{positionId}}?companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Delete Position (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/positions/{{positionId}}?companyId={{companyId}}"
           }
         }
       ]
@@ -219,6 +327,128 @@
               }
             ],
             "url": "{{baseUrl}}/api/categories?companyId={{companyId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Position Groups",
+      "item": [
+        {
+          "name": "Get Position Groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/position-groups?companyId={{companyId}}&status=all"
+          }
+        },
+        {
+          "name": "Get Active Position Groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/position-groups/active?companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Get Non-Active Position Groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/position-groups/non-active?companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Get Position Group by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/position-groups/{{positionGroupId}}?companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Create Position Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"description\": \"Front of House\",\n  \"positionIds\": [{{positionId}}]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/position-groups"
+          }
+        },
+        {
+          "name": "Update Position Group",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated Front of House\",\n  \"positionIds\": [{{positionId}}]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/position-groups/{{positionGroupId}}?companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Delete Position Group",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/position-groups/{{positionGroupId}}?companyId={{companyId}}"
           }
         }
       ]

@@ -1,10 +1,12 @@
 package com.w2w.api.position;
 
 import com.w2w.api.config.TenantContext;
-import com.w2w.api.position.dto.PositionGroupSummary;
+import com.w2w.api.position.dto.CreatePositionRequest;
 import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.position.dto.PositionsResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.w2w.api.position.dto.UpdatePositionRequest;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,14 +14,53 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/positions")
 public class PositionController {
-    @Autowired
-    private PositionService positionService;
+
+    private final PositionService positionService;
+
+    public PositionController(PositionService positionService) {
+        this.positionService = positionService;
+    }
 
     @GetMapping
-    public PositionsResponse getPositions(@RequestParam Integer companyId) {
+    public ResponseEntity<PositionsResponse> getPositions(
+            @RequestParam Integer companyId,
+            @RequestParam(defaultValue = "all") String status
+    ) {
         TenantContext.setCurrentTenant(companyId);
-        List<PositionSummary> positions = positionService.getPositionsByCompanyId(companyId);
-        List<PositionGroupSummary> groups = positionService.getPositionGroupsByCompanyId(companyId);
-        return new PositionsResponse(positions, groups);
+        List<PositionSummary> positions = positionService.getPositions(companyId, status);
+        return ResponseEntity.ok(new PositionsResponse(positions));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PositionSummary> getPositionById(@PathVariable("id") Integer skillId, @RequestParam Integer companyId) {
+        TenantContext.setCurrentTenant(companyId);
+        return positionService.getPositionById(skillId, companyId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> createPosition(@Valid @RequestBody CreatePositionRequest request) {
+        TenantContext.setCurrentTenant(request.companyId());
+        positionService.createPosition(request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updatePosition(
+            @PathVariable("id") Integer skillId,
+            @RequestParam Integer companyId,
+            @Valid @RequestBody UpdatePositionRequest request
+    ) {
+        TenantContext.setCurrentTenant(companyId);
+        positionService.updatePosition(skillId, companyId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePosition(@PathVariable("id") Integer skillId, @RequestParam Integer companyId) {
+        TenantContext.setCurrentTenant(companyId);
+        positionService.deletePosition(skillId, companyId);
+        return ResponseEntity.noContent().build();
     }
 }

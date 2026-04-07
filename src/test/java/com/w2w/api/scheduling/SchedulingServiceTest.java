@@ -384,8 +384,8 @@ class SchedulingServiceTest {
         assertEquals(1, result.size());
         EmployeeSchedule employee = result.getFirst();
         assertEquals(2, employee.getAvailablePositions().size());
-        assertEquals(12, employee.getAvailablePositions().getFirst().id());
-        assertEquals("Bartender", employee.getAvailablePositions().getFirst().name());
+        assertEquals(12, employee.getAvailablePositions().getFirst().positionId());
+        assertEquals("Bartender", employee.getAvailablePositions().getFirst().description());
 
         assertEquals(3, employee.getWeeklyShifts().size());
         assertEquals(startDate, employee.getWeeklyShifts().get(0).date());
@@ -519,7 +519,7 @@ class SchedulingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 26);
 
-        when(positionService.getPositionsByCompanyId(7))
+        when(positionService.getAllPositions(7))
                 .thenReturn(List.of(
                         new PositionSummary(12, "Bartender"),
                         new PositionSummary(19, "Server")
@@ -603,7 +603,7 @@ class SchedulingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 26);
 
-        when(positionService.getPositionsByCompanyId(7))
+        when(positionService.getAllPositions(7))
                 .thenReturn(List.of(
                         new PositionSummary(12, "Bartender"),
                         new PositionSummary(19, "Server")
@@ -663,7 +663,7 @@ class SchedulingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 26);
 
-        when(positionService.getPositionsByCompanyId(7))
+        when(positionService.getAllPositions(7))
                 .thenReturn(List.of(
                         new PositionSummary(12, "Bartender"),
                         new PositionSummary(19, "Server")
@@ -842,7 +842,7 @@ class SchedulingServiceTest {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 25);
 
-        when(positionService.getPositionsByCompanyId(7))
+        when(positionService.getAllPositions(7))
                 .thenReturn(List.of(new PositionSummary(12, "Bartender")));
         when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
                 .thenReturn(List.of(

@@ -4,11 +4,12 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "skill")
-public class Skill {
+@Table(name = "position")
+public class Position {
     @Id
-    @Column(name = "skill_id")
-    private Integer skillId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "position_id")
+    private Integer positionId;
 
     @Column(name = "company_id")
     private Integer companyId;
@@ -16,20 +17,20 @@ public class Skill {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "status")
-    private String status;
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
 
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
-    public Skill() {}
+    public Position() {}
 
-    public Integer getSkillId() {
-        return skillId;
+    public Integer getPositionId() {
+        return positionId;
     }
 
-    public void setSkillId(Integer skillId) {
-        this.skillId = skillId;
+    public void setPositionId(Integer positionId) {
+        this.positionId = positionId;
     }
 
     public Integer getCompanyId() {
@@ -48,12 +49,12 @@ public class Skill {
         this.description = description;
     }
 
-    public String getStatus() {
-        return status;
+    public Boolean getIsDeleted() {
+        return isDeleted;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setIsDeleted(Boolean deleted) {
+        isDeleted = deleted;
     }
 
     public LocalDateTime getTimestamp() {

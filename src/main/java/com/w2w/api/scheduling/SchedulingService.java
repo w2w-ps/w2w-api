@@ -93,7 +93,7 @@ public class SchedulingService {
         shift.setDescription(request.description());
         shift.setStartTime(request.startTime());
         shift.setEndTime(request.endTime());
-        shift.setRequiredSkillId(request.position());
+        shift.setRequiredPositionId(request.position());
         shift.setCategoryId(request.category());
         shift.setColor(request.color());
         shift.setIsDeleted(false);
@@ -116,7 +116,7 @@ public class SchedulingService {
         if (request.description() != null) shift.setDescription(request.description());
         if (request.startTime() != null) shift.setStartTime(request.startTime());
         if (request.endTime() != null) shift.setEndTime(request.endTime());
-        if (request.position() != null) shift.setRequiredSkillId(request.position());
+        if (request.position() != null) shift.setRequiredPositionId(request.position());
         if (request.category() != null) shift.setCategoryId(request.category());
         if (request.color() != null) shift.setColor(request.color());
 
@@ -728,8 +728,8 @@ public class SchedulingService {
             return List.of();
         }
 
-        return positionService.getPositionsByCompanyId(companyId).stream()
-                .map(PositionSummary::name)
+        return positionService.getPositions(companyId, "all").stream()
+                .map(PositionSummary::description)
                 .filter(Objects::nonNull)
                 .distinct()
                 .sorted()

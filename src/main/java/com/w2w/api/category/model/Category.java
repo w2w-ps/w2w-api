@@ -24,8 +24,8 @@ public class Category {
     @Column(name = "end_time")
     private String endTime;
 
-    @Column(name = "skill_id")
-    private Integer skillId;
+    @Column(name = "position_id")
+    private Integer positionId;
 
     @Column(name = "color")
     private Short color;
@@ -80,12 +80,12 @@ public class Category {
         this.endTime = endTime;
     }
 
-    public Integer getSkillId() {
-        return skillId;
+    public Integer getPositionId() {
+        return positionId;
     }
 
-    public void setSkillId(Integer skillId) {
-        this.skillId = skillId;
+    public void setPositionId(Integer positionId) {
+        this.positionId = positionId;
     }
 
     public Short getColor() {
