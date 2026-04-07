@@ -1211,9 +1211,9 @@ components:
       properties:
         id:
           type: integer
-        name:
+        description:
           type: string
-        shortName:
+        shortDesc:
           type: string
     CategoryResponse:
       type: object
@@ -1228,7 +1228,7 @@ components:
           type: string
         endTime:
           type: string
-        skillId:
+        positionId:
           type: integer
         color:
           type: integer
@@ -1255,7 +1255,7 @@ components:
           type: string
         endTime:
           type: string
-        skillId:
+        positionId:
           type: integer
         color:
           type: integer
@@ -1272,7 +1272,7 @@ components:
           type: string
         endTime:
           type: string
-        skillId:
+        positionId:
           type: integer
         color:
           type: integer

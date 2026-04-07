@@ -384,7 +384,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"shortName\": \"FLR\",\n  \"description\": \"Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"skillId\": 1,\n  \"color\": 1\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"shortName\": \"FLR\",\n  \"description\": \"Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"positionId\": 1,\n  \"color\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -410,7 +410,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"shortName\": \"FLOOR\",\n  \"description\": \"Updated Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"skillId\": 1,\n  \"color\": 2\n}",
+              "raw": "{\n  \"shortName\": \"FLOOR\",\n  \"description\": \"Updated Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"positionId\": 1,\n  \"color\": 2\n}",
               "options": {
                 "raw": {
                   "language": "json"
