@@ -163,6 +163,7 @@ SELECT setval('employee_id_seq', (SELECT MAX(employee_id) FROM employee));
 SELECT setval('schedule_id_seq', (SELECT MAX(schedule_id) FROM schedule));
 SELECT setval('scheduled_employee_shift_id_seq', (SELECT MAX(shift_id) FROM scheduled_employee));
 SELECT setval('position_group_id_seq', (SELECT MAX(group_id) FROM position_group));
+SELECT setval('position_position_id_seq', (SELECT MAX(position_id) FROM position));
 
 -- Seed security tables
 INSERT INTO companies (company_name) VALUES ('Default Company');
