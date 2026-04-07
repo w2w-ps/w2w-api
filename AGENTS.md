@@ -13,7 +13,7 @@
 - Group supporting types into subfolders only when there are multiple files:
   `dto/`, `model/`, `repository/`.
 - Current features:
-  `tenant`, `employee`, `position`, `category`, `scheduling`, `config`, `preferences`.
+  `tenant`, `employee`, `position`, `positiongroup`, `category`, `scheduling`, `config`, `preferences`.
 
 ## API Surface
 - `tenant`
@@ -25,7 +25,19 @@
   `GET /api/employees/{id}?companyId=...`
   `POST /api/employees`
 - `position`
-  `GET /api/positions?companyId=...`
+  `GET /api/positions?companyId=...&status=...`
+  `GET /api/positions/{id}?companyId=...`
+  `POST /api/positions`
+  `PUT /api/positions/{id}?companyId=...`
+  `DELETE /api/positions/{id}?companyId=...`
+- `positiongroup`
+  `GET /api/position-groups?companyId=...&status=...`
+  `GET /api/position-groups/active?companyId=...`
+  `GET /api/position-groups/non-active?companyId=...`
+  `GET /api/position-groups/{id}?companyId=...`
+  `POST /api/position-groups`
+  `PUT /api/position-groups/{id}?companyId=...`
+  `DELETE /api/position-groups/{id}?companyId=...`
 - `category`
   `GET /api/categories?companyId=...`
 - `scheduling`
