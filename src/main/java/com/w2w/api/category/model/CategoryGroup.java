@@ -6,8 +6,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "cat_group")
+@SequenceGenerator(name = "category_group_id_seq", sequenceName = "category_group_id_seq", allocationSize = 1)
 public class CategoryGroup {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "category_group_id_seq")
     @Column(name = "group_id")
     private Integer groupId;
 
@@ -17,7 +19,10 @@ public class CategoryGroup {
     @Column(name = "description")
     private String description;
 
-    @ManyToMany
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "group_cat",
         joinColumns = @JoinColumn(name = "group_id"),
@@ -49,6 +54,14 @@ public class CategoryGroup {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean deleted) {
+        isDeleted = deleted;
     }
 
     public List<Category> getCategories() {

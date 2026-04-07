@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "category")
+@SequenceGenerator(name = "category_id_seq", sequenceName = "category_id_seq", allocationSize = 1)
 public class Category {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "category_id_seq")
     @Column(name = "category_id")
     private Integer categoryId;
 
@@ -29,6 +31,9 @@ public class Category {
 
     @Column(name = "color")
     private Short color;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
 
     public Category() {}
 
@@ -94,5 +99,13 @@ public class Category {
 
     public void setColor(Short color) {
         this.color = color;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean deleted) {
+        isDeleted = deleted;
     }
 }

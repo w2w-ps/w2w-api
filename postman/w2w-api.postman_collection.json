@@ -326,7 +326,111 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/categories?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/categories?companyId={{companyId}}&status=all"
+          }
+        },
+        {
+          "name": "Get Active Categories By Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/categories?companyId={{companyId}}&status=active"
+          }
+        },
+        {
+          "name": "Get Inactive Categories By Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/categories?companyId={{companyId}}&status=inactive"
+          }
+        },
+        {
+          "name": "Get Category By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}?companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"shortName\": \"FLR\",\n  \"description\": \"Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"skillId\": 1,\n  \"color\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/categories"
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shortName\": \"FLOOR\",\n  \"description\": \"Updated Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"skillId\": 1,\n  \"color\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}?companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}?companyId={{companyId}}"
           }
         }
       ]
@@ -759,6 +863,90 @@
               }
             },
             "url": "{{baseUrl}}/api/preferences/day/list"
+          }
+        },
+        {
+          "name": "Get Grouped Shifts By Selector (Day Position)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the same day-position bucket payload as /api/scheduling/shifts/day-position, selected through the grouped endpoint via grouping=position.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=position&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Get Grouped Shifts By Day Position And Timing",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns day buckets for the requested range, with each day grouped by position and then by shift timing. Each timing bucket lists employee-level shift entries. All company positions are included even when a given day has no shifts for them. Each day, position bucket, and timing bucket includes shiftCount and totalDuration.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/day-position-timing?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Get Grouped Shifts By Selector (Day Position Shift Timings)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns day-position-shift-timing buckets through the grouped endpoint via grouping=position_shift_timings.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=position_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Get Grouped Shifts By Selector (Day Shift Timings)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns day-shift-timing buckets through the grouped endpoint via grouping=shift_timings. This payload does not include aggregate shift counts or durations.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Get Grouped Shifts By Selector (Day Category Shift Timings)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns day-category-shift-timing buckets through the grouped endpoint via grouping=category_shift_timings. This payload does not include aggregate shift counts or durations.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=category_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+          }
+        },
+        {
+          "name": "Get Grouped Shifts By Selector (Cat Shift Timings)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns the same day-category-shift-timing payload shape as grouping=category_shift_timings, but category buckets use the category short description via grouping=cat_shift_timings.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=cat_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
           }
         }
       ]

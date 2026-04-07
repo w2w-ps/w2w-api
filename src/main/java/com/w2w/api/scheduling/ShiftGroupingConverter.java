@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component;
 public class ShiftGroupingConverter implements Converter<String, ShiftGrouping> {
     @Override
     public ShiftGrouping convert(String source) {
-        return ShiftGrouping.fromApiValue(source);
+        return ShiftGrouping.fromString(source);
     }
 }

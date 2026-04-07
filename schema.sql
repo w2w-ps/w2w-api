@@ -87,7 +87,8 @@ CREATE TABLE category (
   start_time VARCHAR(255),
   end_time VARCHAR(255),
   position_id INTEGER REFERENCES position(position_id),
-  color SMALLINT
+  color SMALLINT,
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE cat_group (
