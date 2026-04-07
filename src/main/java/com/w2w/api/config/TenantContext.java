@@ -11,10 +11,6 @@ public final class TenantContext {
     }
 
     public static Integer getCurrentTenant() {
-        return CURRENT_TENANT.get();
-    }
-
-    public static Integer resolveTenant(Integer requestedTenantId) {
         Integer currentTenant = CURRENT_TENANT.get();
         return currentTenant != null ? currentTenant : -1;
     }

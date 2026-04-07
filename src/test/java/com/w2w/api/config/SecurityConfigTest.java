@@ -83,7 +83,7 @@ class SecurityConfigTest {
 
     @Test
     void authenticatedUser_canAccessProtectedEndpoint() throws Exception {
-        when(positionService.getPositions(1, "all")).thenReturn(List.of());
+        when(positionService.getPositions("all")).thenReturn(List.of());
 
         mockMvc.perform(get("/api/positions")
                         .param("companyId", "1")

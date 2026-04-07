@@ -1,5 +1,16 @@
 package com.w2w.api.scheduling;
 
+import com.w2w.api.config.TenantContext;
+import com.w2w.api.scheduling.dto.ConflictItem;
+import com.w2w.api.scheduling.dto.ConflictResponse;
+import com.w2w.api.scheduling.dto.CreateShiftRequest;
+import com.w2w.api.scheduling.dto.DayPositionBucket;
+import com.w2w.api.scheduling.dto.DayPositionTimingBucketDto;
+import com.w2w.api.scheduling.dto.EmployeeSchedule;
+import com.w2w.api.scheduling.dto.FindConflictRequest;
+import com.w2w.api.scheduling.dto.ShiftGrouping;
+import com.w2w.api.scheduling.dto.ShiftResponse;
+import com.w2w.api.scheduling.dto.UpdateShiftRequest;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -19,18 +30,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.w2w.api.config.TenantContext;
-import com.w2w.api.scheduling.dto.ConflictItem;
-import com.w2w.api.scheduling.dto.ConflictResponse;
-import com.w2w.api.scheduling.dto.CreateShiftRequest;
-import com.w2w.api.scheduling.dto.DayPositionBucket;
-import com.w2w.api.scheduling.dto.DayPositionTimingBucketDto;
-import com.w2w.api.scheduling.dto.EmployeeSchedule;
-import com.w2w.api.scheduling.dto.FindConflictRequest;
-import com.w2w.api.scheduling.dto.ShiftGrouping;
-import com.w2w.api.scheduling.dto.ShiftResponse;
-import com.w2w.api.scheduling.dto.UpdateShiftRequest;
-
 @RestController
 @RequestMapping("/api/scheduling")
 public class SchedulingController {
@@ -45,7 +44,18 @@ public class SchedulingController {
     @PostMapping("/shifts")
     @ResponseStatus(HttpStatus.CREATED)
     public void createShift(@Valid @RequestBody CreateShiftRequest request) {
-        schedulingService.saveShift(request);
+        TenantContext.setCurrentTenant(request.companyId());
+        schedulingService.saveShift(
+                request.employeeId(),
+                request.description(),
+                request.date(),
+                request.startTime(),
+                request.endTime(),
+                request.duration(),
+                request.position(),
+                request.category(),
+                request.color()
+        );
     }
 
     @PutMapping("/shifts/{shiftId}")
@@ -72,7 +82,8 @@ public class SchedulingController {
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        return schedulingService.getEmployeeShiftsGroupedInRange(companyId, startDate, endDate);
+        TenantContext.setCurrentTenant(companyId);
+        return schedulingService.getEmployeeShiftsGroupedInRange(startDate, endDate);
     }
 
     @GetMapping("/shifts/grouped")
@@ -82,7 +93,8 @@ public class SchedulingController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
-        return schedulingService.getShiftsGrouped(companyId, startDate, endDate, grouping);
+        TenantContext.setCurrentTenant(companyId);
+        return schedulingService.getShiftsGrouped(startDate, endDate, grouping);
     }
 
     @GetMapping("/shifts/date-position")
@@ -90,7 +102,8 @@ public class SchedulingController {
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        return schedulingService.getShiftsGroupedByDateAndPosition(companyId, startDate, endDate);
+        TenantContext.setCurrentTenant(companyId);
+        return schedulingService.getShiftsGroupedByDateAndPosition(startDate, endDate);
     }
 
     @GetMapping("/shifts/day-position-timing")
@@ -100,7 +113,7 @@ public class SchedulingController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
         TenantContext.setCurrentTenant(companyId);
-        return schedulingService.getShiftsGroupedByDayPositionAndTiming(companyId, startDate, endDate);
+        return schedulingService.getShiftsGroupedByDayPositionAndTiming(startDate, endDate);
     }
 
     @PostMapping("/validation/precheck")

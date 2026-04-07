@@ -24,17 +24,20 @@ public class PositionGroupController {
             @RequestParam Integer companyId,
             @RequestParam(defaultValue = "all") String status
     ) {
-        return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups(companyId, status)));
+        TenantContext.setCurrentTenant(companyId);
+        return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups(status)));
     }
 
     @GetMapping("/active")
     public ResponseEntity<PositionGroupsResponse> getActivePositionGroups(@RequestParam Integer companyId) {
-        return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups(companyId, "active")));
+        TenantContext.setCurrentTenant(companyId);
+        return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups("active")));
     }
 
     @GetMapping("/non-active")
     public ResponseEntity<PositionGroupsResponse> getInactivePositionGroups(@RequestParam Integer companyId) {
-        return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups(companyId, "inactive")));
+        TenantContext.setCurrentTenant(companyId);
+        return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups("inactive")));
     }
 
     @GetMapping("/{id}")
@@ -42,14 +45,16 @@ public class PositionGroupController {
             @PathVariable("id") Integer groupId,
             @RequestParam Integer companyId
     ) {
-        return positionGroupService.getPositionGroupById(groupId, companyId)
+        TenantContext.setCurrentTenant(companyId);
+        return positionGroupService.getPositionGroupById(groupId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<Void> createPositionGroup(@Valid @RequestBody CreatePositionGroupRequest request) {
-        positionGroupService.createPositionGroup(request);
+        TenantContext.setCurrentTenant(request.companyId());
+        positionGroupService.createPositionGroup(request.description(), request.positionIds());
         return ResponseEntity.noContent().build();
     }
 
@@ -59,13 +64,15 @@ public class PositionGroupController {
             @RequestParam Integer companyId,
             @Valid @RequestBody UpdatePositionGroupRequest request
     ) {
-        positionGroupService.updatePositionGroup(groupId, companyId, request);
+        TenantContext.setCurrentTenant(companyId);
+        positionGroupService.updatePositionGroup(groupId, request);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePositionGroup(@PathVariable("id") Integer groupId, @RequestParam Integer companyId) {
-        positionGroupService.deletePositionGroup(groupId, companyId);
+        TenantContext.setCurrentTenant(companyId);
+        positionGroupService.deletePositionGroup(groupId);
         return ResponseEntity.noContent().build();
     }
 }

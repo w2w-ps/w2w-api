@@ -48,7 +48,7 @@ class CategoryGroupControllerTest {
 
     @Test
     void getCategoryGroups_returnsGroups() throws Exception {
-        when(categoryGroupService.getCategoryGroups(1, "all"))
+        when(categoryGroupService.getCategoryGroups("all"))
                 .thenReturn(List.of(
                         new CategoryGroupSummary(
                                 301,
@@ -65,12 +65,12 @@ class CategoryGroupControllerTest {
                 .andExpect(jsonPath("$.categoryGroups[0].categories[0].description").value("Floor"))
                 .andExpect(jsonPath("$.categoryGroups[0].categories[0].shortDesc").value("FLR"));
 
-        verify(categoryGroupService).getCategoryGroups(1, "all");
+        verify(categoryGroupService).getCategoryGroups("all");
     }
 
     @Test
     void getCategoryGroups_withStatusFilter_returnsGroups() throws Exception {
-        when(categoryGroupService.getCategoryGroups(1, "non-active"))
+        when(categoryGroupService.getCategoryGroups("non-active"))
                 .thenReturn(List.of(
                         new CategoryGroupSummary(
                                 302,
@@ -84,14 +84,14 @@ class CategoryGroupControllerTest {
                 .andExpect(jsonPath("$.categoryGroups[0].id").value(302))
                 .andExpect(jsonPath("$.categoryGroups[0].name").value("Archived Shifts"));
 
-        verify(categoryGroupService).getCategoryGroups(1, "non-active");
+        verify(categoryGroupService).getCategoryGroups("non-active");
     }
 
     @Test
     void getCategoryGroups_returnsBadRequestWhenStatusInvalid() throws Exception {
         doThrow(new ResponseStatusException(BAD_REQUEST, "Unsupported status filter"))
                 .when(categoryGroupService)
-                .getCategoryGroups(1, "archived");
+                .getCategoryGroups("archived");
 
         mockMvc.perform(get("/api/category-groups").param("companyId", "1").param("status", "archived"))
                 .andExpect(status().isBadRequest());
@@ -99,7 +99,7 @@ class CategoryGroupControllerTest {
 
     @Test
     void getCategoryGroupById_returnsGroupWhenFound() throws Exception {
-        when(categoryGroupService.getCategoryGroupById(301, 1))
+        when(categoryGroupService.getCategoryGroupById(301))
                 .thenReturn(Optional.of(
                         new CategoryGroupSummary(
                                 301,
@@ -113,17 +113,17 @@ class CategoryGroupControllerTest {
                 .andExpect(jsonPath("$.id").value(301))
                 .andExpect(jsonPath("$.name").value("Standard Shifts"));
 
-        verify(categoryGroupService).getCategoryGroupById(301, 1);
+        verify(categoryGroupService).getCategoryGroupById(301);
     }
 
     @Test
     void getCategoryGroupById_returnsNotFoundWhenMissing() throws Exception {
-        when(categoryGroupService.getCategoryGroupById(301, 1)).thenReturn(Optional.empty());
+        when(categoryGroupService.getCategoryGroupById(301)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/category-groups/301").param("companyId", "1"))
                 .andExpect(status().isNotFound());
 
-        verify(categoryGroupService).getCategoryGroupById(301, 1);
+        verify(categoryGroupService).getCategoryGroupById(301);
     }
 
     @Test
@@ -139,10 +139,7 @@ class CategoryGroupControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(categoryGroupService).createCategoryGroup(argThat(value ->
-                value.companyId().equals(1)
-                        && value.description().equals("Standard Shifts")
-                        && value.categoryIds().equals(List.of(4, 5))));
+        verify(categoryGroupService).createCategoryGroup("Standard Shifts", List.of(4, 5));
     }
 
     @Test
@@ -158,7 +155,7 @@ class CategoryGroupControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(categoryGroupService).updateCategoryGroup(eq(301), eq(1), argThat(value ->
+        verify(categoryGroupService).updateCategoryGroup(eq(301), argThat(value ->
                 value.description().equals("Updated Standard Shifts")
                         && value.categoryIds().equals(List.of(5))));
     }
@@ -167,7 +164,7 @@ class CategoryGroupControllerTest {
     void updateCategoryGroup_returnsBadRequestWhenServiceThrows() throws Exception {
         doThrow(new ResponseStatusException(BAD_REQUEST, "One or more categories were not found for the company"))
                 .when(categoryGroupService)
-                .updateCategoryGroup(eq(301), eq(1), argThat(value -> value.categoryIds().equals(List.of(999))));
+                .updateCategoryGroup(eq(301), argThat(value -> value.categoryIds().equals(List.of(999))));
 
         mockMvc.perform(put("/api/category-groups/301")
                         .param("companyId", "1")
@@ -186,14 +183,14 @@ class CategoryGroupControllerTest {
         mockMvc.perform(delete("/api/category-groups/301").param("companyId", "1"))
                 .andExpect(status().isNoContent());
 
-        verify(categoryGroupService).deleteCategoryGroup(301, 1);
+        verify(categoryGroupService).deleteCategoryGroup(301);
     }
 
     @Test
     void deleteCategoryGroup_returnsNotFoundWhenServiceThrows() throws Exception {
         doThrow(new ResponseStatusException(NOT_FOUND, "Category group not found"))
                 .when(categoryGroupService)
-                .deleteCategoryGroup(301, 1);
+                .deleteCategoryGroup(301);
 
         mockMvc.perform(delete("/api/category-groups/301").param("companyId", "1"))
                 .andExpect(status().isNotFound());

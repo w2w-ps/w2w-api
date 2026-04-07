@@ -13,14 +13,14 @@ class TenantContextTest {
     }
 
     @Test
-    void resolveTenant_returnsCurrentTenantWhenPresent() {
+    void getCurrentTenant_returnsCurrentTenantWhenPresent() {
         TenantContext.setCurrentTenant(7);
 
-        assertEquals(7, TenantContext.resolveTenant(99));
+        assertEquals(7, TenantContext.getCurrentTenant());
     }
 
     @Test
-    void resolveTenant_returnsMinusOneWhenCurrentTenantMissing() {
-        assertEquals(-1, TenantContext.resolveTenant(99));
+    void getCurrentTenant_returnsMinusOneWhenCurrentTenantMissing() {
+        assertEquals(-1, TenantContext.getCurrentTenant());
     }
 }

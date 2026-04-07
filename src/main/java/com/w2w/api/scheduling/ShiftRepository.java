@@ -49,7 +49,7 @@ public interface ShiftRepository extends JpaRepository<Shift, Integer> {
                 se.color AS color
             FROM scheduled_employee se
             LEFT JOIN schedule sc ON se.schedule_id = sc.schedule_id
-            LEFT JOIN skill sk ON se.required_skill_id = sk.skill_id
+            LEFT JOIN position sk ON se.required_position_id = sk.position_id
             LEFT JOIN category cat ON se.category_id = cat.category_id
             WHERE se.shift_id = :shiftId
               AND se.company_id = :companyId

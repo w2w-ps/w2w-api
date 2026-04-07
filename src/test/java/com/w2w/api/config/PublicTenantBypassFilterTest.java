@@ -27,7 +27,7 @@ class PublicTenantBypassFilterTest {
 
         filter.doFilter(request, response, (req, res) -> assertEquals(0, TenantContext.getCurrentTenant()));
 
-        assertNull(TenantContext.getCurrentTenant());
+        assertEquals(-1, TenantContext.getCurrentTenant());
     }
 
     @Test
@@ -36,8 +36,8 @@ class PublicTenantBypassFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/positions");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        filter.doFilter(request, response, (req, res) -> assertNull(TenantContext.getCurrentTenant()));
+        filter.doFilter(request, response, (req, res) -> assertEquals(-1, TenantContext.getCurrentTenant()));
 
-        assertNull(TenantContext.getCurrentTenant());
+        assertEquals(-1, TenantContext.getCurrentTenant());
     }
 }

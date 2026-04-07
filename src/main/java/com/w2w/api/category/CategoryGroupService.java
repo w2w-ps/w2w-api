@@ -8,6 +8,7 @@ import com.w2w.api.category.model.Category;
 import com.w2w.api.category.model.CategoryGroup;
 import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
+import com.w2w.api.config.CurrentTenant;
 import com.w2w.api.config.TenantContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -40,9 +41,8 @@ public class CategoryGroupService {
      * Returns the category groups for a company filtered by status.
      */
     @Transactional(readOnly = true)
-    public List<CategoryGroupSummary> getCategoryGroups(Integer companyId, String status) {
-        Integer resolvedCompanyId = TenantContext.resolveTenant(companyId);
-        return findCategoryGroupsByStatus(resolvedCompanyId, status).stream()
+    public List<CategoryGroupSummary> getCategoryGroups(String status) {
+        return findCategoryGroupsByStatus(TenantContext.getCurrentTenant(), status).stream()
                 .map(this::toSummary)
                 .toList();
     }
@@ -51,10 +51,10 @@ public class CategoryGroupService {
      * Returns a single category group when it exists for the company.
      */
     @Transactional(readOnly = true)
-    public Optional<CategoryGroupSummary> getCategoryGroupById(Integer groupId, Integer companyId) {
+    public Optional<CategoryGroupSummary> getCategoryGroupById(Integer groupId) {
         return categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(
                         groupId,
-                        TenantContext.resolveTenant(companyId)
+                        TenantContext.getCurrentTenant()
                 )
                 .map(this::toSummary);
     }
@@ -63,13 +63,13 @@ public class CategoryGroupService {
      * Creates a category group with the requested category membership.
      */
     @Transactional
-    public void createCategoryGroup(CreateCategoryGroupRequest request) {
-        Integer resolvedCompanyId = TenantContext.resolveTenant(request.companyId());
+    public void createCategoryGroup(String description, Collection<Integer> categoryIds) {
+        Integer resolvedCompanyId = CurrentTenant.requireCurrentTenant();
         CategoryGroup categoryGroup = new CategoryGroup();
         categoryGroup.setCompanyId(resolvedCompanyId);
-        categoryGroup.setDescription(request.description());
+        categoryGroup.setDescription(description);
         categoryGroup.setIsDeleted(false);
-        categoryGroup.setCategories(resolveCategories(request.categoryIds(), resolvedCompanyId));
+        categoryGroup.setCategories(resolveCategories(categoryIds, resolvedCompanyId));
         categoryGroupRepository.save(categoryGroup);
     }
 
@@ -77,8 +77,8 @@ public class CategoryGroupService {
      * Updates a category group and replaces its category membership.
      */
     @Transactional
-    public void updateCategoryGroup(Integer groupId, Integer companyId, UpdateCategoryGroupRequest request) {
-        Integer resolvedCompanyId = TenantContext.resolveTenant(companyId);
+    public void updateCategoryGroup(Integer groupId, UpdateCategoryGroupRequest request) {
+        Integer resolvedCompanyId = CurrentTenant.requireCurrentTenant();
         CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, resolvedCompanyId);
         categoryGroup.setDescription(request.description());
         categoryGroup.setCategories(resolveCategories(request.categoryIds(), resolvedCompanyId));
@@ -89,8 +89,8 @@ public class CategoryGroupService {
      * Soft-deletes a category group.
      */
     @Transactional
-    public void deleteCategoryGroup(Integer groupId, Integer companyId) {
-        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, TenantContext.resolveTenant(companyId));
+    public void deleteCategoryGroup(Integer groupId) {
+        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, CurrentTenant.requireCurrentTenant());
         categoryGroup.setIsDeleted(true);
         categoryGroupRepository.save(categoryGroup);
     }

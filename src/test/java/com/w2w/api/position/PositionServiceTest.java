@@ -1,28 +1,33 @@
 package com.w2w.api.position;
 
-import com.w2w.api.position.dto.CreatePositionRequest;
+import com.w2w.api.config.TenantContext;
 import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.position.dto.UpdatePositionRequest;
 import com.w2w.api.position.model.Position;
 import com.w2w.api.position.repository.PositionRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class PositionServiceTest {
+class PositionServiceTest {
 
     @Mock
     private PositionRepository positionRepository;
@@ -30,142 +35,116 @@ public class PositionServiceTest {
     @InjectMocks
     private PositionService positionService;
 
-    private Integer companyId;
-    private Integer positionId;
     private Position position;
 
     @BeforeEach
     void setUp() {
-        companyId = 1;
-        positionId = 101;
+        TenantContext.setCurrentTenant(1);
+
         position = new Position();
-        position.setPositionId(positionId);
-        position.setCompanyId(companyId);
+        position.setPositionId(101);
+        position.setCompanyId(1);
         position.setDescription("Server");
         position.setIsDeleted(false);
     }
 
-    @Test
-    void getPositions_Active_ReturnsActivePositions() {
-        Position deletedPosition = new Position();
-        deletedPosition.setPositionId(102);
-        deletedPosition.setIsDeleted(true);
-
-        when(positionRepository.findByCompanyIdAndIsDeletedFalse(companyId))
-                .thenReturn(Arrays.asList(position));
-
-        List<PositionSummary> result = positionService.getPositions(companyId, "active");
-
-        assertEquals(1, result.size());
-        assertTrue(result.stream().anyMatch(p -> p.positionId().equals(positionId)));
-        verify(positionRepository, times(1)).findByCompanyIdAndIsDeletedFalse(companyId);
+    @AfterEach
+    void clearTenantContext() {
+        TenantContext.clear();
     }
 
     @Test
-    void getPositions_Inactive_ReturnsInactivePositions() {
+    void getPositions_active_returnsActivePositions() {
+        when(positionRepository.findByCompanyIdAndIsDeletedFalse(1)).thenReturn(List.of(position));
+
+        List<PositionSummary> result = positionService.getPositions("active");
+
+        assertEquals(1, result.size());
+        assertEquals(101, result.getFirst().positionId());
+    }
+
+    @Test
+    void getPositions_inactive_returnsInactivePositions() {
         Position deletedPosition = new Position();
         deletedPosition.setPositionId(102);
-        deletedPosition.setIsDeleted(true);
+        deletedPosition.setCompanyId(1);
         deletedPosition.setDescription("Former Server");
+        deletedPosition.setIsDeleted(true);
+        when(positionRepository.findByCompanyIdAndIsDeletedTrue(1)).thenReturn(List.of(deletedPosition));
 
-        when(positionRepository.findByCompanyIdAndIsDeletedTrue(companyId))
-                .thenReturn(Arrays.asList(deletedPosition));
-
-        List<PositionSummary> result = positionService.getPositions(companyId, "inactive");
+        List<PositionSummary> result = positionService.getPositions("inactive");
 
         assertEquals(1, result.size());
-        assertEquals(102, result.get(0).positionId());
-        verify(positionRepository, times(1)).findByCompanyIdAndIsDeletedTrue(companyId);
+        assertEquals(102, result.getFirst().positionId());
     }
 
     @Test
-    void getPositions_All_ReturnsAllPositions() {
+    void getPositions_all_returnsAllPositions() {
         Position deletedPosition = new Position();
         deletedPosition.setPositionId(102);
+        deletedPosition.setCompanyId(1);
         deletedPosition.setIsDeleted(true);
+        when(positionRepository.findByCompanyId(1)).thenReturn(List.of(position, deletedPosition));
 
-        when(positionRepository.findByCompanyId(companyId))
-                .thenReturn(Arrays.asList(position, deletedPosition));
-
-        List<PositionSummary> result = positionService.getPositions(companyId, "all");
+        List<PositionSummary> result = positionService.getPositions("all");
 
         assertEquals(2, result.size());
-        verify(positionRepository, times(1)).findByCompanyId(companyId);
+        verify(positionRepository).findByCompanyId(1);
     }
 
     @Test
-    void getPositionById_ExistingActive_ReturnsPosition() {
-        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
-                .thenReturn(Optional.of(position));
+    void getPositions_unsupportedStatus_throwsBadRequest() {
+        ResponseStatusException exception =
+                assertThrows(ResponseStatusException.class, () -> positionService.getPositions("archived"));
 
-        Optional<PositionSummary> result = positionService.getPositionById(positionId, companyId);
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+    }
+
+    @Test
+    void getPositionById_returnsPosition() {
+        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(101, 1)).thenReturn(Optional.of(position));
+
+        Optional<PositionSummary> result = positionService.getPositionById(101);
 
         assertTrue(result.isPresent());
-        assertEquals(positionId, result.get().positionId());
-        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
+        assertEquals(101, result.get().positionId());
     }
 
     @Test
-    void getPositionById_NotFound_ReturnsEmpty() {
-        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
-                .thenReturn(Optional.empty());
+    void createPosition_savesPosition() {
+        positionService.createPosition("Bartender");
 
-        Optional<PositionSummary> result = positionService.getPositionById(positionId, companyId);
-
-        assertFalse(result.isPresent());
-        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
+        verify(positionRepository).save(any(Position.class));
     }
 
     @Test
-    void createPosition_SavesPosition() {
-        CreatePositionRequest request = new CreatePositionRequest(companyId, "Bartender");
-        
-        positionService.createPosition(request);
+    void createPosition_withoutTenant_throwsUnauthorized() {
+        TenantContext.clear();
 
-        verify(positionRepository, times(1)).save(any(Position.class));
+        ResponseStatusException exception =
+                assertThrows(ResponseStatusException.class, () -> positionService.createPosition("Bartender"));
+
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
+        verify(positionRepository, never()).save(any(Position.class));
     }
 
     @Test
-    void updatePosition_Existing_UpdatesAndSaves() {
-        UpdatePositionRequest request = new UpdatePositionRequest("Lead Server");
-        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
-                .thenReturn(Optional.of(position));
+    void updatePosition_updatesAndSaves() {
+        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(101, 1)).thenReturn(Optional.of(position));
 
-        positionService.updatePosition(positionId, companyId, request);
+        positionService.updatePosition(101, new UpdatePositionRequest("Lead Server"));
 
         assertEquals("Lead Server", position.getDescription());
-        verify(positionRepository, times(1)).save(position);
-        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
+        verify(positionRepository).save(position);
     }
 
     @Test
-    void updatePosition_NotFound_ThrowsException() {
-        UpdatePositionRequest request = new UpdatePositionRequest("Lead Server");
-        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
-                .thenReturn(Optional.empty());
+    void deletePosition_setsDeletedAndSaves() {
+        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(101, 1)).thenReturn(Optional.of(position));
 
-        assertThrows(ResponseStatusException.class, () -> positionService.updatePosition(positionId, companyId, request));
-        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
-    }
-
-    @Test
-    void deletePosition_Existing_SetsDeletedAndSaves() {
-        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
-                .thenReturn(Optional.of(position));
-
-        positionService.deletePosition(positionId, companyId);
+        positionService.deletePosition(101);
 
         assertTrue(position.getIsDeleted());
-        verify(positionRepository, times(1)).save(position);
-        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
-    }
-
-    @Test
-    void deletePosition_NotFound_ThrowsException() {
-        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
-                .thenReturn(Optional.empty());
-
-        assertThrows(ResponseStatusException.class, () -> positionService.deletePosition(positionId, companyId));
-        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
+        verify(positionRepository).save(position);
     }
 }

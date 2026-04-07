@@ -46,7 +46,7 @@ class PositionControllerTest {
 
     @Test
     void getAllPositions_returnsPositions() throws Exception {
-        when(positionService.getPositions(1, "all"))
+        when(positionService.getPositions("all"))
                 .thenReturn(List.of(
                         new PositionSummary(101, "Bartender"),
                         new PositionSummary(102, "Server")
@@ -59,12 +59,12 @@ class PositionControllerTest {
                 .andExpect(jsonPath("$.positions[1].positionId").value(102))
                 .andExpect(jsonPath("$.positions[1].description").value("Server"));
 
-        verify(positionService).getPositions(1, "all");
+        verify(positionService).getPositions("all");
     }
 
     @Test
     void getPositions_withStatusFilter_returnsPositions() throws Exception {
-        when(positionService.getPositions(1, "inactive"))
+        when(positionService.getPositions("inactive"))
                 .thenReturn(List.of(new PositionSummary(103, "Archived Server")));
 
         mockMvc.perform(get("/api/positions").param("companyId", "1").param("status", "inactive"))
@@ -72,12 +72,12 @@ class PositionControllerTest {
                 .andExpect(jsonPath("$.positions[0].positionId").value(103))
                 .andExpect(jsonPath("$.positions[0].description").value("Archived Server"));
 
-        verify(positionService).getPositions(1, "inactive");
+        verify(positionService).getPositions("inactive");
     }
 
     @Test
     void getPositionById_returnsPositionWhenFound() throws Exception {
-        when(positionService.getPositionById(101, 1))
+        when(positionService.getPositionById(101))
                 .thenReturn(Optional.of(new PositionSummary(101, "Bartender")));
 
         mockMvc.perform(get("/api/positions/101").param("companyId", "1"))
@@ -85,17 +85,17 @@ class PositionControllerTest {
                 .andExpect(jsonPath("$.positionId").value(101))
                 .andExpect(jsonPath("$.description").value("Bartender"));
 
-        verify(positionService).getPositionById(101, 1);
+        verify(positionService).getPositionById(101);
     }
 
     @Test
     void getPositionById_returnsNotFoundWhenMissing() throws Exception {
-        when(positionService.getPositionById(101, 1)).thenReturn(Optional.empty());
+        when(positionService.getPositionById(101)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/positions/101").param("companyId", "1"))
                 .andExpect(status().isNotFound());
 
-        verify(positionService).getPositionById(101, 1);
+        verify(positionService).getPositionById(101);
     }
 
     @Test
@@ -110,8 +110,7 @@ class PositionControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(positionService).createPosition(argThat(value ->
-                value.companyId().equals(1) && value.description().equals("Host")));
+        verify(positionService).createPosition("Host");
     }
 
     @Test
@@ -126,7 +125,7 @@ class PositionControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(positionService).updatePosition(eq(101), eq(1), argThat(value ->
+        verify(positionService).updatePosition(eq(101), argThat(value ->
                 value.description().equals("Lead Bartender")));
     }
 
@@ -134,7 +133,7 @@ class PositionControllerTest {
     void updatePosition_returnsNotFoundWhenServiceThrows() throws Exception {
         doThrow(new ResponseStatusException(NOT_FOUND, "Position not found"))
                 .when(positionService)
-                .updatePosition(eq(101), eq(1), argThat(value -> value.description().equals("Lead Bartender")));
+                .updatePosition(eq(101), argThat(value -> value.description().equals("Lead Bartender")));
 
         mockMvc.perform(put("/api/positions/101")
                         .param("companyId", "1")
@@ -152,14 +151,14 @@ class PositionControllerTest {
         mockMvc.perform(delete("/api/positions/101").param("companyId", "1"))
                 .andExpect(status().isNoContent());
 
-        verify(positionService).deletePosition(101, 1);
+        verify(positionService).deletePosition(101);
     }
 
     @Test
     void deletePosition_returnsNotFoundWhenServiceThrows() throws Exception {
         doThrow(new ResponseStatusException(NOT_FOUND, "Position not found"))
                 .when(positionService)
-                .deletePosition(101, 1);
+                .deletePosition(101);
 
         mockMvc.perform(delete("/api/positions/101").param("companyId", "1"))
                 .andExpect(status().isNotFound());
