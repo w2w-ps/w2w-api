@@ -66,48 +66,26 @@ position_data AS (
     JOIN company_positions cp ON ep.position_id = cp.position_id
     WHERE ep.employee_id IN (SELECT employee_id FROM relevant_employee_ids)
     GROUP BY ep.employee_id
-),
-employee_shifts AS (
-    SELECT
-        fs.employee_id,
-        jsonb_object_agg(
-            fs.weekCommencing,
-            jsonb_build_object(
-                'date', fs.weekCommencing,
-                'shifts', (
-                    SELECT jsonb_agg(jsonb_build_object(
-                        'shiftId', s.shift_id,
-                        'startTime', s.start_time,
-                        'endTime', s.end_time,
-                        'position', s.position,
-                        'category', s.category,
-                        'description', s.description,
-                        'duration', s.duration,
-                        'color', s.color
-                    ))
-                    FROM filtered_shifts s
-                    WHERE s.employee_id = fs.employee_id AND s.weekCommencing = fs.weekCommencing
-                )
-            )
-        ) AS weeklyShifts,
-        COUNT(fs.shift_id) AS shiftCount,
-        SUM(fs.duration) AS totalDuration
-    FROM filtered_shifts fs
-    WHERE fs.employee_id IS NOT NULL
-    GROUP BY fs.employee_id
 )
 SELECT
-    fe.employee_id,
-    fe.first_name,
-    fe.last_name,
-    pd.phones,
-    posd.positions AS availablePositions,
-    es.weeklyShifts,
-    COALESCE(es.totalDuration, 0) AS totalHours,
-    COALESCE(es.shiftCount, 0) AS shiftCount
+    fe.employee_id AS "employeeId",
+    fe.first_name AS "firstName",
+    fe.last_name AS "lastName",
+    pd.phones AS "phones",
+    posd.positions AS "availablePositions",
+    fs.shift_id AS "shiftId",
+    fs.weekCommencing AS "weekCommencing",
+    fs.start_time AS "startTime",
+    fs.end_time AS "endTime",
+    fs.is_overnight AS "isOvernight",
+    fs.position AS "position",
+    fs.category AS "category",
+    fs.description AS "description",
+    fs.duration AS "duration",
+    fs.color AS "color"
 FROM filtered_employees fe
 LEFT JOIN phone_data pd ON fe.employee_id = pd.employee_id
-LEFT JOIN employee_shifts es ON fe.employee_id = es.employee_id
 LEFT JOIN position_data posd ON fe.employee_id = posd.employee_id
+LEFT JOIN filtered_shifts fs ON fe.employee_id = fs.employee_id
 WHERE fe.employee_id IN (SELECT employee_id FROM relevant_employee_ids)
-ORDER BY fe.last_name, fe.first_name;
+ORDER BY fe.last_name, fe.first_name, fs.weekCommencing, fs.start_time;
