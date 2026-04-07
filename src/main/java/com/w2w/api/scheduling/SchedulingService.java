@@ -728,7 +728,7 @@ public class SchedulingService {
             return List.of();
         }
 
-        return positionService.getAllPositions(companyId).stream()
+        return positionService.getPositions(companyId, "all").stream()
                 .map(PositionSummary::description)
                 .filter(Objects::nonNull)
                 .distinct()
