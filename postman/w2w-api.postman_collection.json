@@ -384,7 +384,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"shortName\": \"FLR\",\n  \"description\": \"Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"skillId\": 1,\n  \"color\": 1\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"shortName\": \"FLR\",\n  \"description\": \"Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"positionId\": 1,\n  \"color\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -410,7 +410,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"shortName\": \"FLOOR\",\n  \"description\": \"Updated Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"skillId\": 1,\n  \"color\": 2\n}",
+              "raw": "{\n  \"shortName\": \"FLOOR\",\n  \"description\": \"Updated Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"positionId\": 1,\n  \"color\": 2\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -431,6 +431,128 @@
               }
             ],
             "url": "{{baseUrl}}/api/categories/{{categoryId}}?companyId={{companyId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Category Groups",
+      "item": [
+        {
+          "name": "Get Category Groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/category-groups?companyId={{companyId}}&status=all"
+          }
+        },
+        {
+          "name": "Get Active Category Groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/category-groups?companyId={{companyId}}&status=active"
+          }
+        },
+        {
+          "name": "Get Non-Active Category Groups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/category-groups?companyId={{companyId}}&status=non-active"
+          }
+        },
+        {
+          "name": "Get Category Group By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/category-groups/{{categoryGroupId}}?companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Create Category Group",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"description\": \"Standard Shifts\",\n  \"categoryIds\": [1, 2]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/category-groups"
+          }
+        },
+        {
+          "name": "Update Category Group",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated Standard Shifts\",\n  \"categoryIds\": [2, 3]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/category-groups/{{categoryGroupId}}?companyId={{companyId}}"
+          }
+        },
+        {
+          "name": "Delete Category Group",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/category-groups/{{categoryGroupId}}?companyId={{companyId}}"
           }
         }
       ]

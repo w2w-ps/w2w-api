@@ -40,6 +40,11 @@
   `DELETE /api/position-groups/{id}?companyId=...`
 - `category`
   `GET /api/categories?companyId=...`
+  `GET /api/category-groups?companyId=...&status=...`
+  `GET /api/category-groups/{id}?companyId=...`
+  `POST /api/category-groups`
+  `PUT /api/category-groups/{id}?companyId=...`
+  `DELETE /api/category-groups/{id}?companyId=...`
 - `scheduling`
   `POST /api/scheduling/shifts`
   `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
