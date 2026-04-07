@@ -110,31 +110,31 @@ public class ManagerService {
         // Always force the newly created manager to be an Additional Manager
         permissions.setMainManager(false);
 
-        ManagerPermissionsDto pDto = request.permissions();
-        if (pDto != null) {
-            permissions.setCanAddShifts(Boolean.TRUE.equals(pDto.canAddShifts()));
-            permissions.setCanImportTemplates(Boolean.TRUE.equals(pDto.canImportTemplates()));
-            permissions.setCanUploadShifts(Boolean.TRUE.equals(pDto.canUploadShifts()));
-            permissions.setCanAutofillShifts(Boolean.TRUE.equals(pDto.canAutofillShifts()));
-            permissions.setCanClearSchedules(Boolean.TRUE.equals(pDto.canClearSchedules()));
-            permissions.setCanEditShifts(Boolean.TRUE.equals(pDto.canEditShifts()));
-            permissions.setCanSaveTemplates(Boolean.TRUE.equals(pDto.canSaveTemplates()));
-            permissions.setCanPublishSchedules(Boolean.TRUE.equals(pDto.canPublishSchedules()));
-            permissions.setCanUnpublishSchedules(Boolean.TRUE.equals(pDto.canUnpublishSchedules()));
-            permissions.setCanManageCategories(Boolean.TRUE.equals(pDto.canManageCategories()));
+        ManagerPermissionsDto permissionsDto = request.permissions();
+        if (permissionsDto != null) {
+            permissions.setCanAddShifts(Boolean.TRUE.equals(permissionsDto.canAddShifts()));
+            permissions.setCanImportTemplates(Boolean.TRUE.equals(permissionsDto.canImportTemplates()));
+            permissions.setCanUploadShifts(Boolean.TRUE.equals(permissionsDto.canUploadShifts()));
+            permissions.setCanAutofillShifts(Boolean.TRUE.equals(permissionsDto.canAutofillShifts()));
+            permissions.setCanClearSchedules(Boolean.TRUE.equals(permissionsDto.canClearSchedules()));
+            permissions.setCanEditShifts(Boolean.TRUE.equals(permissionsDto.canEditShifts()));
+            permissions.setCanSaveTemplates(Boolean.TRUE.equals(permissionsDto.canSaveTemplates()));
+            permissions.setCanPublishSchedules(Boolean.TRUE.equals(permissionsDto.canPublishSchedules()));
+            permissions.setCanUnpublishSchedules(Boolean.TRUE.equals(permissionsDto.canUnpublishSchedules()));
+            permissions.setCanManageCategories(Boolean.TRUE.equals(permissionsDto.canManageCategories()));
 
-            permissions.setCanAddEmployees(Boolean.TRUE.equals(pDto.canAddEmployees()));
-            permissions.setCanViewPayRates(Boolean.TRUE.equals(pDto.canViewPayRates()));
-            permissions.setCanEditEmployees(Boolean.TRUE.equals(pDto.canEditEmployees()));
+            permissions.setCanAddEmployees(Boolean.TRUE.equals(permissionsDto.canAddEmployees()));
+            permissions.setCanViewPayRates(Boolean.TRUE.equals(permissionsDto.canViewPayRates()));
+            permissions.setCanEditEmployees(Boolean.TRUE.equals(permissionsDto.canEditEmployees()));
 
-            permissions.setCanApproveTrades(Boolean.TRUE.equals(pDto.canApproveTrades()));
-            permissions.setCanApproveTimeOff(Boolean.TRUE.equals(pDto.canApproveTimeOff()));
+            permissions.setCanApproveTrades(Boolean.TRUE.equals(permissionsDto.canApproveTrades()));
+            permissions.setCanApproveTimeOff(Boolean.TRUE.equals(permissionsDto.canApproveTimeOff()));
 
-            permissions.setCanChangeCompanySettings(Boolean.TRUE.equals(pDto.canChangeCompanySettings()));
-            permissions.setCanManagePositions(Boolean.TRUE.equals(pDto.canManagePositions()));
-            permissions.setCanManageTeamMembers(Boolean.TRUE.equals(pDto.canManageTeamMembers()));
+            permissions.setCanChangeCompanySettings(Boolean.TRUE.equals(permissionsDto.canChangeCompanySettings()));
+            permissions.setCanManagePositions(Boolean.TRUE.equals(permissionsDto.canManagePositions()));
+            permissions.setCanManageTeamMembers(Boolean.TRUE.equals(permissionsDto.canManageTeamMembers()));
 
-            permissions.setCanReceiveManagerNotifications(Boolean.TRUE.equals(pDto.canReceiveManagerNotifications()));
+            permissions.setCanReceiveManagerNotifications(Boolean.TRUE.equals(permissionsDto.canReceiveManagerNotifications()));
         }
 
         permissionsRepository.save(permissions);
@@ -169,31 +169,31 @@ public class ManagerService {
                 .orElse(new ManagerPermissions());
         permissions.setUser(user);
         
-        ManagerPermissionsDto pDto = request.permissions();
-        if (pDto != null) {
-            permissions.setCanAddShifts(Boolean.TRUE.equals(pDto.canAddShifts()));
-            permissions.setCanImportTemplates(Boolean.TRUE.equals(pDto.canImportTemplates()));
-            permissions.setCanUploadShifts(Boolean.TRUE.equals(pDto.canUploadShifts()));
-            permissions.setCanAutofillShifts(Boolean.TRUE.equals(pDto.canAutofillShifts()));
-            permissions.setCanClearSchedules(Boolean.TRUE.equals(pDto.canClearSchedules()));
-            permissions.setCanEditShifts(Boolean.TRUE.equals(pDto.canEditShifts()));
-            permissions.setCanSaveTemplates(Boolean.TRUE.equals(pDto.canSaveTemplates()));
-            permissions.setCanPublishSchedules(Boolean.TRUE.equals(pDto.canPublishSchedules()));
-            permissions.setCanUnpublishSchedules(Boolean.TRUE.equals(pDto.canUnpublishSchedules()));
-            permissions.setCanManageCategories(Boolean.TRUE.equals(pDto.canManageCategories()));
+        ManagerPermissionsDto permissionsDto = request.permissions();
+        if (permissionsDto != null) {
+            permissions.setCanAddShifts(Boolean.TRUE.equals(permissionsDto.canAddShifts()));
+            permissions.setCanImportTemplates(Boolean.TRUE.equals(permissionsDto.canImportTemplates()));
+            permissions.setCanUploadShifts(Boolean.TRUE.equals(permissionsDto.canUploadShifts()));
+            permissions.setCanAutofillShifts(Boolean.TRUE.equals(permissionsDto.canAutofillShifts()));
+            permissions.setCanClearSchedules(Boolean.TRUE.equals(permissionsDto.canClearSchedules()));
+            permissions.setCanEditShifts(Boolean.TRUE.equals(permissionsDto.canEditShifts()));
+            permissions.setCanSaveTemplates(Boolean.TRUE.equals(permissionsDto.canSaveTemplates()));
+            permissions.setCanPublishSchedules(Boolean.TRUE.equals(permissionsDto.canPublishSchedules()));
+            permissions.setCanUnpublishSchedules(Boolean.TRUE.equals(permissionsDto.canUnpublishSchedules()));
+            permissions.setCanManageCategories(Boolean.TRUE.equals(permissionsDto.canManageCategories()));
             
-            permissions.setCanAddEmployees(Boolean.TRUE.equals(pDto.canAddEmployees()));
-            permissions.setCanViewPayRates(Boolean.TRUE.equals(pDto.canViewPayRates()));
-            permissions.setCanEditEmployees(Boolean.TRUE.equals(pDto.canEditEmployees()));
+            permissions.setCanAddEmployees(Boolean.TRUE.equals(permissionsDto.canAddEmployees()));
+            permissions.setCanViewPayRates(Boolean.TRUE.equals(permissionsDto.canViewPayRates()));
+            permissions.setCanEditEmployees(Boolean.TRUE.equals(permissionsDto.canEditEmployees()));
             
-            permissions.setCanApproveTrades(Boolean.TRUE.equals(pDto.canApproveTrades()));
-            permissions.setCanApproveTimeOff(Boolean.TRUE.equals(pDto.canApproveTimeOff()));
+            permissions.setCanApproveTrades(Boolean.TRUE.equals(permissionsDto.canApproveTrades()));
+            permissions.setCanApproveTimeOff(Boolean.TRUE.equals(permissionsDto.canApproveTimeOff()));
             
-            permissions.setCanChangeCompanySettings(Boolean.TRUE.equals(pDto.canChangeCompanySettings()));
-            permissions.setCanManagePositions(Boolean.TRUE.equals(pDto.canManagePositions()));
-            permissions.setCanManageTeamMembers(Boolean.TRUE.equals(pDto.canManageTeamMembers()));
+            permissions.setCanChangeCompanySettings(Boolean.TRUE.equals(permissionsDto.canChangeCompanySettings()));
+            permissions.setCanManagePositions(Boolean.TRUE.equals(permissionsDto.canManagePositions()));
+            permissions.setCanManageTeamMembers(Boolean.TRUE.equals(permissionsDto.canManageTeamMembers()));
             
-            permissions.setCanReceiveManagerNotifications(Boolean.TRUE.equals(pDto.canReceiveManagerNotifications()));
+            permissions.setCanReceiveManagerNotifications(Boolean.TRUE.equals(permissionsDto.canReceiveManagerNotifications()));
         }
         
         permissionsRepository.save(permissions);
@@ -208,13 +208,14 @@ public class ManagerService {
         User user = loginRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Manager not found"));
 
+        // 1. Delete associated manager permissions
         permissionsRepository.findByUserId(id).ifPresent(permissionsRepository::delete);
         
-        Employee emp = user.getEmployee();
-        loginRepository.delete(user);
-        
-        if (emp != null) {
-            employeeRepository.delete(emp);
-        }
+        // 2. Soft-delete: Reassign to standard Employee role instead of deleting
+        UserRole employeeRole = roleRepository.findByName("Employee")
+                .orElseThrow(() -> new RuntimeException("Employee role not found in database."));
+        user.setRole(employeeRole);
+
+        loginRepository.save(user);
     }
 }
