@@ -2,15 +2,16 @@ package com.w2w.api.positiongroup.model;
 
 import com.w2w.api.position.model.Position;
 import jakarta.persistence.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "skill_group")
-@SequenceGenerator(name = "skill_group_id_seq", sequenceName = "skill_group_id_seq", allocationSize = 1)
+@Table(name = "position_group")
+@SequenceGenerator(name = "position_group_id_seq", sequenceName = "position_group_id_seq", allocationSize = 1)
 public class PositionGroup {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "skill_group_id_seq")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "position_group_id_seq")
     @Column(name = "group_id")
     private Integer groupId;
 
@@ -25,9 +26,9 @@ public class PositionGroup {
 
     @ManyToMany
     @JoinTable(
-        name = "group_skill",
+        name = "group_position",
         joinColumns = @JoinColumn(name = "group_id"),
-        inverseJoinColumns = @JoinColumn(name = "skill_id")
+        inverseJoinColumns = @JoinColumn(name = "position_id")
     )
     private List<Position> positions = new ArrayList<>();
 

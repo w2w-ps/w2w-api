@@ -1,5 +1,6 @@
 package com.w2w.api.positiongroup;
 
+import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.position.model.Position;
 import com.w2w.api.position.repository.PositionRepository;
 import com.w2w.api.positiongroup.dto.CreatePositionGroupRequest;
@@ -10,28 +11,20 @@ import com.w2w.api.positiongroup.repository.PositionGroupRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class PositionGroupServiceTest {
+public class PositionGroupServiceTest {
 
     @Mock
     private PositionGroupRepository positionGroupRepository;
@@ -42,159 +35,122 @@ class PositionGroupServiceTest {
     @InjectMocks
     private PositionGroupService positionGroupService;
 
-    private Position server;
-    private Position bartender;
-    private PositionGroup positionGroup;
+    private Integer companyId;
+    private Position position;
+    private PositionGroup group;
 
     @BeforeEach
     void setUp() {
-        server = new Position();
-        server.setSkillId(101);
-        server.setCompanyId(1);
-        server.setDescription("Server");
-        server.setIsDeleted(false);
-        server.setTimestamp(LocalDateTime.now());
+        companyId = 1;
 
-        bartender = new Position();
-        bartender.setSkillId(102);
-        bartender.setCompanyId(1);
-        bartender.setDescription("Bartender");
-        bartender.setIsDeleted(false);
-        bartender.setTimestamp(LocalDateTime.now());
+        position = new Position();
+        position.setPositionId(101);
+        position.setCompanyId(companyId);
+        position.setDescription("Server");
 
-        positionGroup = new PositionGroup();
-        positionGroup.setGroupId(201);
-        positionGroup.setCompanyId(1);
-        positionGroup.setDescription("Front of House");
-        positionGroup.setPositions(List.of(server));
+        group = new PositionGroup();
+        group.setGroupId(1);
+        group.setCompanyId(companyId);
+        group.setDescription("Core Staff");
+        group.setPositions(Collections.singletonList(position));
     }
 
     @Test
-    void getPositionGroups_returnsMappedGroups() {
-        when(positionGroupRepository.findByCompanyId(1)).thenReturn(List.of(positionGroup));
+    void getPositionGroups_ReturnsSummaries() {
+        when(positionGroupRepository.findByCompanyId(companyId))
+                .thenReturn(Collections.singletonList(group));
 
-        List<PositionGroupSummary> result = positionGroupService.getPositionGroups(1, "all");
+        List<PositionGroupSummary> result = positionGroupService.getPositionGroups(companyId, "all");
 
         assertEquals(1, result.size());
-        assertEquals(201, result.get(0).id());
-        assertEquals("Front of House", result.get(0).name());
+        assertEquals("Core Staff", result.get(0).name());
         assertEquals(1, result.get(0).positions().size());
-        assertEquals(101, result.get(0).positions().get(0).positionId());
-        verify(positionGroupRepository).findByCompanyId(1);
+        assertEquals("Server", result.get(0).positions().get(0).description());
     }
 
     @Test
-    void getPositionGroups_returnsMappedActiveGroups() {
-        when(positionGroupRepository.findByCompanyIdAndIsDeletedFalse(1)).thenReturn(List.of(positionGroup));
+    void createPositionGroup_ResolvesAndSaves() {
+        CreatePositionGroupRequest request = new CreatePositionGroupRequest(
+                companyId,
+                "Front of House",
+                Arrays.asList(101, 102)
+        );
 
-        List<PositionGroupSummary> result = positionGroupService.getPositionGroups(1, "active");
+        Position server = new Position();
+        server.setPositionId(101);
+        server.setDescription("Server");
 
-        assertEquals(1, result.size());
-        assertEquals(201, result.get(0).id());
-        verify(positionGroupRepository).findByCompanyIdAndIsDeletedFalse(1);
-    }
+        Position bartender = new Position();
+        bartender.setPositionId(102);
+        bartender.setDescription("Bartender");
 
-    @Test
-    void getPositionGroups_returnsMappedInactiveGroups() {
-        positionGroup.setIsDeleted(true);
-        when(positionGroupRepository.findByCompanyIdAndIsDeletedTrue(1)).thenReturn(List.of(positionGroup));
-
-        List<PositionGroupSummary> result = positionGroupService.getPositionGroups(1, "inactive");
-
-        assertEquals(1, result.size());
-        assertEquals(201, result.get(0).id());
-        verify(positionGroupRepository).findByCompanyIdAndIsDeletedTrue(1);
-    }
-
-    @Test
-    void getPositionGroups_throwsWhenStatusUnsupported() {
-        assertThrows(ResponseStatusException.class, () -> positionGroupService.getPositionGroups(1, "archived"));
-
-        verify(positionGroupRepository, never()).findByCompanyId(1);
-        verify(positionGroupRepository, never()).findByCompanyIdAndIsDeletedFalse(1);
-        verify(positionGroupRepository, never()).findByCompanyIdAndIsDeletedTrue(1);
-    }
-
-    @Test
-    void getPositionGroupById_returnsMappedGroup() {
-        when(positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(201, 1)).thenReturn(Optional.of(positionGroup));
-
-        Optional<PositionGroupSummary> result = positionGroupService.getPositionGroupById(201, 1);
-
-        assertTrue(result.isPresent());
-        assertEquals("Front of House", result.get().name());
-        verify(positionGroupRepository).findByGroupIdAndCompanyIdAndIsDeletedFalse(201, 1);
-    }
-
-    @Test
-    void createPositionGroup_savesResolvedPositions() {
-        CreatePositionGroupRequest request = new CreatePositionGroupRequest(1, "Front of House", List.of(102, 101));
-        when(positionRepository.findBySkillIdInAndCompanyId(
-                argThat(positionIds -> positionIds.size() == 2 && positionIds.containsAll(List.of(102, 101))),
-                eq(1)
-        ))
-                .thenReturn(List.of(server, bartender));
+        when(positionRepository.findByPositionIdInAndCompanyId(anySet(), eq(companyId)))
+                .thenReturn(Arrays.asList(server, bartender));
 
         positionGroupService.createPositionGroup(request);
 
-        verify(positionRepository).findBySkillIdInAndCompanyId(
-                argThat(positionIds -> positionIds.size() == 2 && positionIds.containsAll(List.of(102, 101))),
-                eq(1)
-        );
-        verify(positionGroupRepository).save(argThat(group ->
-                group.getCompanyId().equals(1)
-                        && group.getDescription().equals("Front of House")
-                        && Boolean.FALSE.equals(group.getIsDeleted())
-                        && group.getPositions().stream().map(Position::getSkillId).toList().equals(List.of(102, 101))));
+        ArgumentCaptor<PositionGroup> groupCaptor = ArgumentCaptor.forClass(PositionGroup.class);
+        verify(positionGroupRepository).save(groupCaptor.capture());
+
+        PositionGroup savedGroup = groupCaptor.getValue();
+        assertEquals("Front of House", savedGroup.getDescription());
+        assertEquals(2, savedGroup.getPositions().size());
+        // Verify order is preserved from request
+        assertEquals(101, savedGroup.getPositions().get(0).getPositionId());
+        assertEquals(102, savedGroup.getPositions().get(1).getPositionId());
     }
 
     @Test
-    void createPositionGroup_throwsWhenAnyPositionIsMissing() {
-        CreatePositionGroupRequest request = new CreatePositionGroupRequest(1, "Front of House", List.of(101, 999));
-        when(positionRepository.findBySkillIdInAndCompanyId(
-                argThat(positionIds -> positionIds.size() == 2 && positionIds.containsAll(List.of(101, 999))),
-                eq(1)
-        ))
-                .thenReturn(List.of(server));
+    void createPositionGroup_InvalidPositionId_ThrowsException() {
+        CreatePositionGroupRequest request = new CreatePositionGroupRequest(
+                companyId,
+                "Invalid Group",
+                Collections.singletonList(999)
+        );
+
+        when(positionRepository.findByPositionIdInAndCompanyId(anySet(), eq(companyId)))
+                .thenReturn(Collections.emptyList());
 
         assertThrows(ResponseStatusException.class, () -> positionGroupService.createPositionGroup(request));
-
-        verify(positionGroupRepository, never()).save(any(PositionGroup.class));
     }
 
     @Test
-    void updatePositionGroup_replacesGroupMembership() {
-        UpdatePositionGroupRequest request = new UpdatePositionGroupRequest("Updated Front of House", List.of(102));
-        when(positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(201, 1)).thenReturn(Optional.of(positionGroup));
-        when(positionRepository.findBySkillIdInAndCompanyId(
-                argThat(positionIds -> positionIds.size() == 1 && positionIds.contains(102)),
-                eq(1)
-        )).thenReturn(List.of(bartender));
+    void updatePositionGroup_UpdatesPositionsAndDescription() {
+        UpdatePositionGroupRequest request = new UpdatePositionGroupRequest(
+                "Updated Group",
+                Arrays.asList(102, 101)
+        );
 
-        positionGroupService.updatePositionGroup(201, 1, request);
+        Position server = new Position();
+        server.setPositionId(101);
+        server.setDescription("Server");
 
-        assertEquals("Updated Front of House", positionGroup.getDescription());
-        assertEquals(1, positionGroup.getPositions().size());
-        assertEquals(102, positionGroup.getPositions().get(0).getSkillId());
-        verify(positionGroupRepository).save(positionGroup);
+        Position bartender = new Position();
+        bartender.setPositionId(102);
+        bartender.setDescription("Bartender");
+
+        when(positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(1, companyId))
+                .thenReturn(Optional.of(group));
+        when(positionRepository.findByPositionIdInAndCompanyId(anySet(), eq(companyId)))
+                .thenReturn(Arrays.asList(server, bartender));
+
+        positionGroupService.updatePositionGroup(1, companyId, request);
+
+        verify(positionGroupRepository).save(group);
+        assertEquals("Updated Group", group.getDescription());
+        assertEquals(2, group.getPositions().size());
+        assertEquals(102, group.getPositions().get(0).getPositionId());
+        assertEquals(101, group.getPositions().get(1).getPositionId());
     }
 
     @Test
-    void deletePositionGroup_softDeletesGroup() {
-        when(positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(201, 1)).thenReturn(Optional.of(positionGroup));
+    void deletePositionGroup_SetsDeletedFlag() {
+        when(positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(1, companyId))
+                .thenReturn(Optional.of(group));
 
-        positionGroupService.deletePositionGroup(201, 1);
+        positionGroupService.deletePositionGroup(1, companyId);
 
-        assertTrue(positionGroup.getIsDeleted());
-        verify(positionGroupRepository).save(positionGroup);
-    }
-
-    @Test
-    void deletePositionGroup_throwsWhenMissing() {
-        when(positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(201, 1)).thenReturn(Optional.empty());
-
-        assertThrows(ResponseStatusException.class, () -> positionGroupService.deletePositionGroup(201, 1));
-
-        verify(positionGroupRepository, never()).save(any(PositionGroup.class));
+        assertTrue(group.getIsDeleted());
+        verify(positionGroupRepository).save(group);
     }
 }

@@ -663,7 +663,7 @@ components:
           format: float
         isOvernight:
           type: boolean
-        requiredSkillId:
+        requiredPositionId:
           type: integer
         categoryId:
           type: integer

@@ -4,12 +4,12 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "skill")
+@Table(name = "position")
 public class Position {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "skill_id")
-    private Integer skillId;
+    @Column(name = "position_id")
+    private Integer positionId;
 
     @Column(name = "company_id")
     private Integer companyId;
@@ -25,12 +25,12 @@ public class Position {
 
     public Position() {}
 
-    public Integer getSkillId() {
-        return skillId;
+    public Integer getPositionId() {
+        return positionId;
     }
 
-    public void setSkillId(Integer skillId) {
-        this.skillId = skillId;
+    public void setPositionId(Integer positionId) {
+        this.positionId = positionId;
     }
 
     public Integer getCompanyId() {

@@ -10,14 +10,9 @@ import com.w2w.api.positiongroup.model.PositionGroup;
 import com.w2w.api.positiongroup.repository.PositionGroupRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -32,91 +27,83 @@ public class PositionGroupService {
         this.positionRepository = positionRepository;
     }
 
-    @Transactional(readOnly = true)
     public List<PositionGroupSummary> getPositionGroups(Integer companyId, String status) {
-        return findPositionGroupsByStatus(companyId, status).stream()
-                .map(this::toSummary)
-                .toList();
+        List<PositionGroup> groups;
+        if ("active".equalsIgnoreCase(status)) {
+            groups = positionGroupRepository.findByCompanyIdAndIsDeletedFalse(companyId);
+        } else if ("inactive".equalsIgnoreCase(status)) {
+            groups = positionGroupRepository.findByCompanyIdAndIsDeletedTrue(companyId);
+        } else {
+            groups = positionGroupRepository.findByCompanyId(companyId);
+        }
+
+        return groups.stream()
+                .map(this::mapToSummary)
+                .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     public Optional<PositionGroupSummary> getPositionGroupById(Integer groupId, Integer companyId) {
         return positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(groupId, companyId)
-                .map(this::toSummary);
+                .map(this::mapToSummary);
     }
 
-    @Transactional
     public void createPositionGroup(CreatePositionGroupRequest request) {
-        PositionGroup positionGroup = new PositionGroup();
-        positionGroup.setCompanyId(request.companyId());
-        positionGroup.setDescription(request.description());
-        positionGroup.setIsDeleted(false);
-        positionGroup.setPositions(resolvePositions(request.positionIds(), request.companyId()));
-        positionGroupRepository.save(positionGroup);
+        PositionGroup group = new PositionGroup();
+        group.setCompanyId(request.companyId());
+        group.setDescription(request.description());
+        group.setIsDeleted(false);
+        
+        group.setPositions(resolvePositions(request.positionIds(), request.companyId()));
+        
+        positionGroupRepository.save(group);
     }
 
-    @Transactional
     public void updatePositionGroup(Integer groupId, Integer companyId, UpdatePositionGroupRequest request) {
-        PositionGroup positionGroup = requireActivePositionGroup(groupId, companyId);
-        positionGroup.setDescription(request.description());
-        positionGroup.setPositions(resolvePositions(request.positionIds(), companyId));
-        positionGroupRepository.save(positionGroup);
-    }
-
-    @Transactional
-    public void deletePositionGroup(Integer groupId, Integer companyId) {
-        PositionGroup positionGroup = requireActivePositionGroup(groupId, companyId);
-        positionGroup.setIsDeleted(true);
-        positionGroupRepository.save(positionGroup);
-    }
-
-    private PositionGroupSummary toSummary(PositionGroup positionGroup) {
-        return new PositionGroupSummary(
-                positionGroup.getGroupId(),
-                positionGroup.getDescription(),
-                positionGroup.getPositions().stream()
-                        .map(this::toPositionSummary)
-                        .toList()
-        );
-    }
-
-    private PositionSummary toPositionSummary(Position position) {
-        return new PositionSummary(position.getSkillId(), position.getDescription());
-    }
-
-    private PositionGroup requireActivePositionGroup(Integer groupId, Integer companyId) {
-        return positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(groupId, companyId)
+        PositionGroup group = positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(groupId, companyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Position group not found"));
+        
+        group.setDescription(request.description());
+        group.setPositions(resolvePositions(request.positionIds(), companyId));
+        
+        positionGroupRepository.save(group);
     }
 
-    private List<PositionGroup> findPositionGroupsByStatus(Integer companyId, String status) {
-        return switch (status.toLowerCase()) {
-            case "all" -> positionGroupRepository.findByCompanyId(companyId);
-            case "active" -> positionGroupRepository.findByCompanyIdAndIsDeletedFalse(companyId);
-            case "inactive" -> positionGroupRepository.findByCompanyIdAndIsDeletedTrue(companyId);
-            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported status filter");
-        };
+    public void deletePositionGroup(Integer groupId, Integer companyId) {
+        PositionGroup group = positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(groupId, companyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Position group not found"));
+        
+        group.setIsDeleted(true);
+        positionGroupRepository.save(group);
     }
 
-    private List<Position> resolvePositions(Collection<Integer> requestedPositionIds, Integer companyId) {
-        LinkedHashSet<Integer> uniquePositionIds = new LinkedHashSet<>(requestedPositionIds);
-        if (uniquePositionIds.isEmpty()) {
-            return List.of();
+    private PositionGroupSummary mapToSummary(PositionGroup group) {
+        List<PositionSummary> positions = group.getPositions().stream()
+                .map(this::mapToPositionSummary)
+                .toList();
+        return new PositionGroupSummary(group.getGroupId(), group.getDescription(), positions);
+    }
+
+    private PositionSummary mapToPositionSummary(Position position) {
+        return new PositionSummary(position.getPositionId(), position.getDescription());
+    }
+
+    private List<Position> resolvePositions(List<Integer> positionIds, Integer companyId) {
+        if (positionIds == null || positionIds.isEmpty()) {
+            return new ArrayList<>();
         }
 
-        List<Position> positions = positionRepository.findBySkillIdInAndCompanyId(uniquePositionIds, companyId);
+        Set<Integer> uniquePositionIds = new HashSet<>(positionIds);
+        List<Position> positions = positionRepository.findByPositionIdInAndCompanyId(uniquePositionIds, companyId);
+        
         if (positions.size() != uniquePositionIds.size()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "One or more positions were not found for the company"
-            );
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "One or more position ids were invalid for the company");
         }
 
-        Map<Integer, Position> positionsById = positions.stream()
-                .collect(Collectors.toMap(Position::getSkillId, Function.identity()));
+        Map<Integer, Position> positionMap = positions.stream()
+                .collect(Collectors.toMap(Position::getPositionId, Function.identity()));
 
-        return uniquePositionIds.stream()
-                .map(positionId -> positionsById.get(positionId))
+        return positionIds.stream()
+                .map(positionMap::get)
                 .toList();
     }
 }

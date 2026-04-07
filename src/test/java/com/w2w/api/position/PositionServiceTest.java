@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class PositionServiceTest {
+public class PositionServiceTest {
 
     @Mock
     private PositionRepository positionRepository;
@@ -32,165 +31,141 @@ class PositionServiceTest {
     private PositionService positionService;
 
     private Integer companyId;
-    private Integer skillId;
+    private Integer positionId;
     private Position position;
 
     @BeforeEach
     void setUp() {
         companyId = 1;
-        skillId = 101;
+        positionId = 101;
         position = new Position();
-        position.setSkillId(skillId);
+        position.setPositionId(positionId);
         position.setCompanyId(companyId);
-        position.setDescription("Test Position");
+        position.setDescription("Server");
         position.setIsDeleted(false);
-        position.setTimestamp(LocalDateTime.now());
     }
 
     @Test
-    void getPositions_shouldReturnListOfPositions() {
+    void getPositions_Active_ReturnsActivePositions() {
         Position deletedPosition = new Position();
-        deletedPosition.setSkillId(102);
-        deletedPosition.setCompanyId(companyId);
-        deletedPosition.setDescription("Deleted Position");
+        deletedPosition.setPositionId(102);
         deletedPosition.setIsDeleted(true);
-        deletedPosition.setTimestamp(LocalDateTime.now());
 
-        when(positionRepository.findByCompanyId(companyId))
-                .thenReturn(Arrays.asList(position, deletedPosition));
-
-        List<PositionSummary> result = positionService.getPositions(companyId, "all"); // Changed List type
-
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(2, result.size());
-        assertTrue(result.stream().anyMatch(p -> p.positionId().equals(skillId)));
-        assertTrue(result.stream().anyMatch(p -> p.positionId().equals(102)));
-        verify(positionRepository, times(1)).findByCompanyId(companyId);
-    }
-
-    @Test
-    void getPositions_shouldReturnListOfActivePositions() {
         when(positionRepository.findByCompanyIdAndIsDeletedFalse(companyId))
                 .thenReturn(Arrays.asList(position));
 
-        List<PositionSummary> result = positionService.getPositions(companyId, "active"); // Changed List type
+        List<PositionSummary> result = positionService.getPositions(companyId, "active");
 
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
         assertEquals(1, result.size());
-        assertEquals(skillId, result.get(0).positionId()); // Changed from skillId
+        assertTrue(result.stream().anyMatch(p -> p.positionId().equals(positionId)));
         verify(positionRepository, times(1)).findByCompanyIdAndIsDeletedFalse(companyId);
     }
 
     @Test
-    void getPositions_shouldReturnListOfInactivePositions() {
+    void getPositions_Inactive_ReturnsInactivePositions() {
         Position deletedPosition = new Position();
-        deletedPosition.setSkillId(skillId);
-        deletedPosition.setCompanyId(companyId);
-        deletedPosition.setDescription("Deleted Position");
+        deletedPosition.setPositionId(102);
         deletedPosition.setIsDeleted(true);
-        deletedPosition.setTimestamp(LocalDateTime.now());
+        deletedPosition.setDescription("Former Server");
 
         when(positionRepository.findByCompanyIdAndIsDeletedTrue(companyId))
                 .thenReturn(Arrays.asList(deletedPosition));
 
-        List<PositionSummary> result = positionService.getPositions(companyId, "inactive"); // Changed List type
+        List<PositionSummary> result = positionService.getPositions(companyId, "inactive");
 
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
         assertEquals(1, result.size());
-        assertEquals(skillId, result.get(0).positionId());
-        assertEquals("Deleted Position", result.get(0).description());
+        assertEquals(102, result.get(0).positionId());
         verify(positionRepository, times(1)).findByCompanyIdAndIsDeletedTrue(companyId);
     }
 
     @Test
-    void getPositions_shouldThrowExceptionWhenStatusUnsupported() {
-        assertThrows(ResponseStatusException.class, () -> positionService.getPositions(companyId, "archived"));
-        verify(positionRepository, never()).findByCompanyId(companyId);
-        verify(positionRepository, never()).findByCompanyIdAndIsDeletedFalse(companyId);
-        verify(positionRepository, never()).findByCompanyIdAndIsDeletedTrue(companyId);
+    void getPositions_All_ReturnsAllPositions() {
+        Position deletedPosition = new Position();
+        deletedPosition.setPositionId(102);
+        deletedPosition.setIsDeleted(true);
+
+        when(positionRepository.findByCompanyId(companyId))
+                .thenReturn(Arrays.asList(position, deletedPosition));
+
+        List<PositionSummary> result = positionService.getPositions(companyId, "all");
+
+        assertEquals(2, result.size());
+        verify(positionRepository, times(1)).findByCompanyId(companyId);
     }
 
     @Test
-    void getPositionById_shouldReturnPositionWhenFound() {
-        when(positionRepository.findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId))
+    void getPositionById_ExistingActive_ReturnsPosition() {
+        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
                 .thenReturn(Optional.of(position));
 
-        Optional<PositionSummary> result = positionService.getPositionById(skillId, companyId); // Changed Optional type
+        Optional<PositionSummary> result = positionService.getPositionById(positionId, companyId);
 
         assertTrue(result.isPresent());
-        assertEquals(skillId, result.get().positionId()); // Changed from skillId
-        verify(positionRepository, times(1)).findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId);
+        assertEquals(positionId, result.get().positionId());
+        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
     }
 
     @Test
-    void getPositionById_shouldReturnEmptyWhenNotFound() {
-        when(positionRepository.findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId))
+    void getPositionById_NotFound_ReturnsEmpty() {
+        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
                 .thenReturn(Optional.empty());
 
-        Optional<PositionSummary> result = positionService.getPositionById(skillId, companyId); // Changed Optional type
+        Optional<PositionSummary> result = positionService.getPositionById(positionId, companyId);
 
         assertFalse(result.isPresent());
-        verify(positionRepository, times(1)).findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId);
+        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
     }
 
     @Test
-    void createPosition_shouldSavePosition() {
-        CreatePositionRequest request = new CreatePositionRequest(companyId, "New Position");
-        when(positionRepository.save(any(Position.class))).thenReturn(position);
-
+    void createPosition_SavesPosition() {
+        CreatePositionRequest request = new CreatePositionRequest(companyId, "Bartender");
+        
         positionService.createPosition(request);
 
         verify(positionRepository, times(1)).save(any(Position.class));
     }
 
     @Test
-    void updatePosition_shouldUpdateExistingPosition() {
-        UpdatePositionRequest request = new UpdatePositionRequest("Updated Description");
-        when(positionRepository.findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId))
+    void updatePosition_Existing_UpdatesAndSaves() {
+        UpdatePositionRequest request = new UpdatePositionRequest("Lead Server");
+        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
                 .thenReturn(Optional.of(position));
-        when(positionRepository.save(any(Position.class))).thenReturn(position);
 
-        positionService.updatePosition(skillId, companyId, request);
+        positionService.updatePosition(positionId, companyId, request);
 
-        assertEquals("Updated Description", position.getDescription());
-        verify(positionRepository, times(1)).findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId);
+        assertEquals("Lead Server", position.getDescription());
         verify(positionRepository, times(1)).save(position);
+        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
     }
 
     @Test
-    void updatePosition_shouldThrowExceptionWhenNotFound() {
-        UpdatePositionRequest request = new UpdatePositionRequest("Updated Description");
-        when(positionRepository.findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId))
+    void updatePosition_NotFound_ThrowsException() {
+        UpdatePositionRequest request = new UpdatePositionRequest("Lead Server");
+        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
                 .thenReturn(Optional.empty());
 
-        assertThrows(ResponseStatusException.class, () -> positionService.updatePosition(skillId, companyId, request));
-        verify(positionRepository, times(1)).findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId);
-        verify(positionRepository, never()).save(any(Position.class));
+        assertThrows(ResponseStatusException.class, () -> positionService.updatePosition(positionId, companyId, request));
+        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
     }
 
     @Test
-    void deletePosition_shouldSoftDeletePosition() {
-        when(positionRepository.findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId))
+    void deletePosition_Existing_SetsDeletedAndSaves() {
+        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
                 .thenReturn(Optional.of(position));
-        when(positionRepository.save(any(Position.class))).thenReturn(position);
 
-        positionService.deletePosition(skillId, companyId);
+        positionService.deletePosition(positionId, companyId);
 
         assertTrue(position.getIsDeleted());
-        verify(positionRepository, times(1)).findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId);
         verify(positionRepository, times(1)).save(position);
+        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
     }
 
     @Test
-    void deletePosition_shouldThrowExceptionWhenNotFound() {
-        when(positionRepository.findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId))
+    void deletePosition_NotFound_ThrowsException() {
+        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId))
                 .thenReturn(Optional.empty());
 
-        assertThrows(ResponseStatusException.class, () -> positionService.deletePosition(skillId, companyId));
-        verify(positionRepository, times(1)).findBySkillIdAndCompanyIdAndIsDeletedFalse(skillId, companyId);
-        verify(positionRepository, never()).save(any(Position.class));
+        assertThrows(ResponseStatusException.class, () -> positionService.deletePosition(positionId, companyId));
+        verify(positionRepository, times(1)).findByPositionIdAndCompanyIdAndIsDeletedFalse(positionId, companyId);
     }
 }

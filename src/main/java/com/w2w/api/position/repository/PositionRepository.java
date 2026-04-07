@@ -1,22 +1,22 @@
 package com.w2w.api.position.repository;
 
-import com.w2w.api.position.model.Position; // Import Position entity
+import com.w2w.api.position.model.Position;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional; // Needed for findById methods
+import java.util.Optional;
 
 @Repository
 public interface PositionRepository extends JpaRepository<Position, Integer> {
-    // Custom queries for Position, considering isDeleted
+    List<Position> findByCompanyId(Integer companyId);
+
     List<Position> findByCompanyIdAndIsDeletedFalse(Integer companyId);
-    Optional<Position> findBySkillIdAndCompanyIdAndIsDeletedFalse(Integer skillId, Integer companyId);
 
     List<Position> findByCompanyIdAndIsDeletedTrue(Integer companyId);
-    List<Position> findByCompanyId(Integer companyId); // New method to get all positions by companyId
-    List<Position> findBySkillIdInAndCompanyId(Collection<Integer> skillIds, Integer companyId);
 
-    // TODO: Consider if there's a need for more nuanced 'active'/'inactive' states beyond just isDeleted
+    Optional<Position> findByPositionIdAndCompanyIdAndIsDeletedFalse(Integer positionId, Integer companyId);
+
+    List<Position> findByPositionIdInAndCompanyId(Collection<Integer> positionIds, Integer companyId);
 }

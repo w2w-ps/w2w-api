@@ -650,7 +650,7 @@ class SchedulingControllerTest {
         shift.setEndTime(LocalTime.of(18, 0));
         shift.setDuration(8.0f);
         shift.setIsOvernight(false);
-        shift.setRequiredSkillId(12);
+        shift.setRequiredPositionId(12);
         shift.setCategoryId(4);
         shift.setColor("amber");
         shift.setIsDeleted(false);

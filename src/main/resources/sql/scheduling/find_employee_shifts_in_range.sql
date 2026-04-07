@@ -1,19 +1,25 @@
-WITH filtered_company AS (
-    SELECT :companyId AS c_id
-),
--- Optimization: Build JSON objects once per company skill to avoid redundant processing per employee
-company_skills AS (
+-- Optimization: Build JSON objects once per company position to avoid redundant processing per employee
+WITH company_positions AS (
     SELECT
-        sk.skill_id,
-        json_build_object('positionId', sk.skill_id, 'description', sk.description) as skill_json,
-        sk.description
-    FROM skill sk
-    JOIN filtered_company fc ON sk.company_id = fc.c_id
+        p.position_id,
+        json_build_object('positionId', p.position_id, 'description', p.description) as position_json,
+        p.company_id as c_id,
+        p.description
+    FROM position p
+    WHERE p.company_id = :companyId
+      AND p.is_deleted = false
 ),
 filtered_employees AS (
-    SELECT e.employee_id, e.first_name, e.last_name
+    SELECT
+        e.employee_id,
+        e.first_name,
+        e.last_name,
+        e.company_id
     FROM employee e
-    JOIN filtered_company fc ON e.company_id = fc.c_id
+    WHERE e.company_id = :companyId
+),
+filtered_company AS (
+    SELECT company_id AS c_id FROM company WHERE company_id = :companyId
 ),
 filtered_shifts AS (
     SELECT
@@ -23,7 +29,7 @@ filtered_shifts AS (
         se.start_time,
         se.end_time,
         se.is_overnight,
-        sk.description AS position,
+        p.description AS position,
         cat.description AS category,
         se.description,
         se.duration,
@@ -32,7 +38,7 @@ filtered_shifts AS (
     JOIN schedule sc ON se.schedule_id = sc.schedule_id
         AND sc.start_date BETWEEN :startDate AND :endDate
     JOIN filtered_company fc ON se.company_id = fc.c_id
-    LEFT JOIN skill sk ON se.required_skill_id = sk.skill_id
+    LEFT JOIN position p ON se.required_position_id = p.position_id
     LEFT JOIN category cat ON se.category_id = cat.category_id
     WHERE se.is_deleted = false
 ),
@@ -49,36 +55,59 @@ phone_data AS (
     WHERE ep.employee_id IN (SELECT employee_id FROM relevant_employee_ids)
     GROUP BY ep.employee_id
 ),
-skill_data AS (
+position_data AS (
     SELECT
-        es.employee_id,
-        json_agg(
-            cs.skill_json
-            ORDER BY cs.description, cs.skill_id
-        ) AS availablePositions
-    FROM employee_skill es
-    JOIN company_skills cs ON es.skill_id = cs.skill_id
-    WHERE es.employee_id IN (SELECT employee_id FROM relevant_employee_ids)
-    GROUP BY es.employee_id
+        ep.employee_id,
+        jsonb_agg(
+            cp.position_json
+            ORDER BY cp.description, cp.position_id
+        ) AS positions
+    FROM employee_position ep
+    JOIN company_positions cp ON ep.position_id = cp.position_id
+    WHERE ep.employee_id IN (SELECT employee_id FROM relevant_employee_ids)
+    GROUP BY ep.employee_id
+),
+employee_shifts AS (
+    SELECT
+        fs.employee_id,
+        jsonb_object_agg(
+            fs.weekCommencing,
+            jsonb_build_object(
+                'date', fs.weekCommencing,
+                'shifts', (
+                    SELECT jsonb_agg(jsonb_build_object(
+                        'shiftId', s.shift_id,
+                        'startTime', s.start_time,
+                        'endTime', s.end_time,
+                        'position', s.position,
+                        'category', s.category,
+                        'description', s.description,
+                        'duration', s.duration,
+                        'color', s.color
+                    ))
+                    FROM filtered_shifts s
+                    WHERE s.employee_id = fs.employee_id AND s.weekCommencing = fs.weekCommencing
+                )
+            )
+        ) AS weeklyShifts,
+        COUNT(fs.shift_id) AS shiftCount,
+        SUM(fs.duration) AS totalDuration
+    FROM filtered_shifts fs
+    WHERE fs.employee_id IS NOT NULL
+    GROUP BY fs.employee_id
 )
 SELECT
-    fs.shift_id AS shiftId,
-    COALESCE(fe.employee_id, fs.employee_id) AS employeeId,
-    fe.first_name AS firstName,
-    fe.last_name AS lastName,
-    pd.phones AS phones,
-    sd.availablePositions AS availablePositions,
-    fs.weekCommencing AS weekCommencing,
-    fs.start_time AS startTime,
-    fs.end_time AS endTime,
-    fs.is_overnight AS isOvernight,
-    fs.position AS position,
-    fs.category AS category,
-    fs.description AS description,
-    fs.duration AS duration,
-    fs.color AS color
-FROM filtered_shifts fs
-FULL OUTER JOIN filtered_employees fe ON fs.employee_id = fe.employee_id
-LEFT JOIN phone_data pd ON COALESCE(fe.employee_id, fs.employee_id) = pd.employee_id
-LEFT JOIN skill_data sd ON COALESCE(fe.employee_id, fs.employee_id) = sd.employee_id
-ORDER BY employeeId, fs.weekCommencing, fs.start_time;
+    fe.employee_id,
+    fe.first_name,
+    fe.last_name,
+    pd.phones,
+    posd.positions AS availablePositions,
+    es.weeklyShifts,
+    COALESCE(es.totalDuration, 0) AS totalHours,
+    COALESCE(es.shiftCount, 0) AS shiftCount
+FROM filtered_employees fe
+LEFT JOIN phone_data pd ON fe.employee_id = pd.employee_id
+LEFT JOIN employee_shifts es ON fe.employee_id = es.employee_id
+LEFT JOIN position_data posd ON fe.employee_id = posd.employee_id
+WHERE fe.employee_id IN (SELECT employee_id FROM relevant_employee_ids)
+ORDER BY fe.last_name, fe.first_name;

@@ -38,8 +38,8 @@ public class Shift {
     @Column(name = "is_overnight")
     private Boolean isOvernight;
 
-    @Column(name = "required_skill_id")
-    private Integer requiredSkillId;
+    @Column(name = "required_position_id")
+    private Integer requiredPositionId;
 
     @Column(name = "category_id")
     private Integer categoryId;
@@ -127,12 +127,12 @@ public class Shift {
         this.isOvernight = isOvernight;
     }
 
-    public Integer getRequiredSkillId() {
-        return requiredSkillId;
+    public Integer getRequiredPositionId() {
+        return requiredPositionId;
     }
 
-    public void setRequiredSkillId(Integer requiredSkillId) {
-        this.requiredSkillId = requiredSkillId;
+    public void setRequiredPositionId(Integer requiredPositionId) {
+        this.requiredPositionId = requiredPositionId;
     }
 
     public Integer getCategoryId() {
