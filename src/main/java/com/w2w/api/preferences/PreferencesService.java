@@ -132,8 +132,6 @@ public class PreferencesService {
                 .stream()
                 .collect(Collectors.toMap(DayPreference::getDate, p -> p));
 
-        java.util.Map<LocalDate, WeekPreference> weekPrefsMap = new java.util.HashMap<>();
-
         LocalDate currentDate = startDate;
         while (!currentDate.isAfter(endDate)) {
             WeekPreference weekPref = weekPreferenceRepository
@@ -154,7 +152,8 @@ public class PreferencesService {
                 type = "WEEK";
             }
 
-            result.add(new ResolvedPreferenceResponse(currentDate, prefs, type));
+            String day = currentDate.getDayOfWeek().getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.ENGLISH);
+            result.add(new ResolvedPreferenceResponse(currentDate, prefs, type, day));
             currentDate = currentDate.plusDays(1);
         }
 

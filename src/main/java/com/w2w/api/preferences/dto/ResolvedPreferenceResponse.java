@@ -5,5 +5,6 @@ import java.time.LocalDate;
 public record ResolvedPreferenceResponse(
     LocalDate date,
     String prefs,
-    String preferenceType
+    String preferenceType,
+    String day
 ) {}

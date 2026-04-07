@@ -712,3 +712,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DayPreferenceRequest'
+    ResolvedPreferenceResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        prefs:
+          type: string
+        preferenceType:
+          type: string
+        day:
+          type: string
