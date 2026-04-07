@@ -43,7 +43,7 @@ abstract class PostgresIntegrationTestBase {
         TenantContext.setCurrentTenant(0);
         jdbcTemplate.update("DELETE FROM scheduled_employee WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("""
-                DELETE FROM employee_skill
+                DELETE FROM employee_position
                 WHERE employee_id IN (
                     SELECT employee_id
                     FROM employee
@@ -61,7 +61,7 @@ abstract class PostgresIntegrationTestBase {
         jdbcTemplate.update("DELETE FROM schedule WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM employee WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM category WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
-        jdbcTemplate.update("DELETE FROM skill WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
+        jdbcTemplate.update("DELETE FROM position WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM company WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         TenantContext.clear();
     }

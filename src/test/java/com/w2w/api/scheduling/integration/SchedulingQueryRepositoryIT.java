@@ -63,17 +63,17 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of("111-222", "333-444"));
         Position bartender = createPosition(COMPANY_A_ID, "Bartender");
         Position server = createPosition(COMPANY_A_ID, "Server");
-        assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getSkillId());
-        assignEmployeeSkill(EMPLOYEE_A_ID, server.getSkillId());
+        assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getPositionId());
+        assignEmployeeSkill(EMPLOYEE_A_ID, server.getPositionId());
         Schedule companyASchedule = createSchedule(COMPANY_A_ID, SHIFT_DATE);
-        createShift(EMPLOYEE_A_ID, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getSkillId(), "amber");
+        createShift(EMPLOYEE_A_ID, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), "amber");
 
         TenantContext.setCurrentTenant(COMPANY_B_ID);
         createEmployee(EMPLOYEE_B_ID, COMPANY_B_ID, "Ben", "Miles", List.of("999-000"));
         Position houseman = createPosition(COMPANY_B_ID, "Houseman");
-        assignEmployeeSkill(EMPLOYEE_B_ID, houseman.getSkillId());
+        assignEmployeeSkill(EMPLOYEE_B_ID, houseman.getPositionId());
         Schedule companyBSchedule = createSchedule(COMPANY_B_ID, SHIFT_DATE);
-        createShift(EMPLOYEE_B_ID, COMPANY_B_ID, companyBSchedule.getScheduleId(), houseman.getSkillId(), "green");
+        createShift(EMPLOYEE_B_ID, COMPANY_B_ID, companyBSchedule.getScheduleId(), houseman.getPositionId(), "green");
 
         TenantContext.setCurrentTenant(COMPANY_A_ID);
         List<EmployeeShiftProjection> rows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
@@ -99,7 +99,7 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
 
     private void assignEmployeeSkill(Integer employeeId, Integer skillId) {
         jdbcTemplate.update(
-                "INSERT INTO employee_skill (employee_id, skill_id) VALUES (?, ?)",
+                "INSERT INTO employee_position (employee_id, position_id) VALUES (?, ?)",
                 employeeId,
                 skillId
         );
@@ -117,16 +117,35 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
     }
 
     private void createEmployee(Integer employeeId, Integer companyId, String firstName, String lastName, List<String> phones) {
-        Employee employee = new Employee();
-        employee.setEmployeeId(employeeId);
-        employee.setCompanyId(companyId);
-        employee.setFirstName(firstName);
-        employee.setLastName(lastName);
-        employee.setEmail(firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com");
-        employee.setStatus("active");
-        employee.setHireDate(LocalDateTime.of(2026, 1, 1, 0, 0));
-        employee.setPhones(phones);
-        employeeRepository.save(employee);
+        jdbcTemplate.update(
+                """
+                INSERT INTO employee (
+                    employee_id,
+                    company_id,
+                    status,
+                    first_name,
+                    last_name,
+                    email,
+                    hire_date
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                employeeId,
+                companyId,
+                "active",
+                firstName,
+                lastName,
+                firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com",
+                LocalDateTime.of(2026, 1, 1, 0, 0)
+        );
+
+        for (int i = 0; i < phones.size(); i++) {
+            jdbcTemplate.update(
+                    "INSERT INTO employee_phone (employee_id, sort_order, phone_number) VALUES (?, ?, ?)",
+                    employeeId,
+                    i,
+                    phones.get(i)
+            );
+        }
     }
 
     private Position createPosition(Integer companyId, String description) {
@@ -165,7 +184,7 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         shift.setEndTime(LocalTime.of(17, 0));
         shift.setDuration(8.0f);
         shift.setIsOvernight(false);
-        shift.setRequiredSkillId(positionId);
+        shift.setRequiredPositionId(positionId);
         shift.setColor(color);
         shift.setIsDeleted(false);
         shift.setChangedBy(employeeId);

@@ -87,7 +87,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 null,
-                position.getSkillId(),
+                position.getPositionId(),
                 null,
                 "amber"
         );
@@ -135,7 +135,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 LocalTime.of(16, 0),
                 LocalTime.of(22, 0),
                 null,
-                position.getSkillId(),
+                position.getPositionId(),
                 null,
                 "blue"
         );
@@ -156,8 +156,8 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of());
         Position originalPosition = createPosition(COMPANY_A_ID, "Bartender");
         Position updatedPosition = createPosition(COMPANY_A_ID, "Server");
-        Category originalCategory = createCategory(COMPANY_A_ID, "Front", "FRT", originalPosition.getSkillId());
-        Category updatedCategory = createCategory(COMPANY_A_ID, "Back", "BCK", updatedPosition.getSkillId());
+        Category originalCategory = createCategory(COMPANY_A_ID, "Front", "FRT", originalPosition.getPositionId());
+        Category updatedCategory = createCategory(COMPANY_A_ID, "Back", "BCK", updatedPosition.getPositionId());
         createSchedule(COMPANY_A_ID, SHIFT_DATE, true);
         Schedule updatedSchedule = createSchedule(COMPANY_A_ID, UPDATED_SHIFT_DATE, true);
 
@@ -168,7 +168,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 null,
-                originalPosition.getSkillId(),
+                originalPosition.getPositionId(),
                 originalCategory.getCategoryId(),
                 "amber"
         );
@@ -181,7 +181,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                         "Updated shift",
                         LocalTime.of(10, 0),
                         LocalTime.of(18, 0),
-                        updatedPosition.getSkillId(),
+                        updatedPosition.getPositionId(),
                         updatedCategory.getCategoryId(),
                         "blue",
                         UPDATED_SHIFT_DATE,
@@ -200,7 +200,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         Shift persistedShift = shiftRepository.findByShiftIdAndCompanyId(savedShift.getShiftId(), COMPANY_A_ID)
                 .orElseThrow();
         assertEquals(updatedSchedule.getScheduleId(), persistedShift.getScheduleId());
-        assertEquals(updatedPosition.getSkillId(), persistedShift.getRequiredSkillId());
+        assertEquals(updatedPosition.getPositionId(), persistedShift.getRequiredPositionId());
         assertEquals(updatedCategory.getCategoryId(), persistedShift.getCategoryId());
     }
 
@@ -219,7 +219,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 null,
-                position.getSkillId(),
+                position.getPositionId(),
                 null,
                 "amber"
         );
@@ -259,7 +259,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         TenantContext.setCurrentTenant(COMPANY_A_ID);
         createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of("111-222"));
         Position position = createPosition(COMPANY_A_ID, "Bartender");
-        assignEmployeeSkill(EMPLOYEE_A_ID, position.getSkillId());
+        assignEmployeeSkill(EMPLOYEE_A_ID, position.getPositionId());
 
         Shift savedShift = schedulingService.saveShift(
                 EMPLOYEE_A_ID,
@@ -268,7 +268,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 null,
-                position.getSkillId(),
+                position.getPositionId(),
                 null,
                 "amber"
         );
@@ -298,9 +298,9 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of("111-222", "333-444"));
         Position bartender = createPosition(COMPANY_A_ID, "Bartender");
         Position server = createPosition(COMPANY_A_ID, "Server");
-        Category category = createCategory(COMPANY_A_ID, "Front", "FRT", bartender.getSkillId());
-        assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getSkillId());
-        assignEmployeeSkill(EMPLOYEE_A_ID, server.getSkillId());
+        Category category = createCategory(COMPANY_A_ID, "Front", "FRT", bartender.getPositionId());
+        assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getPositionId());
+        assignEmployeeSkill(EMPLOYEE_A_ID, server.getPositionId());
 
         schedulingService.saveShift(
                 EMPLOYEE_A_ID,
@@ -309,7 +309,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 LocalTime.of(22, 0),
                 LocalTime.of(6, 0),
                 null,
-                bartender.getSkillId(),
+                bartender.getPositionId(),
                 category.getCategoryId(),
                 "purple"
         );
@@ -359,12 +359,12 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 LocalTime.of(9, 0),
                 LocalTime.of(17, 0),
                 null,
-                position.getSkillId(),
+                position.getPositionId(),
                 null,
                 "amber"
         );
 
-        GroupedShiftsResponse response = schedulingService.getShiftsGrouped(
+        GroupedShiftsResponse response = (GroupedShiftsResponse) schedulingService.getShiftsGrouped(
                 SHIFT_DATE,
                 SHIFT_DATE.plusDays(1),
                 ShiftGrouping.POSITION_SHIFT_TIMINGS
@@ -386,7 +386,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
 
     private void assignEmployeeSkill(Integer employeeId, Integer skillId) {
         jdbcTemplate.update(
-                "INSERT INTO employee_skill (employee_id, skill_id) VALUES (?, ?)",
+                "INSERT INTO employee_position (employee_id, position_id) VALUES (?, ?)",
                 employeeId,
                 skillId
         );
@@ -408,16 +408,35 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
     }
 
     private void createEmployee(Integer employeeId, Integer companyId, String firstName, String lastName, List<String> phones) {
-        Employee employee = new Employee();
-        employee.setEmployeeId(employeeId);
-        employee.setCompanyId(companyId);
-        employee.setFirstName(firstName);
-        employee.setLastName(lastName);
-        employee.setEmail(firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com");
-        employee.setStatus("active");
-        employee.setHireDate(LocalDateTime.of(2026, 1, 1, 0, 0));
-        employee.setPhones(phones);
-        employeeRepository.save(employee);
+        jdbcTemplate.update(
+                """
+                INSERT INTO employee (
+                    employee_id,
+                    company_id,
+                    status,
+                    first_name,
+                    last_name,
+                    email,
+                    hire_date
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                employeeId,
+                companyId,
+                "active",
+                firstName,
+                lastName,
+                firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com",
+                LocalDateTime.of(2026, 1, 1, 0, 0)
+        );
+
+        for (int i = 0; i < phones.size(); i++) {
+            jdbcTemplate.update(
+                    "INSERT INTO employee_phone (employee_id, sort_order, phone_number) VALUES (?, ?, ?)",
+                    employeeId,
+                    i,
+                    phones.get(i)
+            );
+        }
     }
 
     private Position createPosition(Integer companyId, String description) {
@@ -436,7 +455,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         category.setShortDesc(shortName);
         category.setStartTime("08:00");
         category.setEndTime("17:00");
-        category.setSkillId(skillId);
+        category.setPositionId(skillId);
         category.setColor((short) 3);
         category.setIsDeleted(false);
         return categoryRepository.save(category);
