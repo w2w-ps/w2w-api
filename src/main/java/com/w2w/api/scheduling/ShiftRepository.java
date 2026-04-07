@@ -30,6 +30,7 @@ public interface ShiftRepository extends JpaRepository<Shift, Integer> {
             LEFT JOIN position sk ON se.required_position_id = sk.position_id
             LEFT JOIN category cat ON se.category_id = cat.category_id
             WHERE se.shift_id = :shiftId
+              AND se.is_deleted = false
             """, nativeQuery = true)
     Optional<ShiftDetailsProjection> findShiftDetailsByShiftId(@Param("shiftId") Integer shiftId);
 
@@ -53,6 +54,7 @@ public interface ShiftRepository extends JpaRepository<Shift, Integer> {
             LEFT JOIN category cat ON se.category_id = cat.category_id
             WHERE se.shift_id = :shiftId
               AND se.company_id = :companyId
+              AND se.is_deleted = false
             """, nativeQuery = true)
     Optional<ShiftDetailsProjection> findShiftDetailsByShiftIdAndCompanyId(@Param("shiftId") Integer shiftId, @Param("companyId") Integer companyId);
 
