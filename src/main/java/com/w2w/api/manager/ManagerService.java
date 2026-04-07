@@ -10,6 +10,7 @@ import com.w2w.api.login.UserRole;
 import com.w2w.api.login.UserRoleRepository;
 import com.w2w.api.manager.dto.AddManagerRequest;
 import com.w2w.api.manager.dto.ManagerPermissionsDto;
+import com.w2w.api.manager.dto.UpdateManagerRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,21 +45,18 @@ public class ManagerService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Transactional
-    public User addManager(AddManagerRequest request) {
-        // Enforce Main Manager Security Constraints
+
+    private void enforceMainManagerCheck() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new AccessDeniedException("User must be authenticated to add a manager.");
+            throw new AccessDeniedException("User must be authenticated to manage managers.");
         }
 
         String currentUsername = auth.getName();
         User currentUser = loginRepository.findByLoginId(currentUsername)
                 .orElseThrow(() -> new AccessDeniedException("Current user not found."));
 
-        // Determine if user is a Main Manager
         boolean isMainManager = false;
-
         Optional<ManagerPermissions> permsOpt = permissionsRepository.findByUserId(currentUser.getId());
         if (permsOpt.isPresent() && permsOpt.get().isMainManager()) {
             isMainManager = true;
@@ -67,8 +65,13 @@ public class ManagerService {
         }
 
         if (!isMainManager) {
-            throw new AccessDeniedException("Only Main Managers can add additional managers.");
+            throw new AccessDeniedException("Only Main Managers can perform this action.");
         }
+    }
+
+    @Transactional
+    public User addManager(AddManagerRequest request) {
+        enforceMainManagerCheck();
 
         // 1. Create Employee
         Employee employee = new Employee();
@@ -142,5 +145,76 @@ public class ManagerService {
         }
 
         return user;
+    }
+
+    @Transactional
+    public User updateManager(Integer id, UpdateManagerRequest request) {
+        enforceMainManagerCheck();
+
+        User user = loginRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Manager not found"));
+        
+        Employee employee = user.getEmployee();
+        if (employee != null) {
+            employee.setFirstName(request.firstName());
+            employee.setLastName(request.lastName());
+            employee.setEmail(request.email());
+            employeeRepository.save(employee);
+        }
+
+        user.setLoginId(request.email());
+        user = loginRepository.save(user);
+
+        ManagerPermissions permissions = permissionsRepository.findByUserId(user.getId())
+                .orElse(new ManagerPermissions());
+        permissions.setUser(user);
+        
+        ManagerPermissionsDto pDto = request.permissions();
+        if (pDto != null) {
+            permissions.setCanAddShifts(Boolean.TRUE.equals(pDto.canAddShifts()));
+            permissions.setCanImportTemplates(Boolean.TRUE.equals(pDto.canImportTemplates()));
+            permissions.setCanUploadShifts(Boolean.TRUE.equals(pDto.canUploadShifts()));
+            permissions.setCanAutofillShifts(Boolean.TRUE.equals(pDto.canAutofillShifts()));
+            permissions.setCanClearSchedules(Boolean.TRUE.equals(pDto.canClearSchedules()));
+            permissions.setCanEditShifts(Boolean.TRUE.equals(pDto.canEditShifts()));
+            permissions.setCanSaveTemplates(Boolean.TRUE.equals(pDto.canSaveTemplates()));
+            permissions.setCanPublishSchedules(Boolean.TRUE.equals(pDto.canPublishSchedules()));
+            permissions.setCanUnpublishSchedules(Boolean.TRUE.equals(pDto.canUnpublishSchedules()));
+            permissions.setCanManageCategories(Boolean.TRUE.equals(pDto.canManageCategories()));
+            
+            permissions.setCanAddEmployees(Boolean.TRUE.equals(pDto.canAddEmployees()));
+            permissions.setCanViewPayRates(Boolean.TRUE.equals(pDto.canViewPayRates()));
+            permissions.setCanEditEmployees(Boolean.TRUE.equals(pDto.canEditEmployees()));
+            
+            permissions.setCanApproveTrades(Boolean.TRUE.equals(pDto.canApproveTrades()));
+            permissions.setCanApproveTimeOff(Boolean.TRUE.equals(pDto.canApproveTimeOff()));
+            
+            permissions.setCanChangeCompanySettings(Boolean.TRUE.equals(pDto.canChangeCompanySettings()));
+            permissions.setCanManagePositions(Boolean.TRUE.equals(pDto.canManagePositions()));
+            permissions.setCanManageTeamMembers(Boolean.TRUE.equals(pDto.canManageTeamMembers()));
+            
+            permissions.setCanReceiveManagerNotifications(Boolean.TRUE.equals(pDto.canReceiveManagerNotifications()));
+        }
+        
+        permissionsRepository.save(permissions);
+        
+        return user;
+    }
+
+    @Transactional
+    public void deleteManager(Integer id) {
+        enforceMainManagerCheck();
+
+        User user = loginRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Manager not found"));
+
+        permissionsRepository.findByUserId(id).ifPresent(permissionsRepository::delete);
+        
+        Employee emp = user.getEmployee();
+        loginRepository.delete(user);
+        
+        if (emp != null) {
+            employeeRepository.delete(emp);
+        }
     }
 }
