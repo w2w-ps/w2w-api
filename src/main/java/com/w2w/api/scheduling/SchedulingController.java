@@ -44,7 +44,6 @@ public class SchedulingController {
     @PostMapping("/shifts")
     @ResponseStatus(HttpStatus.CREATED)
     public void createShift(@Valid @RequestBody CreateShiftRequest request) {
-        TenantContext.setCurrentTenant(request.companyId());
         schedulingService.saveShift(
                 request.employeeId(),
                 request.description(),
@@ -82,7 +81,6 @@ public class SchedulingController {
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        TenantContext.setCurrentTenant(companyId);
         return schedulingService.getEmployeeShiftsGroupedInRange(startDate, endDate);
     }
 
@@ -93,7 +91,6 @@ public class SchedulingController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
-        TenantContext.setCurrentTenant(companyId);
         return schedulingService.getShiftsGrouped(startDate, endDate, grouping);
     }
 
@@ -102,7 +99,6 @@ public class SchedulingController {
             @RequestParam Integer companyId,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        TenantContext.setCurrentTenant(companyId);
         return schedulingService.getShiftsGroupedByDateAndPosition(startDate, endDate);
     }
 
@@ -112,13 +108,11 @@ public class SchedulingController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
-        TenantContext.setCurrentTenant(companyId);
         return schedulingService.getShiftsGroupedByDayPositionAndTiming(startDate, endDate);
     }
 
     @PostMapping("/validation/precheck")
     public ResponseEntity<ConflictResponse> preCheck(@RequestBody FindConflictRequest request) {
-        TenantContext.setCurrentTenant(request.companyId());
         List<ConflictItem> conflicts = schedulingService.validate(request);
         return ResponseEntity.ok(new ConflictResponse(!conflicts.isEmpty(), conflicts));
     }

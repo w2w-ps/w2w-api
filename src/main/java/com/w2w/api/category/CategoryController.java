@@ -23,14 +23,12 @@ public class CategoryController {
             @RequestParam Integer companyId,
             @RequestParam(defaultValue = "all") String status
     ) {
-        TenantContext.setCurrentTenant(companyId);
         List<CategorySummary> categories = categoryService.getCategories(status);
         return ResponseEntity.ok(new CategoriesResponse(categories));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable("id") Integer categoryId, @RequestParam Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
         return categoryService.getCategoryById(categoryId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -38,7 +36,6 @@ public class CategoryController {
 
     @PostMapping
     public ResponseEntity<Void> createCategory(@Valid @RequestBody CreateCategoryRequest request) {
-        TenantContext.setCurrentTenant(request.companyId());
         categoryService.createCategory(
                 request.shortName(),
                 request.description(),
@@ -56,14 +53,12 @@ public class CategoryController {
             @RequestParam Integer companyId,
             @Valid @RequestBody UpdateCategoryRequest request
     ) {
-        TenantContext.setCurrentTenant(companyId);
         categoryService.updateCategory(categoryId, request);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable("id") Integer categoryId, @RequestParam Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
         categoryService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
     }
