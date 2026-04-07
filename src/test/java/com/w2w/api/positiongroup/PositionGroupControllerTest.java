@@ -48,7 +48,7 @@ class PositionGroupControllerTest {
 
     @Test
     void getPositionGroups_returnsGroups() throws Exception {
-        when(positionGroupService.getPositionGroups(1, "all"))
+        when(positionGroupService.getPositionGroups("all"))
                 .thenReturn(List.of(
                         new PositionGroupSummary(
                                 201,
@@ -64,12 +64,12 @@ class PositionGroupControllerTest {
                 .andExpect(jsonPath("$.positionGroups[0].positions[0].positionId").value(101))
                 .andExpect(jsonPath("$.positionGroups[0].positions[0].description").value("Server"));
 
-        verify(positionGroupService).getPositionGroups(1, "all");
+        verify(positionGroupService).getPositionGroups("all");
     }
 
     @Test
     void getPositionGroups_withStatusFilter_returnsGroups() throws Exception {
-        when(positionGroupService.getPositionGroups(1, "inactive"))
+        when(positionGroupService.getPositionGroups("inactive"))
                 .thenReturn(List.of(
                         new PositionGroupSummary(
                                 202,
@@ -83,12 +83,12 @@ class PositionGroupControllerTest {
                 .andExpect(jsonPath("$.positionGroups[0].id").value(202))
                 .andExpect(jsonPath("$.positionGroups[0].name").value("Archived Group"));
 
-        verify(positionGroupService).getPositionGroups(1, "inactive");
+        verify(positionGroupService).getPositionGroups("inactive");
     }
 
     @Test
     void getActivePositionGroups_returnsGroups() throws Exception {
-        when(positionGroupService.getPositionGroups(1, "active"))
+        when(positionGroupService.getPositionGroups("active"))
                 .thenReturn(List.of(
                         new PositionGroupSummary(
                                 201,
@@ -101,12 +101,12 @@ class PositionGroupControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.positionGroups[0].id").value(201));
 
-        verify(positionGroupService).getPositionGroups(1, "active");
+        verify(positionGroupService).getPositionGroups("active");
     }
 
     @Test
     void getInactivePositionGroups_returnsGroups() throws Exception {
-        when(positionGroupService.getPositionGroups(1, "inactive"))
+        when(positionGroupService.getPositionGroups("inactive"))
                 .thenReturn(List.of(
                         new PositionGroupSummary(
                                 202,
@@ -119,12 +119,12 @@ class PositionGroupControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.positionGroups[0].id").value(202));
 
-        verify(positionGroupService).getPositionGroups(1, "inactive");
+        verify(positionGroupService).getPositionGroups("inactive");
     }
 
     @Test
     void getPositionGroupById_returnsGroupWhenFound() throws Exception {
-        when(positionGroupService.getPositionGroupById(201, 1))
+        when(positionGroupService.getPositionGroupById(201))
                 .thenReturn(Optional.of(
                         new PositionGroupSummary(
                                 201,
@@ -138,17 +138,17 @@ class PositionGroupControllerTest {
                 .andExpect(jsonPath("$.id").value(201))
                 .andExpect(jsonPath("$.name").value("Front of House"));
 
-        verify(positionGroupService).getPositionGroupById(201, 1);
+        verify(positionGroupService).getPositionGroupById(201);
     }
 
     @Test
     void getPositionGroupById_returnsNotFoundWhenMissing() throws Exception {
-        when(positionGroupService.getPositionGroupById(201, 1)).thenReturn(Optional.empty());
+        when(positionGroupService.getPositionGroupById(201)).thenReturn(Optional.empty());
 
         mockMvc.perform(get("/api/position-groups/201").param("companyId", "1"))
                 .andExpect(status().isNotFound());
 
-        verify(positionGroupService).getPositionGroupById(201, 1);
+        verify(positionGroupService).getPositionGroupById(201);
     }
 
     @Test
@@ -164,10 +164,7 @@ class PositionGroupControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(positionGroupService).createPositionGroup(argThat(value ->
-                value.companyId().equals(1)
-                        && value.description().equals("Front of House")
-                        && value.positionIds().equals(List.of(101, 102))));
+        verify(positionGroupService).createPositionGroup("Front of House", List.of(101, 102));
     }
 
     @Test
@@ -183,7 +180,7 @@ class PositionGroupControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(positionGroupService).updatePositionGroup(eq(201), eq(1), argThat(value ->
+        verify(positionGroupService).updatePositionGroup(eq(201), argThat(value ->
                 value.description().equals("Updated Front of House")
                         && value.positionIds().equals(List.of(102))));
     }
@@ -192,7 +189,7 @@ class PositionGroupControllerTest {
     void updatePositionGroup_returnsBadRequestWhenServiceThrows() throws Exception {
         doThrow(new ResponseStatusException(BAD_REQUEST, "One or more positions were not found for the company"))
                 .when(positionGroupService)
-                .updatePositionGroup(eq(201), eq(1), argThat(value -> value.positionIds().equals(List.of(999))));
+                .updatePositionGroup(eq(201), argThat(value -> value.positionIds().equals(List.of(999))));
 
         mockMvc.perform(put("/api/position-groups/201")
                         .param("companyId", "1")
@@ -211,14 +208,14 @@ class PositionGroupControllerTest {
         mockMvc.perform(delete("/api/position-groups/201").param("companyId", "1"))
                 .andExpect(status().isNoContent());
 
-        verify(positionGroupService).deletePositionGroup(201, 1);
+        verify(positionGroupService).deletePositionGroup(201);
     }
 
     @Test
     void deletePositionGroup_returnsNotFoundWhenServiceThrows() throws Exception {
         doThrow(new ResponseStatusException(NOT_FOUND, "Position group not found"))
                 .when(positionGroupService)
-                .deletePositionGroup(201, 1);
+                .deletePositionGroup(201);
 
         mockMvc.perform(delete("/api/position-groups/201").param("companyId", "1"))
                 .andExpect(status().isNotFound());

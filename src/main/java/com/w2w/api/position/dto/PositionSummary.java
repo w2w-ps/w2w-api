@@ -1,6 +1,6 @@
 package com.w2w.api.position.dto;
 
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 /**
  * A summary DTO for Position information.
@@ -10,10 +10,12 @@ public record PositionSummary(
     /**
       The unique identifier of the position.
      */
+    @JsonAlias("id")
     Integer positionId,
     /**
      * The description/name of the position.
      */
+    @JsonAlias("name")
     String description
 ) {
 }

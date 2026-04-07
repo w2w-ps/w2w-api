@@ -8,6 +8,8 @@ import com.w2w.api.category.model.Category;
 import com.w2w.api.category.model.CategoryGroup;
 import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
+import com.w2w.api.config.CurrentTenant;
+import com.w2w.api.config.TenantContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,8 +41,8 @@ public class CategoryGroupService {
      * Returns the category groups for a company filtered by status.
      */
     @Transactional(readOnly = true)
-    public List<CategoryGroupSummary> getCategoryGroups(Integer companyId, String status) {
-        return findCategoryGroupsByStatus(companyId, status).stream()
+    public List<CategoryGroupSummary> getCategoryGroups(String status) {
+        return findCategoryGroupsByStatus(TenantContext.getCurrentTenant(), status).stream()
                 .map(this::toSummary)
                 .toList();
     }
@@ -49,8 +51,11 @@ public class CategoryGroupService {
      * Returns a single category group when it exists for the company.
      */
     @Transactional(readOnly = true)
-    public Optional<CategoryGroupSummary> getCategoryGroupById(Integer groupId, Integer companyId) {
-        return categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(groupId, companyId)
+    public Optional<CategoryGroupSummary> getCategoryGroupById(Integer groupId) {
+        return categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(
+                        groupId,
+                        TenantContext.getCurrentTenant()
+                )
                 .map(this::toSummary);
     }
 
@@ -58,12 +63,13 @@ public class CategoryGroupService {
      * Creates a category group with the requested category membership.
      */
     @Transactional
-    public void createCategoryGroup(CreateCategoryGroupRequest request) {
+    public void createCategoryGroup(String description, Collection<Integer> categoryIds) {
+        Integer resolvedCompanyId = CurrentTenant.requireCurrentTenant();
         CategoryGroup categoryGroup = new CategoryGroup();
-        categoryGroup.setCompanyId(request.companyId());
-        categoryGroup.setDescription(request.description());
+        categoryGroup.setCompanyId(resolvedCompanyId);
+        categoryGroup.setDescription(description);
         categoryGroup.setIsDeleted(false);
-        categoryGroup.setCategories(resolveCategories(request.categoryIds(), request.companyId()));
+        categoryGroup.setCategories(resolveCategories(categoryIds, resolvedCompanyId));
         categoryGroupRepository.save(categoryGroup);
     }
 
@@ -71,10 +77,11 @@ public class CategoryGroupService {
      * Updates a category group and replaces its category membership.
      */
     @Transactional
-    public void updateCategoryGroup(Integer groupId, Integer companyId, UpdateCategoryGroupRequest request) {
-        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, companyId);
+    public void updateCategoryGroup(Integer groupId, UpdateCategoryGroupRequest request) {
+        Integer resolvedCompanyId = CurrentTenant.requireCurrentTenant();
+        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, resolvedCompanyId);
         categoryGroup.setDescription(request.description());
-        categoryGroup.setCategories(resolveCategories(request.categoryIds(), companyId));
+        categoryGroup.setCategories(resolveCategories(request.categoryIds(), resolvedCompanyId));
         categoryGroupRepository.save(categoryGroup);
     }
 
@@ -82,8 +89,8 @@ public class CategoryGroupService {
      * Soft-deletes a category group.
      */
     @Transactional
-    public void deleteCategoryGroup(Integer groupId, Integer companyId) {
-        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, companyId);
+    public void deleteCategoryGroup(Integer groupId) {
+        CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, CurrentTenant.requireCurrentTenant());
         categoryGroup.setIsDeleted(true);
         categoryGroupRepository.save(categoryGroup);
     }

@@ -84,16 +84,8 @@ class SchedulingControllerTest {
                         .content(request))
                 .andExpect(status().isCreated());
 
-        verify(schedulingService).saveShift(argThat(value ->
-                value.employeeId().equals(101)
-                        && value.companyId().equals(7)
-                        && value.date().equals(LocalDate.of(2026, 3, 25))
-                        && value.startTime().equals(LocalTime.of(9, 0))
-                        && value.endTime().equals(LocalTime.of(17, 0))
-                        && value.position().equals(12)
-                        && value.category().equals(4)
-                        && value.color().equals("amber")
-        ));
+        verify(schedulingService).saveShift(101, "Opening shift", LocalDate.of(2026, 3, 25),
+                LocalTime.of(9, 0), LocalTime.of(17, 0), 8.0f, 12, 4, "amber");
     }
 
     @Test
@@ -159,7 +151,7 @@ class SchedulingControllerTest {
 
     @Test
     void getShiftEmployees_returnsEmployeeBuckets() throws Exception {
-        when(schedulingService.getEmployeeShiftsGroupedInRange(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
+        when(schedulingService.getEmployeeShiftsGroupedInRange(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
                 .thenReturn(List.of(createEmployeeWithShifts()));
 
         mockMvc.perform(get("/api/scheduling/shifts/employees")
@@ -177,12 +169,12 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$[0].weeklyShifts['1'].date").value("2026-03-26"))
                 .andExpect(jsonPath("$[0].weeklyShifts['1'].shifts", hasSize(0)));
 
-        verify(schedulingService).getEmployeeShiftsGroupedInRange(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
+        verify(schedulingService).getEmployeeShiftsGroupedInRange(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
     }
 
     @Test
     void getShiftsGroupedInRange_deprecatedPathStillReturnsEmployeeBuckets() throws Exception {
-        when(schedulingService.getEmployeeShiftsGroupedInRange(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
+        when(schedulingService.getEmployeeShiftsGroupedInRange(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
                 .thenReturn(List.of(createEmployeeWithShifts()));
 
         mockMvc.perform(get("/api/scheduling/employees")
@@ -193,12 +185,12 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].employeeId").value(101));
 
-        verify(schedulingService).getEmployeeShiftsGroupedInRange(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
+        verify(schedulingService).getEmployeeShiftsGroupedInRange(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
     }
 
     @Test
     void getShiftsGroupedByDateAndPosition_returnsGroupedBuckets() throws Exception {
-        when(schedulingService.getShiftsGroupedByDateAndPosition(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
+        when(schedulingService.getShiftsGroupedByDateAndPosition(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
                 .thenReturn(List.of(
                         new DayPositionBucket(
                                 LocalDate.of(2026, 3, 25),
@@ -269,13 +261,12 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$[1].positions[0].position").value("Bartender"))
                 .andExpect(jsonPath("$[1].positions[1].position").value("Server"));
 
-        verify(schedulingService).getShiftsGroupedByDateAndPosition(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
+        verify(schedulingService).getShiftsGroupedByDateAndPosition(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
     }
 
     @Test
     void getGroupedShifts_positionShiftTimings_returnsNormalizedNestedGroups() throws Exception {
         when(schedulingService.getShiftsGrouped(
-                7,
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.POSITION_SHIFT_TIMINGS
@@ -307,7 +298,6 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].shifts", hasSize(0)));
 
         verify(schedulingService).getShiftsGrouped(
-                7,
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.POSITION_SHIFT_TIMINGS
@@ -317,7 +307,6 @@ class SchedulingControllerTest {
     @Test
     void getGroupedShifts_categoryShiftTimings_returnsNormalizedCategoryGroups() throws Exception {
         when(schedulingService.getShiftsGrouped(
-                7,
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.CATEGORY_SHIFT_TIMINGS
@@ -348,7 +337,6 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].label").value("9:00AM-5:00PM"));
 
         verify(schedulingService).getShiftsGrouped(
-                7,
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.CATEGORY_SHIFT_TIMINGS
@@ -358,7 +346,6 @@ class SchedulingControllerTest {
     @Test
     void getGroupedShifts_catShiftTimings_returnsNormalizedShortCategoryGroups() throws Exception {
         when(schedulingService.getShiftsGrouped(
-                7,
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.CAT_SHIFT_TIMINGS
@@ -389,7 +376,6 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].label").value("9:00AM-5:00PM"));
 
         verify(schedulingService).getShiftsGrouped(
-                7,
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.CAT_SHIFT_TIMINGS
@@ -399,7 +385,6 @@ class SchedulingControllerTest {
     @Test
     void getGroupedShifts_shiftTimings_returnsNormalizedTimingGroups() throws Exception {
         when(schedulingService.getShiftsGrouped(
-                7,
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.SHIFT_TIMINGS
@@ -423,7 +408,6 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].shifts", hasSize(0)));
 
         verify(schedulingService).getShiftsGrouped(
-                7,
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.SHIFT_TIMINGS
@@ -432,7 +416,7 @@ class SchedulingControllerTest {
 
     @Test
     void getShiftsGroupedByDayPositionAndTiming_returnsGroupedBuckets() throws Exception {
-        when(schedulingService.getShiftsGroupedByDayPositionAndTiming(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
+        when(schedulingService.getShiftsGroupedByDayPositionAndTiming(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
                 .thenReturn(List.of(
                         new DayPositionTimingBucketDto(
                                 LocalDate.of(2026, 3, 25),
@@ -483,13 +467,12 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$[0].positions[0].shiftTimings[0].endTime").value("5:00PM"))
                 .andExpect(jsonPath("$[0].positions[0].shiftTimings[0].shifts[0].employeeId").value(101));
 
-        verify(schedulingService).getShiftsGroupedByDayPositionAndTiming(7, LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
+        verify(schedulingService).getShiftsGroupedByDayPositionAndTiming(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
     }
 
     @Test
     void getGroupedShifts_dayPosition_returnsExistingDayPositionContract() throws Exception {
         when(schedulingService.getShiftsGrouped(
-                7,
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.POSITION
@@ -514,7 +497,6 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$[0].positions[0].position").value("Bartender"));
 
         verify(schedulingService).getShiftsGrouped(
-                7,
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.POSITION

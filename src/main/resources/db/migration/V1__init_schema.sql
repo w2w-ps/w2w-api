@@ -226,3 +226,239 @@ CREATE INDEX idx_se_company_employee ON scheduled_employee(company_id, employee_
 CREATE INDEX idx_employee_company_id ON employee(company_id);
 CREATE INDEX idx_position_company_id ON position(company_id);
 CREATE INDEX idx_category_company_id ON category(company_id);
+
+-- ============================================================
+-- Row Level Security
+-- Policy expression on every tenant table:
+--   current_setting('app.current_tenant', true)::INTEGER = company_id
+--   OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+--
+-- missing_ok=true → returns NULL (not error) when GUC is absent;
+-- NULL::INTEGER ≠ any company_id, so access is denied safely by default.
+--
+-- Set on every connection by TenantAwareDataSource (TenantDatabaseConfig.java).
+-- Bypass (tenant=0) flows through app.internal_system_lookup='true'.
+--
+-- Tables intentionally WITHOUT RLS (global/auth-side):
+--   emp_type, user_roles, companies, users, manager_permissions
+-- ============================================================
+
+-- Direct company_id tables
+
+ALTER TABLE company ENABLE ROW LEVEL SECURITY;
+ALTER TABLE company FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON company
+  USING (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE employee ENABLE ROW LEVEL SECURITY;
+ALTER TABLE employee FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON employee
+  USING (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE schedule ENABLE ROW LEVEL SECURITY;
+ALTER TABLE schedule FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON schedule
+  USING (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE position ENABLE ROW LEVEL SECURITY;
+ALTER TABLE position FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON position
+  USING (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE position_group ENABLE ROW LEVEL SECURITY;
+ALTER TABLE position_group FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON position_group
+  USING (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE category ENABLE ROW LEVEL SECURITY;
+ALTER TABLE category FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON category
+  USING (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE cat_group ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cat_group FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON cat_group
+  USING (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE scheduled_employee ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scheduled_employee FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON scheduled_employee
+  USING (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+-- Indirect tenant tables (no direct company_id; tenant resolved via FK join)
+
+ALTER TABLE employee_phone ENABLE ROW LEVEL SECURITY;
+ALTER TABLE employee_phone FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON employee_phone
+  USING (
+    EXISTS (
+      SELECT 1 FROM employee e
+      WHERE e.employee_id = employee_phone.employee_id
+        AND e.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM employee e
+      WHERE e.employee_id = employee_phone.employee_id
+        AND e.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE employee_position ENABLE ROW LEVEL SECURITY;
+ALTER TABLE employee_position FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON employee_position
+  USING (
+    EXISTS (
+      SELECT 1 FROM employee e
+      WHERE e.employee_id = employee_position.employee_id
+        AND e.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM employee e
+      WHERE e.employee_id = employee_position.employee_id
+        AND e.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE group_position ENABLE ROW LEVEL SECURITY;
+ALTER TABLE group_position FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON group_position
+  USING (
+    EXISTS (
+      SELECT 1 FROM position_group pg
+      WHERE pg.group_id = group_position.group_id
+        AND pg.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM position_group pg
+      WHERE pg.group_id = group_position.group_id
+        AND pg.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE group_cat ENABLE ROW LEVEL SECURITY;
+ALTER TABLE group_cat FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON group_cat
+  USING (
+    EXISTS (
+      SELECT 1 FROM cat_group cg
+      WHERE cg.group_id = group_cat.group_id
+        AND cg.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM cat_group cg
+      WHERE cg.group_id = group_cat.group_id
+        AND cg.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE day_prefs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE day_prefs FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON day_prefs
+  USING (
+    EXISTS (
+      SELECT 1 FROM employee e
+      WHERE e.employee_id = day_prefs.employee_id
+        AND e.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM employee e
+      WHERE e.employee_id = day_prefs.employee_id
+        AND e.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE week_prefs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE week_prefs FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON week_prefs
+  USING (
+    EXISTS (
+      SELECT 1 FROM employee e
+      WHERE e.employee_id = week_prefs.employee_id
+        AND e.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM employee e
+      WHERE e.employee_id = week_prefs.employee_id
+        AND e.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );

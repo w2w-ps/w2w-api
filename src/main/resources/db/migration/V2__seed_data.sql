@@ -1,4 +1,10 @@
 -- Seed Data (DML)
+
+-- ============================================================
+-- SECTION 1: Tenant-scoped demo data (companies 1–6)
+-- app.current_tenant is set per company inside the loop so every insert
+-- satisfies the RLS WITH CHECK policy for that company.
+-- ============================================================
 DO $$
 DECLARE
     first_names TEXT[] := ARRAY['James', 'Mary', 'Robert', 'Patricia', 'John', 'Jennifer', 'Michael', 'Linda', 'David', 'Elizabeth', 'William', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen', 'Christopher', 'Nancy', 'Daniel', 'Margaret', 'Matthew', 'Lisa', 'Anthony', 'Betty', 'Mark', 'Dorothy', 'Donald', 'Sandra', 'Steven', 'Ashley', 'Paul', 'Kimberly', 'Andrew', 'Donna', 'Joshua', 'Emily', 'Kenneth', 'Michelle', 'Kevin', 'Carol', 'Brian', 'Amanda', 'George', 'Melissa', 'Edward', 'Deborah'];
@@ -54,6 +60,8 @@ BEGIN
         emp_ids := ARRAY[]::INT[];
         comp_pos_ids := ARRAY[]::INT[];
         comp_cat_ids := ARRAY[]::INT[];
+        -- Set tenant context so all inserts for this company satisfy RLS WITH CHECK
+        PERFORM set_config('app.current_tenant', c_id::TEXT, false);
         INSERT INTO company (company_id, company_name, department_name, status)
         VALUES (c_id, comp->>'name', comp->>'industry', 'active');
         
@@ -203,7 +211,8 @@ INSERT INTO users (
 INSERT INTO manager_permissions (user_id, is_main_manager, can_manage_positions, can_manage_team_members, can_edit_shifts)
 VALUES (1, TRUE, TRUE, TRUE, TRUE);
 
--- Seed preferences
+-- Seed preferences (employee_id=1 belongs to company 1)
+SELECT set_config('app.current_tenant', '1', false);
 INSERT INTO day_prefs (employee_id, date, prefs, compression, edited_by, is_day_prefs)
 SELECT 1, '2026-04-01'::DATE + i, 'DDDDDDDDDDDDDDDDDDDDPPPPPPPPDDDPPPPPPDDDDPPPPPPPPPPPPPPCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCNNNNN', 0, 1, FALSE
 FROM generate_series(0, 30) i;

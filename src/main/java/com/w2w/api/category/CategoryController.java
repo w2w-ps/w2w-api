@@ -23,23 +23,27 @@ public class CategoryController {
             @RequestParam Integer companyId,
             @RequestParam(defaultValue = "all") String status
     ) {
-        TenantContext.setCurrentTenant(companyId);
-        List<CategorySummary> categories = categoryService.getCategories(companyId, status);
+        List<CategorySummary> categories = categoryService.getCategories(status);
         return ResponseEntity.ok(new CategoriesResponse(categories));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable("id") Integer categoryId, @RequestParam Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
-        return categoryService.getCategoryById(categoryId, companyId)
+        return categoryService.getCategoryById(categoryId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<Void> createCategory(@Valid @RequestBody CreateCategoryRequest request) {
-        TenantContext.setCurrentTenant(request.companyId());
-        categoryService.createCategory(request);
+        categoryService.createCategory(
+                request.shortName(),
+                request.description(),
+                request.startTime(),
+                request.endTime(),
+                request.positionId(),
+                request.color()
+        );
         return ResponseEntity.noContent().build();
     }
 
@@ -49,15 +53,13 @@ public class CategoryController {
             @RequestParam Integer companyId,
             @Valid @RequestBody UpdateCategoryRequest request
     ) {
-        TenantContext.setCurrentTenant(companyId);
-        categoryService.updateCategory(categoryId, companyId, request);
+        categoryService.updateCategory(categoryId, request);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable("id") Integer categoryId, @RequestParam Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
-        categoryService.deleteCategory(categoryId, companyId);
+        categoryService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -4,6 +4,8 @@ import com.w2w.api.category.dto.*;
 import com.w2w.api.category.model.Category;
 import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
+import com.w2w.api.config.CurrentTenant;
+import com.w2w.api.config.TenantContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,15 +27,16 @@ public class CategoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<CategorySummary> getCategories(Integer companyId, String status) {
+    public List<CategorySummary> getCategories(String status) {
+        Integer currentTenant = TenantContext.getCurrentTenant();
         return switch (status.toLowerCase()) {
-            case "all" -> categoryRepository.findByCompanyId(companyId).stream()
+            case "all" -> categoryRepository.findByCompanyId(currentTenant).stream()
                     .map(this::toSummary)
                     .toList();
-            case "active" -> categoryRepository.findByCompanyIdAndIsDeletedFalse(companyId).stream()
+            case "active" -> categoryRepository.findByCompanyIdAndIsDeletedFalse(currentTenant).stream()
                     .map(this::toSummary)
                     .toList();
-            case "inactive" -> categoryRepository.findByCompanyIdAndIsDeletedTrue(companyId).stream()
+            case "inactive" -> categoryRepository.findByCompanyIdAndIsDeletedTrue(currentTenant).stream()
                     .map(this::toSummary)
                     .toList();
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported status filter");
@@ -41,13 +44,13 @@ public class CategoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<CategorySummary> getCategoriesByCompanyId(Integer companyId) {
-        return getCategories(companyId, "all");
+    public List<CategorySummary> getCategoriesByCompanyId() {
+        return getCategories("all");
     }
 
     @Transactional(readOnly = true)
-    public List<CategoryGroupSummary> getCategoryGroupsByCompanyId(Integer companyId) {
-        return categoryGroupRepository.findByCompanyId(companyId).stream()
+    public List<CategoryGroupSummary> getCategoryGroupsByCompanyId() {
+        return categoryGroupRepository.findByCompanyId(TenantContext.getCurrentTenant()).stream()
                 .map(group -> new CategoryGroupSummary(
                         group.getGroupId(),
                         group.getDescription(),
@@ -59,29 +62,39 @@ public class CategoryService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<CategoryResponse> getCategoryById(Integer categoryId, Integer companyId) {
-        return categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(categoryId, companyId)
+    public Optional<CategoryResponse> getCategoryById(Integer categoryId) {
+        return categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(
+                        categoryId,
+                        TenantContext.getCurrentTenant()
+                )
                 .map(this::toResponse);
     }
 
     @Transactional
-    public void createCategory(CreateCategoryRequest request) {
+    public void createCategory(
+            String shortName,
+            String description,
+            String startTime,
+            String endTime,
+            Integer positionId,
+            Short color
+    ) {
         Category category = new Category();
-        category.setCompanyId(request.companyId());
-        category.setShortDesc(request.shortName());
-        category.setDescription(request.description());
-        category.setStartTime(request.startTime());
-        category.setEndTime(request.endTime());
-        category.setPositionId(request.positionId());
-        category.setColor(request.color());
+        category.setCompanyId(CurrentTenant.requireCurrentTenant());
+        category.setShortDesc(shortName);
+        category.setDescription(description);
+        category.setStartTime(startTime);
+        category.setEndTime(endTime);
+        category.setPositionId(positionId);
+        category.setColor(color);
         category.setIsDeleted(false);
 
         categoryRepository.save(category);
     }
 
     @Transactional
-    public void updateCategory(Integer categoryId, Integer companyId, UpdateCategoryRequest request) {
-        Category category = requireActiveCategory(categoryId, companyId);
+    public void updateCategory(Integer categoryId, UpdateCategoryRequest request) {
+        Category category = requireActiveCategory(categoryId, CurrentTenant.requireCurrentTenant());
         category.setShortDesc(request.shortName());
         category.setDescription(request.description());
         category.setStartTime(request.startTime());
@@ -93,8 +106,8 @@ public class CategoryService {
     }
 
     @Transactional
-    public void deleteCategory(Integer categoryId, Integer companyId) {
-        Category category = requireActiveCategory(categoryId, companyId);
+    public void deleteCategory(Integer categoryId) {
+        Category category = requireActiveCategory(categoryId, CurrentTenant.requireCurrentTenant());
         category.setIsDeleted(true);
         categoryRepository.save(category);
     }

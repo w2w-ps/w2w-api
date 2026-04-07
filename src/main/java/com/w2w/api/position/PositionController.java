@@ -26,41 +26,36 @@ public class PositionController {
             @RequestParam Integer companyId,
             @RequestParam(defaultValue = "all") String status
     ) {
-        TenantContext.setCurrentTenant(companyId);
-        List<PositionSummary> positions = positionService.getPositions(companyId, status);
+        List<PositionSummary> positions = positionService.getPositions(status);
         return ResponseEntity.ok(new PositionsResponse(positions));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PositionSummary> getPositionById(@PathVariable("id") Integer skillId, @RequestParam Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
-        return positionService.getPositionById(skillId, companyId)
+    public ResponseEntity<PositionSummary> getPositionById(@PathVariable("id") Integer positionId, @RequestParam Integer companyId) {
+        return positionService.getPositionById(positionId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<Void> createPosition(@Valid @RequestBody CreatePositionRequest request) {
-        TenantContext.setCurrentTenant(request.companyId());
-        positionService.createPosition(request);
+        positionService.createPosition(request.description());
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updatePosition(
-            @PathVariable("id") Integer skillId,
+            @PathVariable("id") Integer positionId,
             @RequestParam Integer companyId,
             @Valid @RequestBody UpdatePositionRequest request
     ) {
-        TenantContext.setCurrentTenant(companyId);
-        positionService.updatePosition(skillId, companyId, request);
+        positionService.updatePosition(positionId, request);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePosition(@PathVariable("id") Integer skillId, @RequestParam Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
-        positionService.deletePosition(skillId, companyId);
+    public ResponseEntity<Void> deletePosition(@PathVariable("id") Integer positionId, @RequestParam Integer companyId) {
+        positionService.deletePosition(positionId);
         return ResponseEntity.noContent().build();
     }
 }

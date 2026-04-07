@@ -1,5 +1,6 @@
 package com.w2w.api.category;
 
+import com.w2w.api.config.TenantContext;
 import com.w2w.api.category.dto.CategoryGroupSummary;
 import com.w2w.api.category.dto.CreateCategoryGroupRequest;
 import com.w2w.api.category.dto.UpdateCategoryGroupRequest;
@@ -7,6 +8,7 @@ import com.w2w.api.category.model.Category;
 import com.w2w.api.category.model.CategoryGroup;
 import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,8 +46,14 @@ class CategoryGroupServiceTest {
     private Category front;
     private CategoryGroup categoryGroup;
 
+    @AfterEach
+    void clearTenantContext() {
+        TenantContext.clear();
+    }
+
     @BeforeEach
     void setUp() {
+        TenantContext.setCurrentTenant(1);
         floor = new Category();
         floor.setCategoryId(4);
         floor.setCompanyId(1);
@@ -72,7 +80,7 @@ class CategoryGroupServiceTest {
     void getCategoryGroups_returnsMappedGroups() {
         when(categoryGroupRepository.findByCompanyId(1)).thenReturn(List.of(categoryGroup));
 
-        List<CategoryGroupSummary> result = categoryGroupService.getCategoryGroups(1, "all");
+        List<CategoryGroupSummary> result = categoryGroupService.getCategoryGroups("all");
 
         assertEquals(1, result.size());
         assertEquals(301, result.get(0).id());
@@ -86,7 +94,7 @@ class CategoryGroupServiceTest {
     void getCategoryGroups_returnsMappedActiveGroups() {
         when(categoryGroupRepository.findByCompanyIdAndIsDeletedFalse(1)).thenReturn(List.of(categoryGroup));
 
-        List<CategoryGroupSummary> result = categoryGroupService.getCategoryGroups(1, "active");
+        List<CategoryGroupSummary> result = categoryGroupService.getCategoryGroups("active");
 
         assertEquals(1, result.size());
         assertEquals(301, result.get(0).id());
@@ -98,7 +106,7 @@ class CategoryGroupServiceTest {
         categoryGroup.setIsDeleted(true);
         when(categoryGroupRepository.findByCompanyIdAndIsDeletedTrue(1)).thenReturn(List.of(categoryGroup));
 
-        List<CategoryGroupSummary> result = categoryGroupService.getCategoryGroups(1, "non-active");
+        List<CategoryGroupSummary> result = categoryGroupService.getCategoryGroups("non-active");
 
         assertEquals(1, result.size());
         assertEquals(301, result.get(0).id());
@@ -107,7 +115,7 @@ class CategoryGroupServiceTest {
 
     @Test
     void getCategoryGroups_throwsWhenStatusUnsupported() {
-        assertThrows(ResponseStatusException.class, () -> categoryGroupService.getCategoryGroups(1, "archived"));
+        assertThrows(ResponseStatusException.class, () -> categoryGroupService.getCategoryGroups("archived"));
 
         verify(categoryGroupRepository, never()).findByCompanyId(1);
         verify(categoryGroupRepository, never()).findByCompanyIdAndIsDeletedFalse(1);
@@ -118,7 +126,7 @@ class CategoryGroupServiceTest {
     void getCategoryGroupById_returnsMappedGroup() {
         when(categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(301, 1)).thenReturn(Optional.of(categoryGroup));
 
-        Optional<CategoryGroupSummary> result = categoryGroupService.getCategoryGroupById(301, 1);
+        Optional<CategoryGroupSummary> result = categoryGroupService.getCategoryGroupById(301);
 
         assertTrue(result.isPresent());
         assertEquals("Standard Shifts", result.get().name());
@@ -127,14 +135,13 @@ class CategoryGroupServiceTest {
 
     @Test
     void createCategoryGroup_savesResolvedCategories() {
-        CreateCategoryGroupRequest request = new CreateCategoryGroupRequest(1, "Standard Shifts", List.of(5, 4));
         when(categoryRepository.findByCategoryIdInAndCompanyIdAndIsDeletedFalse(
                 argThat(categoryIds -> categoryIds.size() == 2 && categoryIds.containsAll(List.of(5, 4))),
                 eq(1)
         ))
                 .thenReturn(List.of(floor, front));
 
-        categoryGroupService.createCategoryGroup(request);
+        categoryGroupService.createCategoryGroup("Standard Shifts", List.of(5, 4));
 
         verify(categoryRepository).findByCategoryIdInAndCompanyIdAndIsDeletedFalse(
                 argThat(categoryIds -> categoryIds.size() == 2 && categoryIds.containsAll(List.of(5, 4))),
@@ -149,14 +156,13 @@ class CategoryGroupServiceTest {
 
     @Test
     void createCategoryGroup_throwsWhenAnyCategoryIsMissing() {
-        CreateCategoryGroupRequest request = new CreateCategoryGroupRequest(1, "Standard Shifts", List.of(4, 999));
         when(categoryRepository.findByCategoryIdInAndCompanyIdAndIsDeletedFalse(
                 argThat(categoryIds -> categoryIds.size() == 2 && categoryIds.containsAll(List.of(4, 999))),
                 eq(1)
         ))
                 .thenReturn(List.of(floor));
 
-        assertThrows(ResponseStatusException.class, () -> categoryGroupService.createCategoryGroup(request));
+        assertThrows(ResponseStatusException.class, () -> categoryGroupService.createCategoryGroup("Standard Shifts", List.of(4, 999)));
 
         verify(categoryGroupRepository, never()).save(any(CategoryGroup.class));
     }
@@ -171,7 +177,7 @@ class CategoryGroupServiceTest {
         ))
                 .thenReturn(List.of(front));
 
-        categoryGroupService.updateCategoryGroup(301, 1, request);
+        categoryGroupService.updateCategoryGroup(301, request);
 
         assertEquals("Updated Standard Shifts", categoryGroup.getDescription());
         assertEquals(1, categoryGroup.getCategories().size());
@@ -183,7 +189,7 @@ class CategoryGroupServiceTest {
     void deleteCategoryGroup_softDeletesGroup() {
         when(categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(301, 1)).thenReturn(Optional.of(categoryGroup));
 
-        categoryGroupService.deleteCategoryGroup(301, 1);
+        categoryGroupService.deleteCategoryGroup(301);
 
         assertTrue(categoryGroup.getIsDeleted());
         verify(categoryGroupRepository).save(categoryGroup);
@@ -193,8 +199,17 @@ class CategoryGroupServiceTest {
     void deleteCategoryGroup_throwsWhenMissing() {
         when(categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(301, 1)).thenReturn(Optional.empty());
 
-        assertThrows(ResponseStatusException.class, () -> categoryGroupService.deleteCategoryGroup(301, 1));
+        assertThrows(ResponseStatusException.class, () -> categoryGroupService.deleteCategoryGroup(301));
 
+        verify(categoryGroupRepository, never()).save(any(CategoryGroup.class));
+    }
+
+    @Test
+    void createCategoryGroup_throwsWhenTenantMissing() {
+        TenantContext.clear();
+
+        assertThrows(ResponseStatusException.class,
+                () -> categoryGroupService.createCategoryGroup("Standard Shifts", List.of(4, 5)));
         verify(categoryGroupRepository, never()).save(any(CategoryGroup.class));
     }
 }

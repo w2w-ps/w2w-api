@@ -30,8 +30,7 @@ public class CategoryGroupController {
             @RequestParam Integer companyId,
             @RequestParam(defaultValue = "all") String status
     ) {
-        TenantContext.setCurrentTenant(companyId);
-        return ResponseEntity.ok(new CategoryGroupsResponse(categoryGroupService.getCategoryGroups(companyId, status)));
+        return ResponseEntity.ok(new CategoryGroupsResponse(categoryGroupService.getCategoryGroups(status)));
     }
 
     /**
@@ -42,8 +41,7 @@ public class CategoryGroupController {
             @PathVariable("id") Integer groupId,
             @RequestParam Integer companyId
     ) {
-        TenantContext.setCurrentTenant(companyId);
-        return categoryGroupService.getCategoryGroupById(groupId, companyId)
+        return categoryGroupService.getCategoryGroupById(groupId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -53,8 +51,7 @@ public class CategoryGroupController {
      */
     @PostMapping
     public ResponseEntity<Void> createCategoryGroup(@Valid @RequestBody CreateCategoryGroupRequest request) {
-        TenantContext.setCurrentTenant(request.companyId());
-        categoryGroupService.createCategoryGroup(request);
+        categoryGroupService.createCategoryGroup(request.description(), request.categoryIds());
         return ResponseEntity.noContent().build();
     }
 
@@ -67,8 +64,7 @@ public class CategoryGroupController {
             @RequestParam Integer companyId,
             @Valid @RequestBody UpdateCategoryGroupRequest request
     ) {
-        TenantContext.setCurrentTenant(companyId);
-        categoryGroupService.updateCategoryGroup(groupId, companyId, request);
+        categoryGroupService.updateCategoryGroup(groupId, request);
         return ResponseEntity.noContent().build();
     }
 
@@ -77,8 +73,7 @@ public class CategoryGroupController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategoryGroup(@PathVariable("id") Integer groupId, @RequestParam Integer companyId) {
-        TenantContext.setCurrentTenant(companyId);
-        categoryGroupService.deleteCategoryGroup(groupId, companyId);
+        categoryGroupService.deleteCategoryGroup(groupId);
         return ResponseEntity.noContent().build();
     }
 }
