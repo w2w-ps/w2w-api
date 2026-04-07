@@ -14,6 +14,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.util.Optional;
 
 @Service
@@ -42,21 +46,38 @@ public class ManagerService {
 
     @Transactional
     public User addManager(AddManagerRequest request) {
+        // Enforce Main Manager Security Constraints
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new AccessDeniedException("User must be authenticated to add a manager.");
+        }
+        
+        String currentUsername = auth.getName();
+        User currentUser = loginRepository.findByLoginId(currentUsername)
+            .orElseThrow(() -> new AccessDeniedException("Current user not found."));
+            
+        ManagerPermissions currentUserPerms = permissionsRepository.findByUserId(currentUser.getId())
+            .orElseThrow(() -> new AccessDeniedException("Current user does not have manager permissions."));
+            
+        if (!currentUserPerms.isMainManager()) {
+            throw new AccessDeniedException("Only Main Managers can add additional managers.");
+        }
+
         // 1. Create Employee
         Employee employee = new Employee();
-        employee.setFirstName(request.getFirstName());
-        employee.setLastName(request.getLastName());
-        employee.setEmail(request.getEmail());
-        employee.setCompanyId(request.getCompanyId());
+        employee.setFirstName(request.firstName());
+        employee.setLastName(request.lastName());
+        employee.setEmail(request.email());
+        employee.setCompanyId(request.companyId());
         employee.setStatus("Active");
         
         employee = employeeRepository.save(employee);
 
         // 2. Create User
         User user = new User();
-        user.setLoginId(request.getEmail());
+        user.setLoginId(request.email());
         user.setPassword(passwordEncoder.encode("Welcome123!")); // In real usage, this might be temporary
-        user.setCompanyId(request.getCompanyId());
+        user.setCompanyId(request.companyId());
         user.setEmployee(employee);
         
         // Find and assign Manager Role
@@ -76,38 +97,41 @@ public class ManagerService {
         ManagerPermissions permissions = new ManagerPermissions();
         permissions.setUser(user);
         
-        ManagerPermissionsDto pDto = request.getPermissions();
+        // Always force the newly created manager to be an Additional Manager
+        permissions.setMainManager(false);
+        
+        ManagerPermissionsDto pDto = request.permissions();
         if (pDto != null) {
-            permissions.setCanAddShifts(pDto.isCanAddShifts());
-            permissions.setCanImportTemplates(pDto.isCanImportTemplates());
-            permissions.setCanUploadShifts(pDto.isCanUploadShifts());
-            permissions.setCanAutofillShifts(pDto.isCanAutofillShifts());
-            permissions.setCanClearSchedules(pDto.isCanClearSchedules());
-            permissions.setCanEditShifts(pDto.isCanEditShifts());
-            permissions.setCanSaveTemplates(pDto.isCanSaveTemplates());
-            permissions.setCanPublishSchedules(pDto.isCanPublishSchedules());
-            permissions.setCanUnpublishSchedules(pDto.isCanUnpublishSchedules());
-            permissions.setCanManageCategories(pDto.isCanManageCategories());
+            permissions.setCanAddShifts(Boolean.TRUE.equals(pDto.canAddShifts()));
+            permissions.setCanImportTemplates(Boolean.TRUE.equals(pDto.canImportTemplates()));
+            permissions.setCanUploadShifts(Boolean.TRUE.equals(pDto.canUploadShifts()));
+            permissions.setCanAutofillShifts(Boolean.TRUE.equals(pDto.canAutofillShifts()));
+            permissions.setCanClearSchedules(Boolean.TRUE.equals(pDto.canClearSchedules()));
+            permissions.setCanEditShifts(Boolean.TRUE.equals(pDto.canEditShifts()));
+            permissions.setCanSaveTemplates(Boolean.TRUE.equals(pDto.canSaveTemplates()));
+            permissions.setCanPublishSchedules(Boolean.TRUE.equals(pDto.canPublishSchedules()));
+            permissions.setCanUnpublishSchedules(Boolean.TRUE.equals(pDto.canUnpublishSchedules()));
+            permissions.setCanManageCategories(Boolean.TRUE.equals(pDto.canManageCategories()));
             
-            permissions.setCanAddEmployees(pDto.isCanAddEmployees());
-            permissions.setCanViewPayRates(pDto.isCanViewPayRates());
-            permissions.setCanEditEmployees(pDto.isCanEditEmployees());
+            permissions.setCanAddEmployees(Boolean.TRUE.equals(pDto.canAddEmployees()));
+            permissions.setCanViewPayRates(Boolean.TRUE.equals(pDto.canViewPayRates()));
+            permissions.setCanEditEmployees(Boolean.TRUE.equals(pDto.canEditEmployees()));
             
-            permissions.setCanApproveTrades(pDto.isCanApproveTrades());
-            permissions.setCanApproveTimeOff(pDto.isCanApproveTimeOff());
+            permissions.setCanApproveTrades(Boolean.TRUE.equals(pDto.canApproveTrades()));
+            permissions.setCanApproveTimeOff(Boolean.TRUE.equals(pDto.canApproveTimeOff()));
             
-            permissions.setCanChangeCompanySettings(pDto.isCanChangeCompanySettings());
-            permissions.setCanManagePositions(pDto.isCanManagePositions());
-            permissions.setCanManageTeamMembers(pDto.isCanManageTeamMembers());
+            permissions.setCanChangeCompanySettings(Boolean.TRUE.equals(pDto.canChangeCompanySettings()));
+            permissions.setCanManagePositions(Boolean.TRUE.equals(pDto.canManagePositions()));
+            permissions.setCanManageTeamMembers(Boolean.TRUE.equals(pDto.canManageTeamMembers()));
             
-            permissions.setCanReceiveManagerNotifications(pDto.isCanReceiveManagerNotifications());
+            permissions.setCanReceiveManagerNotifications(Boolean.TRUE.equals(pDto.canReceiveManagerNotifications()));
         }
         
         permissionsRepository.save(permissions);
 
-        if (request.isEmailInstructions()) {
+        if (Boolean.TRUE.equals(request.emailInstructions())) {
             // Logic to send email would go here
-            System.out.println("Emailing instructions to " + request.getEmail());
+            System.out.println("Emailing instructions to " + request.email());
         }
 
         return user;

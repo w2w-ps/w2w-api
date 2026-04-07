@@ -16,6 +16,9 @@ public class ManagerPermissions {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "is_main_manager")
+    private boolean isMainManager;
+
     // Schedules
     @Column(name = "can_add_shifts")
     private boolean canAddShifts;
@@ -143,4 +146,7 @@ public class ManagerPermissions {
 
     public boolean isCanReceiveManagerNotifications() { return canReceiveManagerNotifications; }
     public void setCanReceiveManagerNotifications(boolean canReceiveManagerNotifications) { this.canReceiveManagerNotifications = canReceiveManagerNotifications; }
+
+    public boolean isMainManager() { return isMainManager; }
+    public void setMainManager(boolean mainManager) { this.isMainManager = mainManager; }
 }
