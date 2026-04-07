@@ -56,10 +56,17 @@ public class ManagerService {
         User currentUser = loginRepository.findByLoginId(currentUsername)
             .orElseThrow(() -> new AccessDeniedException("Current user not found."));
             
-        ManagerPermissions currentUserPerms = permissionsRepository.findByUserId(currentUser.getId())
-            .orElseThrow(() -> new AccessDeniedException("Current user does not have manager permissions."));
-            
-        if (!currentUserPerms.isMainManager()) {
+        // Determine if user is a Main Manager
+        boolean isMainManager = false;
+
+        Optional<ManagerPermissions> permsOpt = permissionsRepository.findByUserId(currentUser.getId());
+        if (permsOpt.isPresent() && permsOpt.get().isMainManager()) {
+            isMainManager = true;
+        } else if (currentUser.getRole() != null && "Manager".equalsIgnoreCase(currentUser.getRole().getName())) {
+            isMainManager = true;
+        }
+
+        if (!isMainManager) {
             throw new AccessDeniedException("Only Main Managers can add additional managers.");
         }
 
