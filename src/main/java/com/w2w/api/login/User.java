@@ -9,7 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import com.w2w.api.employee.Employee;
+import com.w2w.api.employee.model.Employee;
 
 @Entity
 @Table(name = "users")

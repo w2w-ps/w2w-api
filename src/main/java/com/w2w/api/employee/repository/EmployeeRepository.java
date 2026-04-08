@@ -1,4 +1,6 @@
-package com.w2w.api.employee;
+package com.w2w.api.employee.repository;
+
+import com.w2w.api.employee.model.Employee;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

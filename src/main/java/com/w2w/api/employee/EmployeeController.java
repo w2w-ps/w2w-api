@@ -1,5 +1,8 @@
 package com.w2w.api.employee;
 
+import com.w2w.api.employee.dto.EmployeeListConfigResponse;
+import com.w2w.api.employee.dto.EmployeeRequest;
+import com.w2w.api.employee.dto.EmployeeResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -15,27 +18,27 @@ public class EmployeeController {
     private EmployeeListConfigService configService;
 
     @GetMapping("/company/{companyId}")
-    public List<Employee> getByCompany(@PathVariable Integer companyId) {
+    public List<EmployeeResponse> getByCompany(@PathVariable Integer companyId) {
         return employeeService.getEmployeesByCompany();
     }
 
     @GetMapping("/{id}")
-    public Employee getById(@PathVariable Integer id, @RequestParam Integer companyId) {
+    public EmployeeResponse getById(@PathVariable Integer id, @RequestParam Integer companyId) {
         return employeeService.getEmployeeById(id).orElse(null);
     }
 
     @PostMapping
-    public Employee create(@RequestBody Employee employee) {
-        return employeeService.saveEmployee(employee);
+    public EmployeeResponse create(@RequestBody EmployeeRequest request) {
+        return employeeService.saveEmployee(request);
     }
 
     @GetMapping("/config/{companyId}")
-    public List<EmployeeListConfig> getConfigs(@PathVariable Integer companyId) {
+    public List<EmployeeListConfigResponse> getConfigs(@PathVariable Integer companyId) {
         return configService.getConfigsByCompany(companyId);
     }
 
     @PatchMapping("/config/{companyId}")
-    public List<EmployeeListConfig> saveConfigs(@PathVariable Integer companyId, @RequestBody Map<String, Boolean> columnVisibilities) {
+    public List<EmployeeListConfigResponse> saveConfigs(@PathVariable Integer companyId, @RequestBody Map<String, Boolean> columnVisibilities) {
         return configService.saveConfigs(companyId, columnVisibilities);
     }
 }

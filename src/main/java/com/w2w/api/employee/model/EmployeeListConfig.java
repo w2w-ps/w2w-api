@@ -1,4 +1,4 @@
-package com.w2w.api.employee;
+package com.w2w.api.employee.model;
 
 import jakarta.persistence.*;
 

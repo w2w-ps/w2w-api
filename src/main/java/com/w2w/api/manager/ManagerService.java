@@ -1,7 +1,7 @@
 package com.w2w.api.manager;
 
-import com.w2w.api.employee.Employee;
-import com.w2w.api.employee.EmployeeRepository;
+import com.w2w.api.employee.model.Employee;
+import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.login.EmpType;
 import com.w2w.api.login.EmpTypeRepository;
 import com.w2w.api.login.LoginRepository;

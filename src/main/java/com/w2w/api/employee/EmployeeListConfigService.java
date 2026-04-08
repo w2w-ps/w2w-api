@@ -1,5 +1,8 @@
 package com.w2w.api.employee;
 
+import com.w2w.api.employee.dto.EmployeeListConfigResponse;
+import com.w2w.api.employee.model.EmployeeListConfig;
+import com.w2w.api.employee.repository.EmployeeListConfigRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -27,25 +30,27 @@ public class EmployeeListConfigService {
         return jdbcTemplate.queryForList(sql, String.class);
     }
 
-    public List<EmployeeListConfig> getConfigsByCompany(Integer companyId) {
+    public List<EmployeeListConfigResponse> getConfigsByCompany(Integer companyId) {
         List<EmployeeListConfig> existingConfigs = configRepository.findByCompanyId(companyId);
         Map<String, EmployeeListConfig> configMap = existingConfigs.stream()
                 .collect(Collectors.toMap(EmployeeListConfig::getColumnName, c -> c));
 
         return getAvailableColumns().stream().map(columnName -> {
+            EmployeeListConfig config;
             if (configMap.containsKey(columnName)) {
-                return configMap.get(columnName);
+                config = configMap.get(columnName);
+            } else {
+                config = new EmployeeListConfig();
+                config.setCompanyId(companyId);
+                config.setColumnName(columnName);
+                config.setIsVisible(true); // Default to true if never set
             }
-            EmployeeListConfig config = new EmployeeListConfig();
-            config.setCompanyId(companyId);
-            config.setColumnName(columnName);
-            config.setIsVisible(true); // Default to true if never set
-            return config;
+            return mapToResponse(config);
         }).collect(Collectors.toList());
     }
 
     @Transactional
-    public List<EmployeeListConfig> saveConfigs(Integer companyId, Map<String, Boolean> columnVisibilities) {
+    public List<EmployeeListConfigResponse> saveConfigs(Integer companyId, Map<String, Boolean> columnVisibilities) {
         List<String> availableColumns = getAvailableColumns();
         
         availableColumns.forEach(columnName -> {
@@ -62,5 +67,14 @@ public class EmployeeListConfigService {
         });
         
         return getConfigsByCompany(companyId);
+    }
+
+    private EmployeeListConfigResponse mapToResponse(EmployeeListConfig config) {
+        return new EmployeeListConfigResponse(
+            config.getConfigId(),
+            config.getCompanyId(),
+            config.getColumnName(),
+            config.getIsVisible()
+        );
     }
 }
