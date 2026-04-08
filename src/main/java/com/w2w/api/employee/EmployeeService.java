@@ -105,7 +105,7 @@ public class EmployeeService {
     public void deleteEmployee(Integer id) {
         Employee employee = employeeRepository.findByEmployeeIdAndCompanyIdAndStatusNot(id, CurrentTenant.requireCurrentTenant(), "Deleted")
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
-        
+
         employee.setStatus("Deleted");
         employeeRepository.save(employee);
     }
