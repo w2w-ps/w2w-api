@@ -50,6 +50,9 @@
   `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
   `GET /api/scheduling/shifts/day-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
   `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd` deprecated
+- `timeoff`
+  `GET /api/time-off/requests?companyId=...&employeeId=...&status=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
+  `POST /api/time-off/requests`
 - `preferences`
   `GET /api/preferences/day?employeeId=...&date=...&companyId=...`
   `GET /api/preferences/day/range?employeeId=...&startDate=...&endDate=...&companyId=...`

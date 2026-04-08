@@ -66,6 +66,7 @@ abstract class PostgresIntegrationTestBase {
                 )
                 """, TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM schedule WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
+        jdbcTemplate.update("DELETE FROM time_off_request WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM employee WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM category WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM position WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
