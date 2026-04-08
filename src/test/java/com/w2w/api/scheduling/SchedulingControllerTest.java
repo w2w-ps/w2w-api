@@ -415,75 +415,17 @@ class SchedulingControllerTest {
     }
 
     @Test
-    void getShiftsGroupedByDayPositionAndTiming_returnsGroupedBuckets() throws Exception {
-        when(schedulingService.getShiftsGroupedByDayPositionAndTiming(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
-                .thenReturn(List.of(
-                        new DayPositionTimingBucketDto(
-                                LocalDate.of(2026, 3, 25),
-                                List.of(
-                                        new PositionTimingBucketDto(
-                                                "Bartender",
-                                                new ArrayList<>(List.of(
-                                                        new ShiftTimingBucketDto(
-                                                                LocalTime.of(9, 0),
-                                                                LocalTime.of(17, 0),
-                                                                new ArrayList<>(List.of(
-                                                                        new EmployeeScheduledShiftDto(
-                                                                                9001,
-                                                                                101,
-                                                                                "Ava",
-                                                                                "Stone",
-                                                                                List.of("111-222"),
-                                                                                LocalTime.of(9, 0),
-                                                                                LocalTime.of(17, 0),
-                                                                                "Front",
-                                                                                "Opening shift",
-                                                                                8.0f,
-                                                                                "amber"
-                                                                        )
-                                                                )),
-                                                                1,
-                                                                8.0f
-                                                        )
-                                                )),
-                                                1,
-                                                8.0f
-                                        )
-                                ),
-                                1,
-                                8.0f
-                        )
-                ));
-
-        mockMvc.perform(get("/api/scheduling/shifts/day-position-timing")
-                        .param("companyId", "7")
-                        .param("startDate", "2026-03-25")
-                        .param("endDate", "2026-03-26"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].positions[0].position").value("Bartender"))
-                .andExpect(jsonPath("$[0].positions[0].shiftTimings", hasSize(1)))
-                .andExpect(jsonPath("$[0].positions[0].shiftTimings[0].startTime").value("9:00AM"))
-                .andExpect(jsonPath("$[0].positions[0].shiftTimings[0].endTime").value("5:00PM"))
-                .andExpect(jsonPath("$[0].positions[0].shiftTimings[0].shifts[0].employeeId").value(101));
-
-        verify(schedulingService).getShiftsGroupedByDayPositionAndTiming(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
-    }
-
-    @Test
-    void getGroupedShifts_dayPosition_returnsExistingDayPositionContract() throws Exception {
+    void getGroupedShifts_dayPosition_returnsNormalizedPositionGroups() throws Exception {
         when(schedulingService.getShiftsGrouped(
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
                 ShiftGrouping.POSITION
-        )).thenReturn(List.of(
-                new DayPositionBucket(
+        )).thenReturn(new GroupedShiftsResponse(List.of(
+                new GroupedShiftDate(
                         LocalDate.of(2026, 3, 25),
-                        List.of(new PositionShiftBucket("Bartender", new ArrayList<>(), 0, 0.0f)),
-                        0,
-                        0.0f
+                        List.of(new ShiftGroup("Bartender", List.of(), List.of()))
                 )
-        ));
+        )));
 
         mockMvc.perform(get("/api/scheduling/shifts/grouped")
                         .param("companyId", "7")
@@ -491,10 +433,10 @@ class SchedulingControllerTest {
                         .param("startDate", "2026-03-25")
                         .param("endDate", "2026-03-26"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].date").value("2026-03-25"))
-                .andExpect(jsonPath("$[0].positions", hasSize(1)))
-                .andExpect(jsonPath("$[0].positions[0].position").value("Bartender"));
+                .andExpect(jsonPath("$.dates", hasSize(1)))
+                .andExpect(jsonPath("$.dates[0].date").value("2026-03-25"))
+                .andExpect(jsonPath("$.dates[0].shiftGroups", hasSize(1)))
+                .andExpect(jsonPath("$.dates[0].shiftGroups[0].label").value("Bartender"));
 
         verify(schedulingService).getShiftsGrouped(
                 LocalDate.of(2026, 3, 25),

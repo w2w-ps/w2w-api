@@ -80,6 +80,7 @@
 ## Change Guidelines
 - Preserve the feature-first package layout.
 - Do not reintroduce `controller/` or `service/` subpackages for category or position.
+- Keep DTO and model types inside their owning feature package, using `dto/` and `model/` subpackages when needed.
 - Keep DTO/model/repository folders grouped only when they contain multiple files.
 - Name top-level inbound payloads `*Request` and top-level outbound payloads `*Response`.
 - Name reusable nested API DTOs by business role rather than `*Dto`; prefer semantic suffixes such as `*Summary`, `*Detail`, `*Reference`, `*Bucket`, or `*Item`.

@@ -143,13 +143,12 @@ public class SchedulingService {
         return new ArrayList<>(grouped.values());
     }
 
-    public Object getShiftsGrouped(
+    public GroupedShiftsResponse getShiftsGrouped(
             LocalDate startDate,
             LocalDate endDate,
             ShiftGrouping grouping
     ) {
         return switch (grouping) {
-            case POSITION -> getShiftsGroupedByDateAndPosition(startDate, endDate);
             case POSITION_SHIFT_TIMINGS -> new GroupedShiftsResponse(toGroupedDatesFromPositionTimingBuckets(
                     getShiftsGroupedByDayPositionAndTiming(startDate, endDate)
             ));
@@ -391,6 +390,25 @@ public class SchedulingService {
         return segments;
     }
 
+    private List<GroupedShiftDate> toGroupedDatesFromPositionBuckets(List<DayPositionBucket> dateBuckets) {
+        return dateBuckets.stream()
+                .map(dateBucket -> new GroupedShiftDate(
+                        dateBucket.date(),
+                        dateBucket.positions().stream()
+                                .map(this::toPositionShiftGroup)
+                                .toList()
+                ))
+                .toList();
+    }
+
+    private ShiftGroup toPositionShiftGroup(PositionShiftBucket positionBucket) {
+        return new ShiftGroup(
+                positionBucket.position(),
+                List.of(),
+                positionBucket.shifts().stream().map(this::toEmployeeScheduledShift).toList()
+        );
+    }
+
     private List<GroupedShiftDate> toGroupedDatesFromPositionTimingBuckets(List<DayPositionTimingBucketDto> dateBuckets) {
         return dateBuckets.stream()
                 .map(dateBucket -> new GroupedShiftDate(
@@ -473,6 +491,22 @@ public class SchedulingService {
                 dto.description(),
                 dto.duration(),
                 dto.color()
+        );
+    }
+
+    private EmployeeScheduledShift toEmployeeScheduledShift(EmployeeShift shift) {
+        return new EmployeeScheduledShift(
+                shift.shiftId(),
+                shift.employeeId(),
+                shift.firstName(),
+                shift.lastName(),
+                shift.phones(),
+                shift.startTime(),
+                shift.endTime(),
+                shift.category(),
+                shift.description(),
+                shift.duration(),
+                shift.color()
         );
     }
 
