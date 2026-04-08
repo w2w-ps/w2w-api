@@ -23,36 +23,13 @@ public class EmployeeService {
         return employeeRepository.findByEmployeeIdAndCompanyId(id, TenantContext.getCurrentTenant());
     }
 
-    public Employee saveEmployee(
-            Integer employeeId,
-            String status,
-            java.time.LocalDateTime lastLogon,
-            Integer logonCount,
-            String firstName,
-            String lastName,
-            String employeeNumber,
-            String email,
-            java.util.List<String> phones,
-            java.time.LocalDateTime hireDate,
-            Integer maxScheduledHours,
-            Integer maxDailyHours,
-            Float payRate
-    ) {
-        Employee employee = new Employee();
-        employee.setEmployeeId(employeeId);
+    public Employee saveEmployee(Employee employee) {
         employee.setCompanyId(CurrentTenant.requireCurrentTenant());
-        employee.setStatus(status);
-        employee.setLastLogon(lastLogon);
-        employee.setLogonCount(logonCount);
-        employee.setFirstName(firstName);
-        employee.setLastName(lastName);
-        employee.setEmployeeNumber(employeeNumber);
-        employee.setEmail(email);
-        employee.setPhones(phones);
-        employee.setHireDate(hireDate);
-        employee.setMaxScheduledHours(maxScheduledHours);
-        employee.setMaxDailyHours(maxDailyHours);
-        employee.setPayRate(payRate);
+        
+        if (employee.getAddress() != null) {
+            employee.getAddress().setEmployee(employee);
+        }
+        
         return employeeRepository.save(employee);
     }
 

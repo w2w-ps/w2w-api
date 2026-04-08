@@ -1,7 +1,9 @@
 package com.w2w.api.employee;
 
+import com.w2w.api.login.EmpType;
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,6 +57,40 @@ public class Employee {
 
     @Column(name = "pay_rate")
     private Float payRate;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "emp_type_id")
+    private EmpType empType;
+
+    @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private EmployeeAddress address;
+
+    @Column(name = "max_weekly_days")
+    private Integer maxWeeklyDays;
+
+    @Column(name = "max_daily_shifts")
+    private Integer maxDailyShifts;
+
+    @Column(name = "comments")
+    private String comments;
+
+    @Column(name = "priority_group")
+    private String priorityGroup;
+
+    @Column(name = "google_cal_export")
+    private Boolean googleCalExport = false;
+
+    @Column(name = "next_alert_date")
+    private LocalDate nextAlertDate;
+
+    @Column(name = "custom_field_1")
+    private String customField1;
+
+    @Column(name = "custom_field_2")
+    private String customField2;
+
+    @Column(name = "employee_photo")
+    private String employeePhoto;
 
     public Employee() {
     }
@@ -169,5 +205,93 @@ public class Employee {
 
     public void setPayRate(Float payRate) {
         this.payRate = payRate;
+    }
+
+    public EmpType getEmpType() {
+        return empType;
+    }
+
+    public void setEmpType(EmpType empType) {
+        this.empType = empType;
+    }
+
+    public EmployeeAddress getAddress() {
+        return address;
+    }
+
+    public void setAddress(EmployeeAddress address) {
+        this.address = address;
+    }
+
+    public Integer getMaxWeeklyDays() {
+        return maxWeeklyDays;
+    }
+
+    public void setMaxWeeklyDays(Integer maxWeeklyDays) {
+        this.maxWeeklyDays = maxWeeklyDays;
+    }
+
+    public Integer getMaxDailyShifts() {
+        return maxDailyShifts;
+    }
+
+    public void setMaxDailyShifts(Integer maxDailyShifts) {
+        this.maxDailyShifts = maxDailyShifts;
+    }
+
+    public String getComments() {
+        return comments;
+    }
+
+    public void setComments(String comments) {
+        this.comments = comments;
+    }
+
+    public String getPriorityGroup() {
+        return priorityGroup;
+    }
+
+    public void setPriorityGroup(String priorityGroup) {
+        this.priorityGroup = priorityGroup;
+    }
+
+    public Boolean getGoogleCalExport() {
+        return googleCalExport;
+    }
+
+    public void setGoogleCalExport(Boolean googleCalExport) {
+        this.googleCalExport = googleCalExport;
+    }
+
+    public LocalDate getNextAlertDate() {
+        return nextAlertDate;
+    }
+
+    public void setNextAlertDate(LocalDate nextAlertDate) {
+        this.nextAlertDate = nextAlertDate;
+    }
+
+    public String getCustomField1() {
+        return customField1;
+    }
+
+    public void setCustomField1(String customField1) {
+        this.customField1 = customField1;
+    }
+
+    public String getCustomField2() {
+        return customField2;
+    }
+
+    public void setCustomField2(String customField2) {
+        this.customField2 = customField2;
+    }
+
+    public String getEmployeePhoto() {
+        return employeePhoto;
+    }
+
+    public void setEmployeePhoto(String employeePhoto) {
+        this.employeePhoto = employeePhoto;
     }
 }
