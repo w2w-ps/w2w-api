@@ -920,9 +920,7 @@ class SchedulingServiceTest {
                         )
                 ));
 
-        Object response = schedulingService.getShiftsGrouped(startDate, endDate, ShiftGrouping.POSITION_SHIFT_TIMINGS);
-        assertTrue(response instanceof GroupedShiftsResponse);
-        GroupedShiftsResponse result = (GroupedShiftsResponse) response;
+        GroupedShiftsResponse result = schedulingService.getShiftsGrouped(startDate, endDate, ShiftGrouping.POSITION_SHIFT_TIMINGS);
 
         assertEquals(1, result.dates().size());
         assertEquals("Bartender", result.dates().getFirst().shiftGroups().getFirst().label());

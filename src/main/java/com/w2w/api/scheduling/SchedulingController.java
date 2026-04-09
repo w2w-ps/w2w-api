@@ -5,9 +5,9 @@ import com.w2w.api.scheduling.dto.ConflictItem;
 import com.w2w.api.scheduling.dto.ConflictResponse;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
 import com.w2w.api.scheduling.dto.DayPositionBucket;
-import com.w2w.api.scheduling.dto.DayPositionTimingBucketDto;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
+import com.w2w.api.scheduling.dto.GroupedShiftsResponse;
 import com.w2w.api.scheduling.dto.ShiftGrouping;
 import com.w2w.api.scheduling.dto.ShiftResponse;
 import com.w2w.api.scheduling.dto.UpdateShiftRequest;
@@ -85,7 +85,7 @@ public class SchedulingController {
     }
 
     @GetMapping("/shifts/grouped")
-    public Object getGroupedShifts(
+    public GroupedShiftsResponse getGroupedShifts(
             @RequestParam Integer companyId,
             @RequestParam ShiftGrouping grouping,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
@@ -100,15 +100,6 @@ public class SchedulingController {
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         return schedulingService.getShiftsGroupedByDateAndPosition(startDate, endDate);
-    }
-
-    @GetMapping("/shifts/day-position-timing")
-    public List<DayPositionTimingBucketDto> getShiftsGroupedByDayPositionAndTiming(
-            @RequestParam Integer companyId,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
-    ) {
-        return schedulingService.getShiftsGroupedByDayPositionAndTiming(startDate, endDate);
     }
 
     @PostMapping("/validation/precheck")

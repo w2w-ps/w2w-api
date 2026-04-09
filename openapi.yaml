@@ -190,13 +190,13 @@ paths:
                       $ref: '#/components/schemas/DayPositionBucket'
                   - type: array
                     items:
-                      $ref: '#/components/schemas/DayPositionTimingBucket'
+                      $ref: '#/components/schemas/DayPositionTimingBucketDto'
                   - type: array
                     items:
-                      $ref: '#/components/schemas/DayShiftTimingBucket'
+                      $ref: '#/components/schemas/DayShiftTimingBucketDto'
                   - type: array
                     items:
-                      $ref: '#/components/schemas/DayCategoryTimingBucket'
+                      $ref: '#/components/schemas/DayCategoryTimingBucketDto'
   /api/preferences/day:
     get:
       summary: Get day preference
@@ -995,7 +995,7 @@ components:
         totalDuration:
           type: number
           format: float
-    PositionTimingBucket:
+    PositionTimingBucketDto:
       type: object
       properties:
         position:
@@ -1004,13 +1004,13 @@ components:
         shiftTimings:
           type: array
           items:
-            $ref: '#/components/schemas/ShiftTimingBucket'
+            $ref: '#/components/schemas/ShiftTimingBucketDto'
         shiftCount:
           type: integer
         totalDuration:
           type: number
           format: float
-    ShiftTimingBucket:
+    ShiftTimingBucketDto:
       type: object
       properties:
         startTime:
@@ -1026,7 +1026,7 @@ components:
         totalDuration:
           type: number
           format: float
-    CategoryTimingBucket:
+    CategoryTimingBucketDto:
       type: object
       properties:
         category:
@@ -1035,8 +1035,8 @@ components:
         shiftTimings:
           type: array
           items:
-            $ref: '#/components/schemas/ShiftTimingGroup'
-    ShiftTimingGroup:
+            $ref: '#/components/schemas/ShiftTimingGroupDto'
+    ShiftTimingGroupDto:
       type: object
       properties:
         label:
@@ -1045,7 +1045,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/EmployeeScheduledShift'
-    DayShiftTimingBucket:
+    DayShiftTimingBucketDto:
       type: object
       properties:
         date:
@@ -1054,7 +1054,7 @@ components:
         shiftTimings:
           type: array
           items:
-            $ref: '#/components/schemas/ShiftTimingGroup'
+            $ref: '#/components/schemas/ShiftTimingGroupDto'
     DayPositionBucket:
       type: object
       properties:
@@ -1101,7 +1101,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/EmployeeScheduledShift'
-    DayPositionTimingBucket:
+    DayPositionTimingBucketDto:
       type: object
       properties:
         date:
@@ -1110,13 +1110,13 @@ components:
         positions:
           type: array
           items:
-            $ref: '#/components/schemas/PositionTimingBucket'
+            $ref: '#/components/schemas/PositionTimingBucketDto'
         shiftCount:
           type: integer
         totalDuration:
           type: number
           format: float
-    DayCategoryTimingBucket:
+    DayCategoryTimingBucketDto:
       type: object
       properties:
         date:
@@ -1125,7 +1125,7 @@ components:
         categories:
           type: array
           items:
-            $ref: '#/components/schemas/CategoryTimingBucket'
+            $ref: '#/components/schemas/CategoryTimingBucketDto'
     DayPreferenceRequest:
       type: object
       required: [employeeId, companyId, date]
