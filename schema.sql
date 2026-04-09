@@ -239,4 +239,3 @@ CREATE INDEX idx_position_company_id ON position(company_id);
 CREATE INDEX idx_category_company_id ON category(company_id);
 CREATE INDEX idx_time_off_company_employee ON time_off_request(company_id, employee_id);
 CREATE INDEX idx_time_off_company_status ON time_off_request(company_id, status);
-CREATE INDEX idx_time_off_company_dates ON time_off_request(company_id, start_date, end_date);
