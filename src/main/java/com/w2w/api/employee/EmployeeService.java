@@ -9,7 +9,6 @@ import com.w2w.api.employee.model.EmployeeAddress;
 import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.login.EmpType;
 import com.w2w.api.login.EmpTypeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,27 +19,47 @@ import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    private final EmployeeRepository employeeRepository;
+    private final EmpTypeRepository empTypeRepository;
 
-    @Autowired
-    private EmpTypeRepository empTypeRepository;
+    public EmployeeService(EmployeeRepository employeeRepository, EmpTypeRepository empTypeRepository) {
+        this.employeeRepository = employeeRepository;
+        this.empTypeRepository = empTypeRepository;
+    }
 
     public List<EmployeeResponse> getEmployeesByCompany() {
-        return employeeRepository.findByCompanyId(TenantContext.getCurrentTenant())
+        return employeeRepository.findByCompanyIdAndStatusNot(TenantContext.getCurrentTenant(), "Deleted")
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     public Optional<EmployeeResponse> getEmployeeById(Integer id) {
-        return employeeRepository.findByEmployeeIdAndCompanyId(id, TenantContext.getCurrentTenant())
+        return employeeRepository.findByEmployeeIdAndCompanyIdAndStatusNot(id, TenantContext.getCurrentTenant(), "Deleted")
                 .map(this::mapToResponse);
     }
 
     public EmployeeResponse saveEmployee(EmployeeRequest request) {
         Employee employee = new Employee();
+        mapRequestToEntity(request, employee);
         employee.setCompanyId(CurrentTenant.requireCurrentTenant());
+        employee.setStatus("Active");
+
+        Employee saved = employeeRepository.save(employee);
+        return mapToResponse(saved);
+    }
+
+    public EmployeeResponse updateEmployee(Integer id, EmployeeRequest request) {
+        Employee employee = employeeRepository.findByEmployeeIdAndCompanyIdAndStatusNot(id, CurrentTenant.requireCurrentTenant(), "Deleted")
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
+
+        mapRequestToEntity(request, employee);
+
+        Employee saved = employeeRepository.save(employee);
+        return mapToResponse(saved);
+    }
+
+    private void mapRequestToEntity(EmployeeRequest request, Employee employee) {
         employee.setFirstName(request.firstName());
         employee.setLastName(request.lastName());
         employee.setEmail(request.email());
@@ -59,7 +78,6 @@ public class EmployeeService {
         employee.setCustomField1(request.customField1());
         employee.setCustomField2(request.customField2());
         employee.setEmployeePhoto(request.employeePhoto());
-        employee.setStatus("Active");
 
         if (request.empTypeId() != null) {
             EmpType empType = empTypeRepository.findById(request.empTypeId())
@@ -68,24 +86,28 @@ public class EmployeeService {
         }
 
         if (request.address() != null) {
-            EmployeeAddress address = new EmployeeAddress();
+            EmployeeAddress address = employee.getAddress();
+            if (address == null) {
+                address = new EmployeeAddress();
+                address.setEmployee(employee);
+                employee.setAddress(address);
+            }
             address.setAddress(request.address().address());
             address.setAddress2(request.address().address2());
             address.setCity(request.address().city());
             address.setState(request.address().state());
             address.setZip(request.address().zip());
-            address.setEmployee(employee);
-            employee.setAddress(address);
+        } else {
+            employee.setAddress(null);
         }
-
-        Employee saved = employeeRepository.save(employee);
-        return mapToResponse(saved);
     }
 
     public void deleteEmployee(Integer id) {
-        Employee employee = employeeRepository.findByEmployeeIdAndCompanyId(id, CurrentTenant.requireCurrentTenant())
+        Employee employee = employeeRepository.findByEmployeeIdAndCompanyIdAndStatusNot(id, CurrentTenant.requireCurrentTenant(), "Deleted")
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
-        employeeRepository.delete(employee);
+        
+        employee.setStatus("Deleted");
+        employeeRepository.save(employee);
     }
 
     private EmployeeResponse mapToResponse(Employee employee) {

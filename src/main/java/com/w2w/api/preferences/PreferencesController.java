@@ -1,6 +1,5 @@
 package com.w2w.api.preferences;
 
-import com.w2w.api.config.TenantContext;
 import com.w2w.api.preferences.dto.*;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;

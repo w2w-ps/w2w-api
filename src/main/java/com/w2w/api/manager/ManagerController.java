@@ -3,17 +3,12 @@ package com.w2w.api.manager;
 import com.w2w.api.login.User;
 import com.w2w.api.manager.dto.AddManagerRequest;
 import com.w2w.api.manager.dto.UpdateManagerRequest;
+import com.w2w.api.manager.dto.ManagerResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/managers")
@@ -23,6 +18,11 @@ public class ManagerController {
 
     public ManagerController(ManagerService managerService) {
         this.managerService = managerService;
+    }
+
+    @GetMapping("/add-managers/company/{companyId}")
+    public ResponseEntity<List<ManagerResponse>> listAddManagers(@PathVariable Integer companyId) {
+        return ResponseEntity.ok(managerService.getAddManagersByCompany(companyId));
     }
 
     @PostMapping

@@ -817,7 +817,154 @@ paths:
         '204':
           description: Position group soft-deleted successfully
         '404':
-          description: Position group not found
+  /api/employees/company/{companyId}:
+    get:
+      summary: Get employees for a company
+      parameters:
+        - in: path
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeResponse'
+  /api/employees/{id}:
+    get:
+      summary: Get an employee by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Employee details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+        '404':
+          description: Employee not found
+    put:
+      summary: Update an employee
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+      responses:
+        '200':
+          description: Employee updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+    delete:
+      summary: Soft-delete an employee
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Employee soft-deleted
+  /api/employees:
+    post:
+      summary: Create a new employee
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+      responses:
+        '200':
+          description: Employee created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+  /api/managers/add-managers/company/{companyId}:
+    get:
+      summary: Get all additional managers for a company
+      parameters:
+        - in: path
+          name: companyId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of managers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ManagerResponse'
+  /api/managers:
+    post:
+      summary: Add a new manager
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddManagerRequest'
+      responses:
+        '200':
+          description: Manager added
+  /api/managers/{id}:
+    put:
+      summary: Update manager permissions/details
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateManagerRequest'
+      responses:
+        '200':
+          description: Manager updated
+    delete:
+      summary: Soft-delete a manager
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Manager soft-deleted
 components:
   parameters:
     ShiftId:
@@ -1494,3 +1641,204 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PositionGroupSummary'
+    EmployeeRequest:
+      type: object
+      required: [firstName, lastName, email]
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        employeeNumber:
+          type: string
+        phones:
+          type: array
+          items:
+            type: string
+        hireDate:
+          type: string
+          format: date-time
+        maxScheduledHours:
+          type: integer
+        maxDailyHours:
+          type: integer
+        payRate:
+          type: number
+          format: float
+        empTypeId:
+          type: integer
+        address:
+          $ref: '#/components/schemas/AddressRequest'
+        maxWeeklyDays:
+          type: integer
+        maxDailyShifts:
+          type: integer
+        comments:
+          type: string
+        priorityGroup:
+          type: string
+        googleCalExport:
+          type: boolean
+        nextAlertDate:
+          type: string
+          format: date
+        customField1:
+          type: string
+        customField2:
+          type: string
+        employeePhoto:
+          type: string
+    AddressRequest:
+      type: object
+      properties:
+        address:
+          type: string
+        address2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+    EmployeeResponse:
+      type: object
+      properties:
+        employeeId:
+          type: integer
+        companyId:
+          type: integer
+        status:
+          type: string
+        lastLogon:
+          type: string
+          format: date-time
+        logonCount:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        employeeNumber:
+          type: string
+        phones:
+          type: array
+          items:
+            type: string
+        hireDate:
+          type: string
+          format: date-time
+        maxScheduledHours:
+          type: integer
+        maxDailyHours:
+          type: integer
+        payRate:
+          type: number
+          format: float
+        empType:
+          $ref: '#/components/schemas/EmpTypeSummary'
+        address:
+          $ref: '#/components/schemas/AddressSummary'
+        maxWeeklyDays:
+          type: integer
+        maxDailyShifts:
+          type: integer
+        comments:
+          type: string
+        priorityGroup:
+          type: string
+        googleCalExport:
+          type: boolean
+        nextAlertDate:
+          type: string
+          format: date
+        customField1:
+          type: string
+        customField2:
+          type: string
+        employeePhoto:
+          type: string
+    AddressSummary:
+      type: object
+      properties:
+        address:
+          type: string
+        address2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+    EmpTypeSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    ManagerResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        lastSignIn:
+          type: string
+          format: date-time
+        roleName:
+          type: string
+        permissions:
+          $ref: '#/components/schemas/ManagerPermissionsDto'
+    ManagerPermissionsDto:
+      type: object
+      properties:
+        isMainManager: { type: boolean }
+        canAddShifts: { type: boolean }
+        canImportTemplates: { type: boolean }
+        canUploadShifts: { type: boolean }
+        canAutofillShifts: { type: boolean }
+        canClearSchedules: { type: boolean }
+        canEditShifts: { type: boolean }
+        canSaveTemplates: { type: boolean }
+        canPublishSchedules: { type: boolean }
+        canUnpublishSchedules: { type: boolean }
+        canManageCategories: { type: boolean }
+        canAddEmployees: { type: boolean }
+        canViewPayRates: { type: boolean }
+        canEditEmployees: { type: boolean }
+        canApproveTrades: { type: boolean }
+        canApproveTimeOff: { type: boolean }
+        canChangeCompanySettings: { type: boolean }
+        canManagePositions: { type: boolean }
+        canManageTeamMembers: { type: boolean }
+        canReceiveManagerNotifications: { type: boolean }
+    AddManagerRequest:
+      type: object
+      required: [loginId, password, email, roleId, companyId]
+      properties:
+        loginId: { type: string }
+        password: { type: string }
+        email: { type: string }
+        employeeId: { type: integer }
+        roleId: { type: integer }
+        companyId: { type: integer }
+        permissions:
+          $ref: '#/components/schemas/ManagerPermissionsDto'
+    UpdateManagerRequest:
+      type: object
+      properties:
+        email: { type: string }
+        password: { type: string }
+        permissions:
+          $ref: '#/components/schemas/ManagerPermissionsDto'

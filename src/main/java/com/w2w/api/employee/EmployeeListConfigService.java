@@ -74,7 +74,30 @@ public class EmployeeListConfigService {
             config.getConfigId(),
             config.getCompanyId(),
             config.getColumnName(),
+            toDisplayName(config.getColumnName()),
             config.getIsVisible()
         );
+    }
+
+    private String toDisplayName(String columnName) {
+        if (columnName == null || columnName.isEmpty()) return "";
+        
+        // 1. Replace underscores with spaces
+        String withSpaces = columnName.replace('_', ' ');
+        
+        // 2. Capitalize each word
+        StringBuilder displayName = new StringBuilder();
+        String[] words = withSpaces.split("\\s+");
+        for (int i = 0; i < words.length; i++) {
+            String word = words[i];
+            if (word.length() > 0) {
+                displayName.append(Character.toUpperCase(word.charAt(0)))
+                           .append(word.substring(1).toLowerCase());
+                if (i < words.length - 1) {
+                    displayName.append(" ");
+                }
+            }
+        }
+        return displayName.toString();
     }
 }

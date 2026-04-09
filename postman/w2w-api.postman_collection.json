@@ -179,7 +179,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"employeeId\": 5001,\n  \"companyId\": 1,\n  \"status\": \"active\",\n  \"lastLogon\": \"2026-03-27T09:30:00\",\n  \"logonCount\": 3,\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Morgan\",\n  \"employeeNumber\": \"EMP-5001\",\n  \"email\": \"alex.morgan@example.com\",\n  \"phones\": [\n    \"555-0100\",\n    \"555-0101\"\n  ],\n  \"hireDate\": \"2026-01-15T09:00:00\",\n  \"maxScheduledHours\": 40,\n  \"maxDailyHours\": 8,\n  \"payRate\": 20.5\n}",
+              "raw": "{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Morgan\",\n  \"email\": \"alex.morgan@example.com\",\n  \"employeeNumber\": \"EMP-5001\",\n  \"phones\": [\n    \"555-0100\",\n    \"555-0101\"\n  ],\n  \"hireDate\": \"2026-01-15T09:00:00\",\n  \"maxScheduledHours\": 40,\n  \"maxDailyHours\": 8,\n  \"payRate\": 20.5,\n  \"empTypeId\": 1,\n  \"address\": {\n    \"address\": \"100 Main St\",\n    \"city\": \"Austin\",\n    \"state\": \"TX\",\n    \"zip\": \"78701\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -187,6 +187,128 @@
               }
             },
             "url": "{{baseUrl}}/api/employees"
+          }
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Morgan-Smith\",\n  \"email\": \"alex.ms@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}"
+          }
+        },
+        {
+          "name": "Delete Employee (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Managers",
+      "item": [
+        {
+          "name": "List Additional Managers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/managers/add-managers/company/{{companyId}}"
+          }
+        },
+        {
+          "name": "Add Manager",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loginId\": \"manager_alex\",\n  \"password\": \"manager123\",\n  \"email\": \"alex.m@example.com\",\n  \"roleId\": 2,\n  \"companyId\": {{companyId}},\n  \"permissions\": {\n    \"canAddShifts\": true,\n    \"canEditShifts\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/managers"
+          }
+        },
+        {
+          "name": "Update Manager",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alex.new@example.com\",\n  \"permissions\": {\n    \"canAddShifts\": true,\n    \"canPublishSchedules\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/managers/{{id}}"
+          }
+        },
+        {
+          "name": "Delete Manager (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/managers/{{id}}"
           }
         }
       ]

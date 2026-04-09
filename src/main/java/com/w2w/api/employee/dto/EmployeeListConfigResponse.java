@@ -4,5 +4,6 @@ public record EmployeeListConfigResponse(
     Integer configId,
     Integer companyId,
     String columnName,
+    String displayName,
     Boolean isVisible
 ) {}
