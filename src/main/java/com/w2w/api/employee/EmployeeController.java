@@ -17,7 +17,7 @@ public class EmployeeController {
     @Autowired
     private EmployeeListConfigService configService;
 
-    @GetMapping("/company/{companyId}")
+    @GetMapping("/company")
     public List<EmployeeResponse> getByCompany() {
         return employeeService.getEmployeesByCompany();
     }
