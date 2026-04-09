@@ -1,22 +1,26 @@
 package com.w2w.api.timeoff;
 
 import com.w2w.api.config.TenantContext;
-import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
 import com.w2w.api.timeoff.dto.CreateTimeOffRequest;
+import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class TimeOffServiceTest {
     private TimeOffRequestRepository timeOffRequestRepository;
@@ -112,5 +116,58 @@ class TimeOffServiceTest {
         }
 
         verify(timeOffRequestRepository).save(any(TimeOffRequest.class));
+    }
+
+    @Test
+    void cancelTimeOffRequestMarksPendingRequestCancelled() {
+        TimeOffRequest request = new TimeOffRequest();
+        request.setRequestId(3001);
+        request.setCompanyId(1);
+        request.setEmployeeId(11);
+        request.setStatus("PENDING");
+
+        when(timeOffRequestRepository.findByRequestIdAndCompanyId(3001, 1)).thenReturn(Optional.of(request));
+
+        TenantContext.setCurrentTenant(1);
+        try {
+            timeOffService.cancelTimeOffRequest(1, 3001);
+        } finally {
+            TenantContext.clear();
+        }
+
+        assertEquals("CANCELLED", request.getStatus());
+        verify(timeOffRequestRepository).save(request);
+    }
+
+    @Test
+    void cancelTimeOffRequestRejectsNonPendingRequests() {
+        TimeOffRequest request = new TimeOffRequest();
+        request.setRequestId(3002);
+        request.setCompanyId(1);
+        request.setEmployeeId(11);
+        request.setStatus("APPROVED");
+
+        when(timeOffRequestRepository.findByRequestIdAndCompanyId(3002, 1)).thenReturn(Optional.of(request));
+
+        TenantContext.setCurrentTenant(1);
+        try {
+            ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> timeOffService.cancelTimeOffRequest(1, 3002));
+            assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+            assertEquals("Only pending time off requests can be cancelled", exception.getReason());
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    @Test
+    void cancelTimeOffRequestRejectsCompanyMismatch() {
+        TenantContext.setCurrentTenant(1);
+        try {
+            ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> timeOffService.cancelTimeOffRequest(2, 3003));
+            assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+            assertEquals("Company id does not match the active tenant", exception.getReason());
+        } finally {
+            TenantContext.clear();
+        }
     }
 }
