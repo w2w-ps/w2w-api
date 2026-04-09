@@ -1,5 +1,6 @@
 package com.w2w.api.timeoff;
 
+import com.w2w.api.config.TenantContext;
 import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
 import com.w2w.api.timeoff.dto.CreateTimeOffRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -103,11 +104,11 @@ class TimeOffServiceTest {
                 "Optional comment"
         );
 
-        com.w2w.api.config.TenantContext.setCurrentTenant(1);
+        TenantContext.setCurrentTenant(1);
         try {
             assertEquals("Apr 22, 2026 to Apr 23, 2026", timeOffService.createTimeOffRequest(request).endDateTimes());
         } finally {
-            com.w2w.api.config.TenantContext.clear();
+            TenantContext.clear();
         }
 
         verify(timeOffRequestRepository).save(any(TimeOffRequest.class));
