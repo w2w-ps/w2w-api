@@ -282,7 +282,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/managers/add-managers/company/{{companyId}}"
+            "url": "{{baseUrl}}/api/managers/additional-managers"
           }
         },
         {

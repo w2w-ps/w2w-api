@@ -860,12 +860,6 @@ paths:
   /api/managers/additional-managers:
     get:
       summary: Get all additional managers for a company
-      parameters:
-        - in: path
-          name: companyId
-          required: true
-          schema:
-            type: integer
       responses:
         '200':
           description: A list of managers
