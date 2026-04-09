@@ -102,18 +102,6 @@ public class TimeOffService {
     }
 
     private void validateCreateRequest(CreateTimeOffRequest request) {
-        if (request.companyId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "companyId is required");
-        }
-        if (request.employeeId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "employeeId is required");
-        }
-        if (request.date() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "date is required");
-        }
-        if (request.fullDay() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "fullDay is required");
-        }
         if (Boolean.TRUE.equals(request.fullDay())) {
             if (request.dayCount() == null || request.dayCount() < 1) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "dayCount is required for full day requests");
@@ -125,9 +113,6 @@ public class TimeOffService {
             if (request.repeatCount() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "repeatCount is required for partial requests");
             }
-        }
-        if (request.repeatCount() != null && request.repeatCount() < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "repeatCount must be at least 1");
         }
     }
 

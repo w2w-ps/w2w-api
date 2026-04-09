@@ -1,6 +1,5 @@
 package com.w2w.api.timeoff;
 
-import com.w2w.api.config.TenantContext;
 import com.w2w.api.timeoff.dto.CreateTimeOffRequest;
 import com.w2w.api.timeoff.dto.TimeOffRequestSummary;
 import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
@@ -34,21 +33,11 @@ public class TimeOffController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
-        TenantContext.setCurrentTenant(companyId);
-        try {
-            return ResponseEntity.ok(timeOffService.getTimeOffRequests(companyId, employeeId, status, startDate, endDate));
-        } finally {
-            TenantContext.clear();
-        }
+        return ResponseEntity.ok(timeOffService.getTimeOffRequests(companyId, employeeId, status, startDate, endDate));
     }
 
     @PostMapping("/requests")
     public ResponseEntity<TimeOffRequestSummary> createTimeOffRequest(@Valid @RequestBody CreateTimeOffRequest request) {
-        TenantContext.setCurrentTenant(request.companyId());
-        try {
-            return ResponseEntity.status(201).body(timeOffService.createTimeOffRequest(request));
-        } finally {
-            TenantContext.clear();
-        }
+        return ResponseEntity.status(201).body(timeOffService.createTimeOffRequest(request));
     }
 }
