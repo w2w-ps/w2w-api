@@ -1,8 +1,8 @@
 package com.w2w.api.timeoff;
 
 import com.w2w.api.config.CurrentTenant;
-import com.w2w.api.timeoff.dto.TimeOffRequestSummary;
 import com.w2w.api.timeoff.dto.CreateTimeOffRequest;
+import com.w2w.api.timeoff.dto.TimeOffRequestSummary;
 import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -82,6 +82,24 @@ public class TimeOffService {
         entity.setComments(request.comments());
 
         return toSummary(timeOffRequestRepository.save(entity));
+    }
+
+    @Transactional
+    public void cancelTimeOffRequest(Integer companyId, Integer requestId) {
+        Integer tenantCompanyId = CurrentTenant.requireCurrentTenant();
+        if (!tenantCompanyId.equals(companyId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company id does not match the active tenant");
+        }
+
+        TimeOffRequest request = timeOffRequestRepository.findByRequestIdAndCompanyId(requestId, companyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Time off request not found"));
+
+        if (!canCancel(request.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending time off requests can be cancelled");
+        }
+
+        request.setStatus("CANCELLED");
+        timeOffRequestRepository.save(request);
     }
 
     private TimeOffRequestSummary toSummary(TimeOffRequest request) {
