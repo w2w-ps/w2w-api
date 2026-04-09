@@ -52,7 +52,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     User user = optUser.get();
                     TenantContext.setCurrentTenant(user.getCompanyId());
 
-                    String role = user.getRole() != null ? user.getRole().getName() : "Employee";
+                    String role = (user.getRole() != null && user.getRole().getName() != null)
+                            ? user.getRole().getName() : "Employee";
                     SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
 
                     UsernamePasswordAuthenticationToken authentication =

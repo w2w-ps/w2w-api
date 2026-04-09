@@ -45,7 +45,6 @@ public class PositionService {
                 .map(this::convertToPositionSummary);
     }
 
-    @Transactional(readOnly = true)
     private Optional<Position> getById(Integer positionId) {
         return positionRepository.findByPositionIdAndCompanyId(
                         positionId,
