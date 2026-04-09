@@ -1,15 +1,23 @@
 package com.w2w.api.position;
 
-import com.w2w.api.config.TenantContext;
+import jakarta.validation.Valid;
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.w2w.api.position.dto.CreatePositionRequest;
 import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.position.dto.PositionsResponse;
 import com.w2w.api.position.dto.UpdatePositionRequest;
-import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/positions")
@@ -23,39 +31,43 @@ public class PositionController {
 
     @GetMapping
     public ResponseEntity<PositionsResponse> getPositions(
-            @RequestParam Integer companyId,
-            @RequestParam(defaultValue = "all") String status
+            @RequestParam(defaultValue = "active") String status
     ) {
-        List<PositionSummary> positions = positionService.getPositions(status);
+        List<PositionSummary> positions = positionService.get(status);
         return ResponseEntity.ok(new PositionsResponse(positions));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PositionSummary> getPositionById(@PathVariable("id") Integer positionId, @RequestParam Integer companyId) {
-        return positionService.getPositionById(positionId)
+    public ResponseEntity<PositionSummary> getPositionById(@PathVariable("id") Integer positionId) {
+        return positionService.getPositionSummaryById(positionId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ResponseEntity<Void> createPosition(@Valid @RequestBody CreatePositionRequest request) {
-        positionService.createPosition(request.description());
+        positionService.create(request.description());
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updatePosition(
             @PathVariable("id") Integer positionId,
-            @RequestParam Integer companyId,
             @Valid @RequestBody UpdatePositionRequest request
     ) {
-        positionService.updatePosition(positionId, request);
+        positionService.update(positionId, request);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePosition(@PathVariable("id") Integer positionId, @RequestParam Integer companyId) {
-        positionService.deletePosition(positionId);
+    public ResponseEntity<Void> deletePosition(@PathVariable("id") Integer positionId) {
+        positionService.delete(positionId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/restore")
+    public ResponseEntity<Void> restorePosition(@PathVariable("id") Integer positionId) {
+        positionService.restore(positionId);
         return ResponseEntity.noContent().build();
     }
 }

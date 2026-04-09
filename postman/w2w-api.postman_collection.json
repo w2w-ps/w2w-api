@@ -310,6 +310,19 @@
             ],
             "url": "{{baseUrl}}/api/positions/{{positionId}}?companyId={{companyId}}"
           }
+        },
+        {
+          "name": "Restore Position",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/positions/{{positionId}}/restore?companyId={{companyId}}"
+          }
         }
       ]
     },

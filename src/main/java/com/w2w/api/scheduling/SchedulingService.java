@@ -760,7 +760,7 @@ public class SchedulingService {
             return List.of();
         }
 
-        return positionService.getAllPositions().stream()
+        return positionService.get("all").stream()
                 .map(PositionSummary::description)
                 .filter(Objects::nonNull)
                 .distinct()

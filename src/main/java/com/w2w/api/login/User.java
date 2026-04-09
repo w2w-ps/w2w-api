@@ -52,6 +52,7 @@ public class User {
     public User() {}
 
     public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
     public String getLoginId() { return loginId; }
     public void setLoginId(String loginId) { this.loginId = loginId; }

@@ -16,7 +16,7 @@ public interface PositionRepository extends JpaRepository<Position, Integer> {
 
     List<Position> findByCompanyIdAndIsDeletedTrue(Integer companyId);
 
-    Optional<Position> findByPositionIdAndCompanyIdAndIsDeletedFalse(Integer positionId, Integer companyId);
+    Optional<Position> findByPositionIdAndCompanyId(Integer positionId, Integer companyId);
 
     List<Position> findByPositionIdInAndCompanyId(Collection<Integer> positionIds, Integer companyId);
 }

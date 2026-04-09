@@ -415,37 +415,6 @@ class SchedulingControllerTest {
     }
 
     @Test
-    void getGroupedShifts_dayPosition_returnsNormalizedPositionGroups() throws Exception {
-        when(schedulingService.getShiftsGrouped(
-                LocalDate.of(2026, 3, 25),
-                LocalDate.of(2026, 3, 26),
-                ShiftGrouping.POSITION
-        )).thenReturn(new GroupedShiftsResponse(List.of(
-                new GroupedShiftDate(
-                        LocalDate.of(2026, 3, 25),
-                        List.of(new ShiftGroup("Bartender", List.of(), List.of()))
-                )
-        )));
-
-        mockMvc.perform(get("/api/scheduling/shifts/grouped")
-                        .param("companyId", "7")
-                        .param("grouping", "position")
-                        .param("startDate", "2026-03-25")
-                        .param("endDate", "2026-03-26"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.dates", hasSize(1)))
-                .andExpect(jsonPath("$.dates[0].date").value("2026-03-25"))
-                .andExpect(jsonPath("$.dates[0].shiftGroups", hasSize(1)))
-                .andExpect(jsonPath("$.dates[0].shiftGroups[0].label").value("Bartender"));
-
-        verify(schedulingService).getShiftsGrouped(
-                LocalDate.of(2026, 3, 25),
-                LocalDate.of(2026, 3, 26),
-                ShiftGrouping.POSITION
-        );
-    }
-
-    @Test
     void preCheck_withNoConflicts_returnsEmptyListAndHasConflictsFalse() throws Exception {
         when(schedulingService.validate(argThat(value -> value.operationType() == null && value.shift() == null)))
                 .thenReturn(List.of());

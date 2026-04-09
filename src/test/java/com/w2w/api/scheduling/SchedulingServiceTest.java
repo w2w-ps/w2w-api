@@ -569,7 +569,7 @@ class SchedulingServiceTest {
         LocalDate endDate = LocalDate.of(2026, 3, 26);
         TenantContext.setCurrentTenant(7);
 
-        when(positionService.getAllPositions())
+        when(positionService.get("all"))
                 .thenReturn(List.of(
                         new PositionSummary(12, "Bartender"),
                         new PositionSummary(19, "Server")
@@ -654,7 +654,7 @@ class SchedulingServiceTest {
         LocalDate endDate = LocalDate.of(2026, 3, 26);
         TenantContext.setCurrentTenant(7);
 
-        when(positionService.getAllPositions())
+        when(positionService.get("all"))
                 .thenReturn(List.of(
                         new PositionSummary(12, "Bartender"),
                         new PositionSummary(19, "Server")
@@ -715,7 +715,7 @@ class SchedulingServiceTest {
         LocalDate endDate = LocalDate.of(2026, 3, 26);
         TenantContext.setCurrentTenant(7);
 
-        when(positionService.getAllPositions())
+        when(positionService.get("all"))
                 .thenReturn(List.of(
                         new PositionSummary(12, "Bartender"),
                         new PositionSummary(19, "Server")
@@ -897,7 +897,7 @@ class SchedulingServiceTest {
         LocalDate endDate = LocalDate.of(2026, 3, 25);
         TenantContext.setCurrentTenant(7);
 
-        when(positionService.getAllPositions())
+        when(positionService.get("all"))
                 .thenReturn(List.of(new PositionSummary(12, "Bartender")));
         when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
                 .thenReturn(List.of(
