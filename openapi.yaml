@@ -451,13 +451,8 @@ paths:
           description: Position not found
   /api/categories:
     get:
-      summary: Get categories for a company
+      summary: Get categories for the authenticated tenant
       parameters:
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
         - in: query
           name: status
           required: false
@@ -483,17 +478,14 @@ paths:
       responses:
         '204':
           description: Category created successfully
+        '403':
+          description: Forbidden
   /api/categories/{id}:
     get:
       summary: Get an active category by ID
       parameters:
         - in: path
           name: id
-          required: true
-          schema:
-            type: integer
-        - in: query
-          name: companyId
           required: true
           schema:
             type: integer
@@ -514,11 +506,6 @@ paths:
           required: true
           schema:
             type: integer
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
       requestBody:
         required: true
         content:
@@ -528,6 +515,8 @@ paths:
       responses:
         '204':
           description: Category updated successfully
+        '403':
+          description: Forbidden
         '404':
           description: Category not found
     delete:
@@ -538,14 +527,11 @@ paths:
           required: true
           schema:
             type: integer
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
       responses:
         '204':
           description: Category soft-deleted successfully
+        '403':
+          description: Forbidden
         '404':
           description: Category not found
   /api/category-groups:
@@ -1263,11 +1249,8 @@ components:
     CreateCategoryRequest:
       type: object
       required:
-        - companyId
         - description
       properties:
-        companyId:
-          type: integer
         shortName:
           type: string
         description:

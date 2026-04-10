@@ -2,10 +2,11 @@ package com.w2w.api.category;
 
 import com.w2w.api.category.dto.CategoryResponse;
 import com.w2w.api.category.dto.CategorySummary;
+import com.w2w.api.category.dto.UpdateCategoryRequest;
 import com.w2w.api.category.model.Category;
-import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
 import com.w2w.api.config.TenantContext;
+import com.w2w.api.config.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,9 +33,6 @@ class CategoryServiceTest {
 
     @Mock
     private CategoryRepository categoryRepository;
-
-    @Mock
-    private CategoryGroupRepository categoryGroupRepository;
 
     @InjectMocks
     private CategoryService categoryService;
@@ -126,11 +124,17 @@ class CategoryServiceTest {
     void getCategoryById_returnsCategoryResponse() {
         when(categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(1, 1)).thenReturn(Optional.of(category));
 
-        Optional<CategoryResponse> result = categoryService.getCategoryById(1);
+        CategoryResponse result = categoryService.getCategoryById(1);
 
-        assertTrue(result.isPresent());
-        assertEquals(12, result.get().positionId());
+        assertEquals(12, result.positionId());
         verify(categoryRepository).findByCategoryIdAndCompanyIdAndIsDeletedFalse(1, 1);
+    }
+
+    @Test
+    void getCategoryById_notFound_throwsNotFound() {
+        when(categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(1, 1)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> categoryService.getCategoryById(1));
     }
 
     @Test
@@ -157,7 +161,7 @@ class CategoryServiceTest {
     void updateCategory_updatesAndSavesCategory() {
         when(categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(1, 1)).thenReturn(Optional.of(category));
 
-        categoryService.updateCategory(1, new com.w2w.api.category.dto.UpdateCategoryRequest(
+        categoryService.updateCategory(1, new UpdateCategoryRequest(
                 "NewShortName",
                 "New Description",
                 "10:00",
@@ -175,9 +179,9 @@ class CategoryServiceTest {
     void updateCategory_notFound_throwsNotFound() {
         when(categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(1, 1)).thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(
-                ResponseStatusException.class,
-                () -> categoryService.updateCategory(1, new com.w2w.api.category.dto.UpdateCategoryRequest(
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> categoryService.updateCategory(1, new UpdateCategoryRequest(
                         "NewShortName",
                         "New Description",
                         "10:00",
@@ -187,7 +191,6 @@ class CategoryServiceTest {
                 ))
         );
 
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         verify(categoryRepository, never()).save(any(Category.class));
     }
 

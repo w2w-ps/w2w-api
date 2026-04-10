@@ -1,7 +1,6 @@
 package com.w2w.api.category;
 
 import com.w2w.api.category.dto.*;
-import com.w2w.api.config.TenantContext;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +19,6 @@ public class CategoryController {
 
     @GetMapping
     public ResponseEntity<CategoriesResponse> getCategories(
-            @RequestParam Integer companyId,
             @RequestParam(defaultValue = "all") String status
     ) {
         List<CategorySummary> categories = categoryService.getCategories(status);
@@ -28,10 +26,8 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable("id") Integer categoryId, @RequestParam Integer companyId) {
-        return categoryService.getCategoryById(categoryId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable("id") Integer categoryId) {
+        return ResponseEntity.ok(categoryService.getCategoryById(categoryId));
     }
 
     @PostMapping
@@ -50,7 +46,6 @@ public class CategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateCategory(
             @PathVariable("id") Integer categoryId,
-            @RequestParam Integer companyId,
             @Valid @RequestBody UpdateCategoryRequest request
     ) {
         categoryService.updateCategory(categoryId, request);
@@ -58,7 +53,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable("id") Integer categoryId, @RequestParam Integer companyId) {
+    public ResponseEntity<Void> deleteCategory(@PathVariable("id") Integer categoryId) {
         categoryService.deleteCategory(categoryId);
         return ResponseEntity.noContent().build();
     }

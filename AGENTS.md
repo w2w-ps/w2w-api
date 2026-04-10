@@ -40,7 +40,11 @@
   `PUT /api/position-groups/{id}?companyId=...`
   `DELETE /api/position-groups/{id}?companyId=...`
 - `category`
-  `GET /api/categories?companyId=...`
+  `GET /api/categories?status=...`
+  `GET /api/categories/{id}`
+  `POST /api/categories`
+  `PUT /api/categories/{id}`
+  `DELETE /api/categories/{id}`
   `GET /api/category-groups?companyId=...&status=...`
   `GET /api/category-groups/{id}?companyId=...`
   `POST /api/category-groups`
@@ -62,8 +66,9 @@
 
 ## Tenanting Rules
 - Reads and writes are tenant-scoped by setting `TenantContext` before repository access.
-- Controllers currently own tenant selection.
-- For request params, use the provided `companyId`.
+- Controllers currently own tenant selection unless the feature explicitly derives tenant scope from authentication.
+- Category now relies on the authenticated tenant rather than request `companyId`.
+- For request params, use the provided `companyId` where the contract still exposes it.
 - For create endpoints, use the tenant id coming from the posted entity where applicable.
 
 ## Data and Query Notes

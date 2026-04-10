@@ -102,7 +102,7 @@ class JwtAuthFilterTest {
         doAnswer(invocation -> {
             assertNotNull(SecurityContextHolder.getContext().getAuthentication());
             assertEquals(
-                    "Employee",
+                    "ROLE_Employee",
                     SecurityContextHolder.getContext().getAuthentication().getAuthorities().iterator().next().getAuthority()
             );
             return null;

@@ -339,7 +339,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/categories?companyId={{companyId}}&status=all"
+            "url": "{{baseUrl}}/api/categories?status=all"
           }
         },
         {
@@ -352,7 +352,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/categories?companyId={{companyId}}&status=active"
+            "url": "{{baseUrl}}/api/categories?status=active"
           }
         },
         {
@@ -365,7 +365,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/categories?companyId={{companyId}}&status=inactive"
+            "url": "{{baseUrl}}/api/categories?status=inactive"
           }
         },
         {
@@ -378,7 +378,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/categories/{{categoryId}}?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}"
           }
         },
         {
@@ -397,7 +397,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"shortName\": \"FLR\",\n  \"description\": \"Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"positionId\": 1,\n  \"color\": 1\n}",
+              "raw": "{\n  \"shortName\": \"FLR\",\n  \"description\": \"Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"positionId\": 1,\n  \"color\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -430,7 +430,7 @@
                 }
               }
             },
-            "url": "{{baseUrl}}/api/categories/{{categoryId}}?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}"
           }
         },
         {
@@ -443,7 +443,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/categories/{{categoryId}}?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/categories/{{categoryId}}"
           }
         }
       ]
