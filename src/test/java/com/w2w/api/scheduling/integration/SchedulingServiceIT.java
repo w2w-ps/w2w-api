@@ -448,11 +448,11 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         return positionRepository.save(position);
     }
 
-    private Category createCategory(Integer companyId, String description, String shortName, Integer skillId) {
+    private Category createCategory(Integer companyId, String description, String shortDesc, Integer skillId) {
         Category category = new Category();
         category.setCompanyId(companyId);
         category.setDescription(description);
-        category.setShortDesc(shortName);
+        category.setShortDesc(shortDesc);
         category.setStartTime("08:00");
         category.setEndTime("17:00");
         category.setPositionId(skillId);

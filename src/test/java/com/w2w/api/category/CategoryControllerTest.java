@@ -1,7 +1,6 @@
 package com.w2w.api.category;
 
 import com.w2w.api.category.dto.CategoryResponse;
-import com.w2w.api.category.dto.CategorySummary;
 import com.w2w.api.config.GlobalExceptionHandler;
 import com.w2w.api.config.TenantContext;
 import com.w2w.api.config.exception.ForbiddenOperationException;
@@ -57,47 +56,64 @@ class CategoryControllerTest {
 
     @Test
     void getCategories_returnsCategories() throws Exception {
-        when(categoryService.getCategories("all"))
-                .thenReturn(List.of(new CategorySummary(1, "Description", "ShortName")));
+        when(categoryService.get("all"))
+                .thenReturn(List.of(new CategoryResponse(1, "Description", "ShortName", "09:00", "17:00", 12, (short) 1)));
 
         mockMvc.perform(get("/api/categories").param("status", "all"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.categories", hasSize(1)))
-                .andExpect(jsonPath("$.categories[0].id").value(1))
+                .andExpect(jsonPath("$.categories[0].categoryId").value(1))
                 .andExpect(jsonPath("$.categories[0].description").value("Description"))
-                .andExpect(jsonPath("$.categories[0].shortDesc").value("ShortName"));
+                .andExpect(jsonPath("$.categories[0].shortDesc").value("ShortName"))
+                .andExpect(jsonPath("$.categories[0].startTime").value("09:00"))
+                .andExpect(jsonPath("$.categories[0].endTime").value("17:00"))
+                .andExpect(jsonPath("$.categories[0].positionId").value(12))
+                .andExpect(jsonPath("$.categories[0].color").value(1));
 
-        verify(categoryService).getCategories("all");
+        verify(categoryService).get("all");
+    }
+
+    @Test
+    void getCategories_defaultsStatusToActive() throws Exception {
+        when(categoryService.get("active"))
+                .thenReturn(List.of(new CategoryResponse(1, "Description", "ShortName", "09:00", "17:00", 12, (short) 1)));
+
+        mockMvc.perform(get("/api/categories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categories", hasSize(1)))
+                .andExpect(jsonPath("$.categories[0].categoryId").value(1));
+
+        verify(categoryService).get("active");
     }
 
     @Test
     void getCategoryById_returnsCategory() throws Exception {
-        when(categoryService.getCategoryById(1))
+        when(categoryService.get(1))
                 .thenReturn(new CategoryResponse(1, "Description", "ShortName", "09:00", "17:00", 12, (short) 1));
 
         mockMvc.perform(get("/api/categories/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.categoryId").value(1))
                 .andExpect(jsonPath("$.description").value("Description"))
-                .andExpect(jsonPath("$.shortName").value("ShortName"))
+                .andExpect(jsonPath("$.shortDesc").value("ShortName"))
                 .andExpect(jsonPath("$.startTime").value("09:00"))
                 .andExpect(jsonPath("$.endTime").value("17:00"))
                 .andExpect(jsonPath("$.positionId").value(12))
                 .andExpect(jsonPath("$.color").value(1));
 
-        verify(categoryService).getCategoryById(1);
+        verify(categoryService).get(1);
     }
 
     @Test
     void getCategoryById_notFound_returnsNotFound() throws Exception {
         doThrow(new ResourceNotFoundException("Category not found"))
                 .when(categoryService)
-                .getCategoryById(1);
+                .get(1);
 
         mockMvc.perform(get("/api/categories/1"))
                 .andExpect(status().isNotFound());
 
-        verify(categoryService).getCategoryById(1);
+        verify(categoryService).get(1);
     }
 
     @Test
@@ -106,7 +122,7 @@ class CategoryControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "shortName": "ShortName",
+                                  "shortDesc": "ShortName",
                                   "description": "Description",
                                   "startTime": "09:00",
                                   "endTime": "17:00",
@@ -116,20 +132,20 @@ class CategoryControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(categoryService).createCategory("ShortName", "Description", "09:00", "17:00", 12, (short) 1);
+        verify(categoryService).create("ShortName", "Description", "09:00", "17:00", 12, (short) 1);
     }
 
     @Test
     void createCategory_returnsForbiddenWhenServiceThrows() throws Exception {
         doThrow(new ForbiddenOperationException("You do not have permission to manage categories."))
                 .when(categoryService)
-                .createCategory("ShortName", "Description", "09:00", "17:00", 12, (short) 1);
+                .create("ShortName", "Description", "09:00", "17:00", 12, (short) 1);
 
         mockMvc.perform(post("/api/categories")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "shortName": "ShortName",
+                                  "shortDesc": "ShortName",
                                   "description": "Description",
                                   "startTime": "09:00",
                                   "endTime": "17:00",
@@ -146,7 +162,7 @@ class CategoryControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "shortName": "New ShortName",
+                                  "shortDesc": "New ShortName",
                                   "description": "New Description",
                                   "startTime": "10:00",
                                   "endTime": "18:00",
@@ -156,20 +172,20 @@ class CategoryControllerTest {
                                 """))
                 .andExpect(status().isNoContent());
 
-        verify(categoryService).updateCategory(eq(1), any());
+        verify(categoryService).update(eq(1), any());
     }
 
     @Test
     void updateCategory_returnsForbiddenWhenServiceThrows() throws Exception {
         doThrow(new ForbiddenOperationException("You do not have permission to manage categories."))
                 .when(categoryService)
-                .updateCategory(eq(1), any());
+                .update(eq(1), any());
 
         mockMvc.perform(put("/api/categories/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "shortName": "New ShortName",
+                                  "shortDesc": "New ShortName",
                                   "description": "New Description",
                                   "startTime": "10:00",
                                   "endTime": "18:00",
@@ -185,14 +201,14 @@ class CategoryControllerTest {
         mockMvc.perform(delete("/api/categories/1"))
                 .andExpect(status().isNoContent());
 
-        verify(categoryService).deleteCategory(1);
+        verify(categoryService).delete(1);
     }
 
     @Test
     void deleteCategory_returnsForbiddenWhenServiceThrows() throws Exception {
         doThrow(new ForbiddenOperationException("You do not have permission to manage categories."))
                 .when(categoryService)
-                .deleteCategory(1);
+                .delete(1);
 
         mockMvc.perform(delete("/api/categories/1"))
                 .andExpect(status().isForbidden());

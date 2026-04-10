@@ -339,7 +339,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/categories?status=all"
+            "url": "{{baseUrl}}/api/categories"
           }
         },
         {
@@ -397,7 +397,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"shortName\": \"FLR\",\n  \"description\": \"Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"positionId\": 1,\n  \"color\": 1\n}",
+              "raw": "{\n  \"shortDesc\": \"FLR\",\n  \"description\": \"Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"positionId\": 1,\n  \"color\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -423,7 +423,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"shortName\": \"FLOOR\",\n  \"description\": \"Updated Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"positionId\": 1,\n  \"color\": 2\n}",
+              "raw": "{\n  \"shortDesc\": \"FLOOR\",\n  \"description\": \"Updated Floor\",\n  \"startTime\": \"08:00\",\n  \"endTime\": \"17:00\",\n  \"positionId\": 1,\n  \"color\": 2\n}",
               "options": {
                 "raw": {
                   "language": "json"

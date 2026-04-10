@@ -71,9 +71,9 @@ class CategoryServiceAuthorizationTest {
         when(loginRepository.findByLoginId("manager")).thenReturn(Optional.of(userWithRole(1, "manager", "Manager")));
         stubCategoryLookups();
 
-        assertDoesNotThrow(() -> categoryService.createCategory("Host", "Description", "09:00", "17:00", 10, (short) 1));
-        assertDoesNotThrow(() -> categoryService.updateCategory(101, new UpdateCategoryRequest("Lead", "Description", "09:00", "17:00", 10, (short) 2)));
-        assertDoesNotThrow(() -> categoryService.deleteCategory(101));
+        assertDoesNotThrow(() -> categoryService.create("Host", "Description", "09:00", "17:00", 10, (short) 1));
+        assertDoesNotThrow(() -> categoryService.update(101, new UpdateCategoryRequest("Lead", "Description", "09:00", "17:00", 10, (short) 2)));
+        assertDoesNotThrow(() -> categoryService.delete(101));
 
         verify(categoryRepository, times(3)).save(any(Category.class));
     }
@@ -89,9 +89,9 @@ class CategoryServiceAuthorizationTest {
         when(managerPermissionsRepository.findByUserId(2)).thenReturn(Optional.of(permissions));
         stubCategoryLookups();
 
-        assertDoesNotThrow(() -> categoryService.createCategory("Host", "Description", "09:00", "17:00", 10, (short) 1));
-        assertDoesNotThrow(() -> categoryService.updateCategory(101, new UpdateCategoryRequest("Lead", "Description", "09:00", "17:00", 10, (short) 2)));
-        assertDoesNotThrow(() -> categoryService.deleteCategory(101));
+        assertDoesNotThrow(() -> categoryService.create("Host", "Description", "09:00", "17:00", 10, (short) 1));
+        assertDoesNotThrow(() -> categoryService.update(101, new UpdateCategoryRequest("Lead", "Description", "09:00", "17:00", 10, (short) 2)));
+        assertDoesNotThrow(() -> categoryService.delete(101));
 
         verify(categoryRepository, times(3)).save(any(Category.class));
     }
@@ -115,9 +115,9 @@ class CategoryServiceAuthorizationTest {
     }
 
     private void assertDeniedForAllMutations() {
-        assertThrows(AccessDeniedException.class, () -> categoryService.createCategory("Host", "Description", "09:00", "17:00", 10, (short) 1));
-        assertThrows(AccessDeniedException.class, () -> categoryService.updateCategory(101, new UpdateCategoryRequest("Lead", "Description", "09:00", "17:00", 10, (short) 2)));
-        assertThrows(AccessDeniedException.class, () -> categoryService.deleteCategory(101));
+        assertThrows(AccessDeniedException.class, () -> categoryService.create("Host", "Description", "09:00", "17:00", 10, (short) 1));
+        assertThrows(AccessDeniedException.class, () -> categoryService.update(101, new UpdateCategoryRequest("Lead", "Description", "09:00", "17:00", 10, (short) 2)));
+        assertThrows(AccessDeniedException.class, () -> categoryService.delete(101));
 
         verify(categoryRepository, never()).save(any(Category.class));
         verify(categoryRepository, never()).findByCategoryIdAndCompanyIdAndIsDeletedFalse(any(), any());

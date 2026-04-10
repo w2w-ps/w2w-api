@@ -18,22 +18,22 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<CategoriesResponse> getCategories(
-            @RequestParam(defaultValue = "all") String status
+    public ResponseEntity<CategoriesResponse> get(
+            @RequestParam(defaultValue = "active") String status
     ) {
-        List<CategorySummary> categories = categoryService.getCategories(status);
+        List<CategoryResponse> categories = categoryService.get(status);
         return ResponseEntity.ok(new CategoriesResponse(categories));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable("id") Integer categoryId) {
-        return ResponseEntity.ok(categoryService.getCategoryById(categoryId));
+    public ResponseEntity<CategoryResponse> get(@PathVariable("id") Integer categoryId) {
+        return ResponseEntity.ok(categoryService.get(categoryId));
     }
 
     @PostMapping
-    public ResponseEntity<Void> createCategory(@Valid @RequestBody CreateCategoryRequest request) {
-        categoryService.createCategory(
-                request.shortName(),
+    public ResponseEntity<Void> create(@Valid @RequestBody CreateCategoryRequest request) {
+        categoryService.create(
+                request.shortDesc(),
                 request.description(),
                 request.startTime(),
                 request.endTime(),
@@ -44,17 +44,17 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateCategory(
+    public ResponseEntity<Void> update(
             @PathVariable("id") Integer categoryId,
             @Valid @RequestBody UpdateCategoryRequest request
     ) {
-        categoryService.updateCategory(categoryId, request);
+        categoryService.update(categoryId, request);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable("id") Integer categoryId) {
-        categoryService.deleteCategory(categoryId);
+    public ResponseEntity<Void> delete(@PathVariable("id") Integer categoryId) {
+        categoryService.delete(categoryId);
         return ResponseEntity.noContent().build();
     }
 }

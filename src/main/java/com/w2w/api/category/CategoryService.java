@@ -23,17 +23,17 @@ public class CategoryService {
     }
 
     @Transactional(readOnly = true)
-    public List<CategorySummary> getCategories(String status) {
+    public List<CategoryResponse> get(String status) {
         Integer currentTenant = CurrentTenant.requireCurrentTenant();
         return switch (status.toLowerCase()) {
             case "all" -> categoryRepository.findByCompanyId(currentTenant).stream()
-                    .map(this::toSummary)
+                    .map(this::toResponse)
                     .toList();
             case "active" -> categoryRepository.findByCompanyIdAndIsDeletedFalse(currentTenant).stream()
-                    .map(this::toSummary)
+                    .map(this::toResponse)
                     .toList();
             case "inactive" -> categoryRepository.findByCompanyIdAndIsDeletedTrue(currentTenant).stream()
-                    .map(this::toSummary)
+                    .map(this::toResponse)
                     .toList();
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported status filter");
         };
@@ -41,18 +41,21 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public List<CategorySummary> getCategoriesByCompanyId() {
-        return getCategories("all");
+        Integer currentTenant = CurrentTenant.requireCurrentTenant();
+        return categoryRepository.findByCompanyId(currentTenant).stream()
+                .map(this::toSummary)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public CategoryResponse getCategoryById(Integer categoryId) {
+    public CategoryResponse get(Integer categoryId) {
         return toResponse(requireActiveCategory(categoryId, CurrentTenant.requireCurrentTenant()));
     }
 
     @Transactional
     @PreAuthorize("@categoryPolicy.canManage(authentication)")
-    public void createCategory(
-            String shortName,
+    public void create(
+            String shortDesc,
             String description,
             String startTime,
             String endTime,
@@ -61,7 +64,7 @@ public class CategoryService {
     ) {
         Category category = new Category();
         category.setCompanyId(CurrentTenant.requireCurrentTenant());
-        category.setShortDesc(shortName);
+        category.setShortDesc(shortDesc);
         category.setDescription(description);
         category.setStartTime(startTime);
         category.setEndTime(endTime);
@@ -74,9 +77,9 @@ public class CategoryService {
 
     @Transactional
     @PreAuthorize("@categoryPolicy.canManage(authentication)")
-    public void updateCategory(Integer categoryId, UpdateCategoryRequest request) {
+    public void update(Integer categoryId, UpdateCategoryRequest request) {
         Category category = requireActiveCategory(categoryId, CurrentTenant.requireCurrentTenant());
-        category.setShortDesc(request.shortName());
+        category.setShortDesc(request.shortDesc());
         category.setDescription(request.description());
         category.setStartTime(request.startTime());
         category.setEndTime(request.endTime());
@@ -88,7 +91,7 @@ public class CategoryService {
 
     @Transactional
     @PreAuthorize("@categoryPolicy.canManage(authentication)")
-    public void deleteCategory(Integer categoryId) {
+    public void delete(Integer categoryId) {
         Category category = requireActiveCategory(categoryId, CurrentTenant.requireCurrentTenant());
         category.setIsDeleted(true);
         categoryRepository.save(category);

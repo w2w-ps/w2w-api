@@ -3,7 +3,7 @@ package com.w2w.api.category.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public record CreateCategoryRequest(
-        String shortName,
+        String shortDesc,
 
         @NotBlank(message = "Description cannot be blank")
         String description,

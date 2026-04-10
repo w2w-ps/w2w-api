@@ -84,6 +84,8 @@ Keep services tenant-aware. Resolve the tenant once near the operation and pass 
 
 Prefer small helper methods such as `requirePosition(...)` or `requireActivePosition(...)` for fetch-and-validate flows.
 
+For controller and service entrypoints, prefer verb-led names over resource-repeating names when the surrounding class already supplies the feature context. For the category feature specifically, use `get` for reads and `create`, `update`, and `delete` for mutations on the main controller and service methods. For `GET /api/categories`, default the `status` filter to `active` when the query parameter is omitted.
+
 When implementing soft delete behavior, decide whether reads should include deleted rows, active rows only, or all rows. Keep repository methods and status filters aligned with that decision.
 
 If you add restore behavior for a soft-deleted resource, update the service, controller, contract docs, and tests together.

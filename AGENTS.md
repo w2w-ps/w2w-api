@@ -40,7 +40,7 @@
   `PUT /api/position-groups/{id}?companyId=...`
   `DELETE /api/position-groups/{id}?companyId=...`
 - `category`
-  `GET /api/categories?status=...`
+  `GET /api/categories?status=...` default `active`
   `GET /api/categories/{id}`
   `POST /api/categories`
   `PUT /api/categories/{id}`

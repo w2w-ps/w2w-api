@@ -69,7 +69,7 @@ class CategoryServiceTest {
 
         when(categoryRepository.findByCompanyId(1)).thenReturn(List.of(category, deletedCategory));
 
-        List<CategorySummary> result = categoryService.getCategories("all");
+        List<CategoryResponse> result = categoryService.get("all");
 
         assertEquals(2, result.size());
         verify(categoryRepository).findByCompanyId(1);
@@ -79,10 +79,11 @@ class CategoryServiceTest {
     void getCategories_active_returnsActiveCategories() {
         when(categoryRepository.findByCompanyIdAndIsDeletedFalse(1)).thenReturn(List.of(category));
 
-        List<CategorySummary> result = categoryService.getCategories("active");
+        List<CategoryResponse> result = categoryService.get("active");
 
         assertEquals(1, result.size());
         assertEquals("Description", result.getFirst().description());
+        assertEquals("ShortName", result.getFirst().shortDesc());
         verify(categoryRepository).findByCompanyIdAndIsDeletedFalse(1);
     }
 
@@ -95,7 +96,7 @@ class CategoryServiceTest {
 
         when(categoryRepository.findByCompanyIdAndIsDeletedTrue(1)).thenReturn(List.of(deletedCategory));
 
-        List<CategorySummary> result = categoryService.getCategories("inactive");
+        List<CategoryResponse> result = categoryService.get("inactive");
 
         assertEquals(1, result.size());
         assertEquals("Deleted Category", result.getFirst().description());
@@ -115,31 +116,31 @@ class CategoryServiceTest {
     @Test
     void getCategories_unsupportedStatus_throwsBadRequest() {
         ResponseStatusException exception =
-                assertThrows(ResponseStatusException.class, () -> categoryService.getCategories("archived"));
+                assertThrows(ResponseStatusException.class, () -> categoryService.get("archived"));
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
     }
 
     @Test
-    void getCategoryById_returnsCategoryResponse() {
+    void getCategory_returnsCategoryResponse() {
         when(categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(1, 1)).thenReturn(Optional.of(category));
 
-        CategoryResponse result = categoryService.getCategoryById(1);
+        CategoryResponse result = categoryService.get(1);
 
         assertEquals(12, result.positionId());
         verify(categoryRepository).findByCategoryIdAndCompanyIdAndIsDeletedFalse(1, 1);
     }
 
     @Test
-    void getCategoryById_notFound_throwsNotFound() {
+    void getCategory_notFound_throwsNotFound() {
         when(categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(1, 1)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> categoryService.getCategoryById(1));
+        assertThrows(ResourceNotFoundException.class, () -> categoryService.get(1));
     }
 
     @Test
     void createCategory_savesNewCategory() {
-        categoryService.createCategory("ShortName", "Description", "09:00", "17:00", 12, (short) 1);
+        categoryService.create("ShortName", "Description", "09:00", "17:00", 12, (short) 1);
 
         verify(categoryRepository).save(any(Category.class));
     }
@@ -150,7 +151,7 @@ class CategoryServiceTest {
 
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> categoryService.createCategory("ShortName", "Description", "09:00", "17:00", 12, (short) 1)
+                () -> categoryService.create("ShortName", "Description", "09:00", "17:00", 12, (short) 1)
         );
 
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
@@ -161,7 +162,7 @@ class CategoryServiceTest {
     void updateCategory_updatesAndSavesCategory() {
         when(categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(1, 1)).thenReturn(Optional.of(category));
 
-        categoryService.updateCategory(1, new UpdateCategoryRequest(
+        categoryService.update(1, new UpdateCategoryRequest(
                 "NewShortName",
                 "New Description",
                 "10:00",
@@ -181,7 +182,7 @@ class CategoryServiceTest {
 
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> categoryService.updateCategory(1, new UpdateCategoryRequest(
+                () -> categoryService.update(1, new UpdateCategoryRequest(
                         "NewShortName",
                         "New Description",
                         "10:00",
@@ -198,7 +199,7 @@ class CategoryServiceTest {
     void deleteCategory_setsIsDeletedToTrue() {
         when(categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(1, 1)).thenReturn(Optional.of(category));
 
-        categoryService.deleteCategory(1);
+        categoryService.delete(1);
 
         assertTrue(category.getIsDeleted());
         verify(categoryRepository).save(category);

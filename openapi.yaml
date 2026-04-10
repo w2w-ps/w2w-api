@@ -459,7 +459,7 @@ paths:
           schema:
             type: string
             enum: [all, active, inactive]
-            default: all
+            default: active
       responses:
         '200':
           description: A list of categories
@@ -1229,7 +1229,7 @@ components:
           type: integer
         description:
           type: string
-        shortName:
+        shortDesc:
           type: string
         startTime:
           type: string
@@ -1245,13 +1245,13 @@ components:
         categories:
           type: array
           items:
-            $ref: '#/components/schemas/CategorySummary'
+            $ref: '#/components/schemas/CategoryResponse'
     CreateCategoryRequest:
       type: object
       required:
         - description
       properties:
-        shortName:
+        shortDesc:
           type: string
         description:
           type: string
@@ -1268,7 +1268,7 @@ components:
       required:
         - description
       properties:
-        shortName:
+        shortDesc:
           type: string
         description:
           type: string
