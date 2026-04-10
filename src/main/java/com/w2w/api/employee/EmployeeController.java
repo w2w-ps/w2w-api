@@ -17,13 +17,13 @@ public class EmployeeController {
     @Autowired
     private EmployeeListConfigService configService;
 
-    @GetMapping("/company")
+    @GetMapping
     public List<EmployeeResponse> getByCompany() {
         return employeeService.getEmployeesByCompany();
     }
 
     @GetMapping("/{id}")
-    public EmployeeResponse getById(@PathVariable Integer id, @RequestParam Integer companyId) {
+    public EmployeeResponse getById(@PathVariable Integer id) {
         return employeeService.getEmployeeById(id).orElse(null);
     }
 
@@ -42,14 +42,14 @@ public class EmployeeController {
         employeeService.deleteEmployee(id);
     }
 
-    @GetMapping("/config/{companyId}")
-    public List<EmployeeListConfigResponse> getConfigs(@PathVariable Integer companyId) {
-        return configService.getConfigsByCompany(companyId);
+    @GetMapping("/config")
+    public List<EmployeeListConfigResponse> getConfigs() {
+        return configService.getConfigsByCompany();
     }
 
-    @PatchMapping("/config/{companyId}")
-    public List<EmployeeListConfigResponse> saveConfigs(@PathVariable Integer companyId,
+    @PatchMapping("/config")
+    public List<EmployeeListConfigResponse> saveConfigs(
             @RequestBody Map<String, Boolean> columnVisibilities) {
-        return configService.saveConfigs(companyId, columnVisibilities);
+        return configService.saveConfigs(columnVisibilities);
     }
 }

@@ -138,7 +138,7 @@
       "name": "Employees",
       "item": [
         {
-          "name": "List Employees By Company",
+          "name": "List Employees",
           "request": {
             "method": "GET",
             "header": [
@@ -147,7 +147,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/employees/company/{{companyId}}"
+            "url": "{{baseUrl}}/api/employees"
           }
         },
         {
@@ -160,7 +160,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/employees/{{employeeId}}?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}"
           }
         },
         {
@@ -226,6 +226,45 @@
               }
             ],
             "url": "{{baseUrl}}/api/employees/{{employeeId}}"
+          }
+        },
+        {
+          "name": "Get Employee List Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/employees/config"
+          }
+        },
+        {
+          "name": "Update Employee List Config",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": true,\n  \"last_name\": true,\n  \"email\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/employees/config"
           }
         }
       ]

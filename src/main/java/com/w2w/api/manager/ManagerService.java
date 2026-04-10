@@ -1,5 +1,6 @@
 package com.w2w.api.manager;
 
+import com.w2w.api.config.CurrentTenant;
 import com.w2w.api.employee.model.Employee;
 import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.login.EmpType;
@@ -223,9 +224,9 @@ public class ManagerService {
         loginRepository.save(user);
     }
 
-    public List<ManagerResponse> getAddManagersByCompany(Integer companyId) {
+    public List<ManagerResponse> getAdditionalManagersByCompany() {
         enforceMainManagerCheck();
-
+        Integer companyId = CurrentTenant.requireCurrentTenant();
         List<User> addManagers = loginRepository.findByCompanyIdAndRoleName(companyId, "AddManager");
 
         return addManagers.stream()

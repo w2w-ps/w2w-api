@@ -1,5 +1,6 @@
 package com.w2w.api.employee;
 
+import com.w2w.api.config.CurrentTenant;
 import com.w2w.api.employee.dto.EmployeeListConfigResponse;
 import com.w2w.api.employee.model.EmployeeListConfig;
 import com.w2w.api.employee.repository.EmployeeListConfigRepository;
@@ -30,7 +31,8 @@ public class EmployeeListConfigService {
         return jdbcTemplate.queryForList(sql, String.class);
     }
 
-    public List<EmployeeListConfigResponse> getConfigsByCompany(Integer companyId) {
+    public List<EmployeeListConfigResponse> getConfigsByCompany() {
+        Integer companyId = CurrentTenant.requireCurrentTenant();
         List<EmployeeListConfig> existingConfigs = configRepository.findByCompanyId(companyId);
         Map<String, EmployeeListConfig> configMap = existingConfigs.stream()
                 .collect(Collectors.toMap(EmployeeListConfig::getColumnName, c -> c));
@@ -50,7 +52,8 @@ public class EmployeeListConfigService {
     }
 
     @Transactional
-    public List<EmployeeListConfigResponse> saveConfigs(Integer companyId, Map<String, Boolean> columnVisibilities) {
+    public List<EmployeeListConfigResponse> saveConfigs(Map<String, Boolean> columnVisibilities) {
+        Integer companyId = CurrentTenant.requireCurrentTenant();
         List<String> availableColumns = getAvailableColumns();
         
         availableColumns.forEach(columnName -> {
@@ -66,7 +69,7 @@ public class EmployeeListConfigService {
             configRepository.save(config);
         });
         
-        return getConfigsByCompany(companyId);
+        return getConfigsByCompany();
     }
 
     private EmployeeListConfigResponse mapToResponse(EmployeeListConfig config) {

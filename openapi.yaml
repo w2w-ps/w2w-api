@@ -817,15 +817,9 @@ paths:
         '204':
           description: Position group soft-deleted successfully
         '404':
-  /api/employees/company/{companyId}:
+  /api/employees:
     get:
-      summary: Get employees for a company
-      parameters:
-        - in: path
-          name: companyId
-          required: true
-          schema:
-            type: integer
+      summary: Get employees for the current company
       responses:
         '200':
           description: A list of employees
@@ -835,17 +829,58 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EmployeeResponse'
+    post:
+      summary: Create a new employee
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+      responses:
+        '200':
+          description: Employee created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
+  /api/employees/config:
+    get:
+      summary: Get employee list configuration
+      responses:
+        '200':
+          description: List of column configurations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeListConfigResponse'
+    patch:
+      summary: Save employee list configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: boolean
+      responses:
+        '200':
+          description: Updated list of configurations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeListConfigResponse'
   /api/employees/{id}:
     get:
       summary: Get an employee by ID
       parameters:
         - in: path
           name: id
-          required: true
-          schema:
-            type: integer
-        - in: query
-          name: companyId
           required: true
           schema:
             type: integer
@@ -890,23 +925,11 @@ paths:
       responses:
         '200':
           description: Employee soft-deleted
-  /api/employees:
-    post:
-      summary: Create a new employee
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EmployeeRequest'
-      responses:
-        '200':
-          description: Employee created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EmployeeResponse'
-  /api/managers/add-managers/company/{companyId}:
+  /api/managers/additional-managers:
     get:
       summary: Get all additional managers for a company
       parameters:
@@ -934,8 +957,8 @@ paths:
             schema:
               $ref: '#/components/schemas/AddManagerRequest'
       responses:
-        '200':
-          description: Manager added
+        '201':
+          description: Manager created
   /api/managers/{id}:
     put:
       summary: Update manager permissions/details
@@ -952,8 +975,8 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateManagerRequest'
       responses:
-        '200':
-          description: Manager updated
+        '204':
+          description: Manager updated successfully
     delete:
       summary: Soft-delete a manager
       parameters:
@@ -963,8 +986,8 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
-          description: Manager soft-deleted
+        '204':
+          description: Manager deleted successfully
 components:
   parameters:
     ShiftId:
@@ -1703,6 +1726,19 @@ components:
           type: string
         zip:
           type: string
+    EmployeeListConfigResponse:
+      type: object
+      properties:
+        configId:
+          type: integer
+        companyId:
+          type: integer
+        columnName:
+          type: string
+        displayName:
+          type: string
+        isVisible:
+          type: boolean
     EmployeeResponse:
       type: object
       properties:
