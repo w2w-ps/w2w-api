@@ -30,6 +30,7 @@
   `POST /api/positions`
   `PUT /api/positions/{id}?companyId=...`
   `DELETE /api/positions/{id}?companyId=...`
+  `POST /api/positions/{id}/restore?companyId=...`
 - `positiongroup`
   `GET /api/position-groups?companyId=...&status=...`
   `GET /api/position-groups/active?companyId=...`

@@ -1,6 +1,7 @@
 package com.w2w.api.position;
 
 import com.w2w.api.config.TenantContext;
+import com.w2w.api.config.exception.ResourceNotFoundException;
 import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.position.dto.UpdatePositionRequest;
 import com.w2w.api.position.model.Position;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -54,17 +56,17 @@ class PositionServiceTest {
     }
 
     @Test
-    void getPositions_active_returnsActivePositions() {
+    void getPositions_active_returnsActive() {
         when(positionRepository.findByCompanyIdAndIsDeletedFalse(1)).thenReturn(List.of(position));
 
-        List<PositionSummary> result = positionService.getPositions("active");
+        List<PositionSummary> result = positionService.get("active");
 
         assertEquals(1, result.size());
         assertEquals(101, result.getFirst().positionId());
     }
 
     @Test
-    void getPositions_inactive_returnsInactivePositions() {
+    void getPositions_inactive_returnsInactive() {
         Position deletedPosition = new Position();
         deletedPosition.setPositionId(102);
         deletedPosition.setCompanyId(1);
@@ -72,79 +74,155 @@ class PositionServiceTest {
         deletedPosition.setIsDeleted(true);
         when(positionRepository.findByCompanyIdAndIsDeletedTrue(1)).thenReturn(List.of(deletedPosition));
 
-        List<PositionSummary> result = positionService.getPositions("inactive");
+        List<PositionSummary> result = positionService.get("inactive");
 
         assertEquals(1, result.size());
         assertEquals(102, result.getFirst().positionId());
     }
 
     @Test
-    void getPositions_all_returnsAllPositions() {
+    void getPositions_all_returnsAll() {
         Position deletedPosition = new Position();
         deletedPosition.setPositionId(102);
         deletedPosition.setCompanyId(1);
         deletedPosition.setIsDeleted(true);
         when(positionRepository.findByCompanyId(1)).thenReturn(List.of(position, deletedPosition));
 
-        List<PositionSummary> result = positionService.getPositions("all");
+        List<PositionSummary> result = positionService.get("all");
 
         assertEquals(2, result.size());
         verify(positionRepository).findByCompanyId(1);
     }
 
     @Test
-    void getPositions_unsupportedStatus_throwsBadRequest() {
+    void get_unsupportedStatus_throwsBadRequest() {
         ResponseStatusException exception =
-                assertThrows(ResponseStatusException.class, () -> positionService.getPositions("archived"));
+                assertThrows(ResponseStatusException.class, () -> positionService.get("archived"));
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertEquals("Invalid status. Allowed values: all, active, inactive.", exception.getReason());
     }
 
     @Test
-    void getPositionById_returnsPosition() {
-        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(101, 1)).thenReturn(Optional.of(position));
+    void getPositionById_returnsSummary() {
+        when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.of(position));
 
-        Optional<PositionSummary> result = positionService.getPositionById(101);
+        Optional<PositionSummary> result = positionService.getPositionSummaryById(101);
 
         assertTrue(result.isPresent());
         assertEquals(101, result.get().positionId());
     }
 
     @Test
-    void createPosition_savesPosition() {
-        positionService.createPosition("Bartender");
+    void createPosition_saves() {
+        positionService.create("Bartender");
 
-        verify(positionRepository).save(any(Position.class));
+        ArgumentCaptor<Position> positionCaptor = ArgumentCaptor.forClass(Position.class);
+
+        verify(positionRepository).save(positionCaptor.capture());
+        assertEquals(1, positionCaptor.getValue().getCompanyId());
     }
 
     @Test
-    void createPosition_withoutTenant_throwsUnauthorized() {
-        TenantContext.clear();
+    void update_updatesAndSaves() {
+        when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.of(position));
 
-        ResponseStatusException exception =
-                assertThrows(ResponseStatusException.class, () -> positionService.createPosition("Bartender"));
-
-        assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
-        verify(positionRepository, never()).save(any(Position.class));
-    }
-
-    @Test
-    void updatePosition_updatesAndSaves() {
-        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(101, 1)).thenReturn(Optional.of(position));
-
-        positionService.updatePosition(101, new UpdatePositionRequest("Lead Server"));
+        positionService.update(101, new UpdatePositionRequest("Lead Server"));
 
         assertEquals("Lead Server", position.getDescription());
         verify(positionRepository).save(position);
     }
 
     @Test
-    void deletePosition_setsDeletedAndSaves() {
-        when(positionRepository.findByPositionIdAndCompanyIdAndIsDeletedFalse(101, 1)).thenReturn(Optional.of(position));
+    void delete_setsDeletedAndSaves() {
+        when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.of(position));
 
-        positionService.deletePosition(101);
+        positionService.delete(101);
 
         assertTrue(position.getIsDeleted());
         verify(positionRepository).save(position);
+    }
+
+    @Test
+    void update_notFound_throwsNotFound() {
+        when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> positionService.update(101, new UpdatePositionRequest("Lead Server"))
+        );
+
+        assertEquals("Position not found", exception.getMessage());
+        verify(positionRepository, never()).save(any(Position.class));
+    }
+
+    @Test
+    void delete_notFound_throwsNotFound() {
+        when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> positionService.delete(101)
+        );
+
+        assertEquals("Position not found", exception.getMessage());
+        verify(positionRepository, never()).save(any(Position.class));
+    }
+
+    @Test
+    void updatePosition_deleted_throwsNotFound() {
+        position.setIsDeleted(true);
+        when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.of(position));
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> positionService.update(101, new UpdatePositionRequest("Lead Server"))
+        );
+
+        assertEquals("Position not found", exception.getMessage());
+        verify(positionRepository, never()).save(any(Position.class));
+    }
+
+    @Test
+    void delete_alreadyDeleted_returnsWithoutSaving() {
+        position.setIsDeleted(true);
+        when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.of(position));
+
+        positionService.delete(101);
+
+        verify(positionRepository, never()).save(any(Position.class));
+    }
+
+    @Test
+    void restorePosition_deleted_restoresAndSaves() {
+        position.setIsDeleted(true);
+        when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.of(position));
+
+        positionService.restore(101);
+
+        assertEquals(Boolean.FALSE, position.getIsDeleted());
+        verify(positionRepository).save(position);
+    }
+
+    @Test
+    void restorePosition_active_returnsWithoutSaving() {
+        when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.of(position));
+
+        positionService.restore(101);
+
+        verify(positionRepository, never()).save(any(Position.class));
+    }
+
+    @Test
+    void restore_notFound_throwsNotFound() {
+        when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> positionService.restore(101)
+        );
+
+        assertEquals("Position not found", exception.getMessage());
+        verify(positionRepository, never()).save(any(Position.class));
     }
 }

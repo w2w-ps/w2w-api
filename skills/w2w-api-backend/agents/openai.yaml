@@ -1,0 +1,4 @@
+interface:
+  display_name: "W2W API Backend"
+  short_description: "repo-specific backend workflow and guardrails"
+  default_prompt: "Use this skill for backend changes in the W2W API repository so implementations follow the repo feature layout, tenant-aware request handling, method-security and policy patterns, contract sync requirements, and backend verification expectations."
