@@ -582,19 +582,14 @@ paths:
           description: Category not found
   /api/category-groups:
     get:
-      summary: Get category groups for a company
+      summary: Get category groups for the authenticated tenant
       parameters:
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
         - in: query
           name: status
           required: false
           schema:
             type: string
-            enum: [all, active, non-active]
+            enum: [all, active, inactive]
             default: all
       responses:
         '200':
@@ -625,11 +620,6 @@ paths:
           required: true
           schema:
             type: integer
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
       responses:
         '200':
           description: Category group details
@@ -644,11 +634,6 @@ paths:
       parameters:
         - in: path
           name: id
-          required: true
-          schema:
-            type: integer
-        - in: query
-          name: companyId
           required: true
           schema:
             type: integer
@@ -673,11 +658,6 @@ paths:
           required: true
           schema:
             type: integer
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
       responses:
         '204':
           description: Category group soft-deleted successfully
@@ -685,13 +665,8 @@ paths:
           description: Category group not found
   /api/position-groups:
     get:
-      summary: Get position groups for a company
+      summary: Get position groups for the authenticated tenant
       parameters:
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
         - in: query
           name: status
           required: false
@@ -719,49 +694,12 @@ paths:
           description: Position group created successfully
         '400':
           description: One or more position ids were invalid for the company
-  /api/position-groups/active:
-    get:
-      summary: Get all active position groups for a company
-      parameters:
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: A list of active position groups
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PositionGroupsResponse'
-  /api/position-groups/non-active:
-    get:
-      summary: Get all inactive position groups for a company
-      parameters:
-        - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: A list of inactive position groups
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PositionGroupsResponse'
   /api/position-groups/{id}:
     get:
       summary: Get an active position group by ID
       parameters:
         - in: path
           name: id
-          required: true
-          schema:
-            type: integer
-        - in: query
-          name: companyId
           required: true
           schema:
             type: integer
@@ -779,11 +717,6 @@ paths:
       parameters:
         - in: path
           name: id
-          required: true
-          schema:
-            type: integer
-        - in: query
-          name: companyId
           required: true
           schema:
             type: integer
@@ -805,11 +738,6 @@ paths:
       parameters:
         - in: path
           name: id
-          required: true
-          schema:
-            type: integer
-        - in: query
-          name: companyId
           required: true
           schema:
             type: integer
@@ -1553,12 +1481,9 @@ components:
     CreateCategoryGroupRequest:
       type: object
       required:
-        - companyId
         - description
         - categoryIds
       properties:
-        companyId:
-          type: integer
         description:
           type: string
         categoryIds:
@@ -1622,12 +1547,9 @@ components:
     CreatePositionGroupRequest:
       type: object
       required:
-        - companyId
         - description
         - positionIds
       properties:
-        companyId:
-          type: integer
         description:
           type: string
         positionIds:

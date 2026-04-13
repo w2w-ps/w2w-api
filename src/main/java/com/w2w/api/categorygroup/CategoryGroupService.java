@@ -1,16 +1,16 @@
-package com.w2w.api.category;
+package com.w2w.api.categorygroup;
 
-import com.w2w.api.category.dto.CategoryGroupSummary;
-import com.w2w.api.category.dto.CategorySummary;
-import com.w2w.api.category.dto.CreateCategoryGroupRequest;
-import com.w2w.api.category.dto.UpdateCategoryGroupRequest;
 import com.w2w.api.category.model.Category;
-import com.w2w.api.category.model.CategoryGroup;
-import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
+import com.w2w.api.categorygroup.dto.CategoryGroupSummary;
+import com.w2w.api.categorygroup.dto.UpdateCategoryGroupRequest;
+import com.w2w.api.categorygroup.model.CategoryGroup;
+import com.w2w.api.categorygroup.repository.CategoryGroupRepository;
+import com.w2w.api.category.dto.CategorySummary;
 import com.w2w.api.config.CurrentTenant;
-import com.w2w.api.config.TenantContext;
+import com.w2w.api.config.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -42,7 +42,8 @@ public class CategoryGroupService {
      */
     @Transactional(readOnly = true)
     public List<CategoryGroupSummary> getCategoryGroups(String status) {
-        return findCategoryGroupsByStatus(TenantContext.getCurrentTenant(), status).stream()
+        Integer companyId = CurrentTenant.requireCurrentTenant();
+        return findCategoryGroupsByStatus(companyId, status).stream()
                 .map(this::toSummary)
                 .toList();
     }
@@ -52,9 +53,10 @@ public class CategoryGroupService {
      */
     @Transactional(readOnly = true)
     public Optional<CategoryGroupSummary> getCategoryGroupById(Integer groupId) {
+        Integer companyId = CurrentTenant.requireCurrentTenant();
         return categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(
                         groupId,
-                        TenantContext.getCurrentTenant()
+                        companyId
                 )
                 .map(this::toSummary);
     }
@@ -63,6 +65,7 @@ public class CategoryGroupService {
      * Creates a category group with the requested category membership.
      */
     @Transactional
+    @PreAuthorize("@categoryPolicy.canManage(authentication)")
     public void createCategoryGroup(String description, Collection<Integer> categoryIds) {
         Integer resolvedCompanyId = CurrentTenant.requireCurrentTenant();
         CategoryGroup categoryGroup = new CategoryGroup();
@@ -77,6 +80,7 @@ public class CategoryGroupService {
      * Updates a category group and replaces its category membership.
      */
     @Transactional
+    @PreAuthorize("@categoryPolicy.canManage(authentication)")
     public void updateCategoryGroup(Integer groupId, UpdateCategoryGroupRequest request) {
         Integer resolvedCompanyId = CurrentTenant.requireCurrentTenant();
         CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, resolvedCompanyId);
@@ -89,6 +93,7 @@ public class CategoryGroupService {
      * Soft-deletes a category group.
      */
     @Transactional
+    @PreAuthorize("@categoryPolicy.canManage(authentication)")
     public void deleteCategoryGroup(Integer groupId) {
         CategoryGroup categoryGroup = requireActiveCategoryGroup(groupId, CurrentTenant.requireCurrentTenant());
         categoryGroup.setIsDeleted(true);
@@ -121,7 +126,7 @@ public class CategoryGroupService {
      */
     private CategoryGroup requireActiveCategoryGroup(Integer groupId, Integer companyId) {
         return categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(groupId, companyId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category group not found"));
     }
 
     /**
@@ -131,7 +136,7 @@ public class CategoryGroupService {
         return switch (status.toLowerCase()) {
             case "all" -> categoryGroupRepository.findByCompanyId(companyId);
             case "active" -> categoryGroupRepository.findByCompanyIdAndIsDeletedFalse(companyId);
-            case "non-active" -> categoryGroupRepository.findByCompanyIdAndIsDeletedTrue(companyId);
+            case "inactive" -> categoryGroupRepository.findByCompanyIdAndIsDeletedTrue(companyId);
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported status filter");
         };
     }

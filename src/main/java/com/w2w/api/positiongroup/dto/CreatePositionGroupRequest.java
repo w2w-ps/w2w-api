@@ -6,9 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record CreatePositionGroupRequest(
-        @NotNull(message = "Company ID cannot be null")
-        Integer companyId,
-
         @NotBlank(message = "Description cannot be blank")
         String description,
 

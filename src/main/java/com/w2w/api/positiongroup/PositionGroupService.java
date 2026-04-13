@@ -1,7 +1,7 @@
 package com.w2w.api.positiongroup;
 
 import com.w2w.api.config.CurrentTenant;
-import com.w2w.api.config.TenantContext;
+import com.w2w.api.config.exception.ResourceNotFoundException;
 import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.position.model.Position;
 import com.w2w.api.position.repository.PositionRepository;
@@ -10,6 +10,7 @@ import com.w2w.api.positiongroup.dto.UpdatePositionGroupRequest;
 import com.w2w.api.positiongroup.model.PositionGroup;
 import com.w2w.api.positiongroup.repository.PositionGroupRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,21 +32,24 @@ public class PositionGroupService {
 
     @Transactional(readOnly = true)
     public List<PositionGroupSummary> getPositionGroups(String status) {
-        return findPositionGroupsByStatus(TenantContext.getCurrentTenant(), status).stream()
+        Integer companyId = CurrentTenant.requireCurrentTenant();
+        return findPositionGroupsByStatus(companyId, status).stream()
                 .map(this::toSummary)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public Optional<PositionGroupSummary> getPositionGroupById(Integer groupId) {
+        Integer companyId = CurrentTenant.requireCurrentTenant();
         return positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(
                         groupId,
-                        TenantContext.getCurrentTenant()
+                        companyId
                 )
                 .map(this::toSummary);
     }
 
     @Transactional
+    @PreAuthorize("@positionPolicy.canManage(authentication)")
     public void createPositionGroup(String description, Collection<Integer> positionIds) {
         Integer resolvedCompanyId = CurrentTenant.requireCurrentTenant();
         PositionGroup positionGroup = new PositionGroup();
@@ -57,6 +61,7 @@ public class PositionGroupService {
     }
 
     @Transactional
+    @PreAuthorize("@positionPolicy.canManage(authentication)")
     public void updatePositionGroup(Integer groupId, UpdatePositionGroupRequest request) {
         Integer resolvedCompanyId = CurrentTenant.requireCurrentTenant();
         PositionGroup positionGroup = requireActivePositionGroup(groupId, resolvedCompanyId);
@@ -66,6 +71,7 @@ public class PositionGroupService {
     }
 
     @Transactional
+    @PreAuthorize("@positionPolicy.canManage(authentication)")
     public void deletePositionGroup(Integer groupId) {
         PositionGroup positionGroup = requireActivePositionGroup(groupId, CurrentTenant.requireCurrentTenant());
         positionGroup.setIsDeleted(true);
@@ -88,7 +94,7 @@ public class PositionGroupService {
 
     private PositionGroup requireActivePositionGroup(Integer groupId, Integer companyId) {
         return positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(groupId, companyId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Position group not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Position group not found"));
     }
 
     private List<PositionGroup> findPositionGroupsByStatus(Integer companyId, String status) {

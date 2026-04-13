@@ -622,7 +622,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/category-groups?companyId={{companyId}}&status=all"
+            "url": "{{baseUrl}}/api/category-groups?status=all"
           }
         },
         {
@@ -635,11 +635,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/category-groups?companyId={{companyId}}&status=active"
+            "url": "{{baseUrl}}/api/category-groups?status=active"
           }
         },
         {
-          "name": "Get Non-Active Category Groups",
+          "name": "Get Inactive Category Groups",
           "request": {
             "method": "GET",
             "header": [
@@ -648,7 +648,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/category-groups?companyId={{companyId}}&status=non-active"
+            "url": "{{baseUrl}}/api/category-groups?status=inactive"
           }
         },
         {
@@ -661,7 +661,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/category-groups/{{categoryGroupId}}?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/category-groups/{{categoryGroupId}}"
           }
         },
         {
@@ -680,7 +680,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"description\": \"Standard Shifts\",\n  \"categoryIds\": [1, 2]\n}",
+              "raw": "{\n  \"description\": \"Standard Shifts\",\n  \"categoryIds\": [1, 2]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -713,7 +713,7 @@
                 }
               }
             },
-            "url": "{{baseUrl}}/api/category-groups/{{categoryGroupId}}?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/category-groups/{{categoryGroupId}}"
           }
         },
         {
@@ -726,7 +726,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/category-groups/{{categoryGroupId}}?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/category-groups/{{categoryGroupId}}"
           }
         }
       ]
@@ -744,7 +744,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/position-groups?companyId={{companyId}}&status=all"
+            "url": "{{baseUrl}}/api/position-groups?status=all"
           }
         },
         {
@@ -757,11 +757,11 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/position-groups/active?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/position-groups?status=active"
           }
         },
         {
-          "name": "Get Non-Active Position Groups",
+          "name": "Get Inactive Position Groups",
           "request": {
             "method": "GET",
             "header": [
@@ -770,7 +770,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/position-groups/non-active?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/position-groups?status=inactive"
           }
         },
         {
@@ -783,7 +783,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/position-groups/{{positionGroupId}}?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/position-groups/{{positionGroupId}}"
           }
         },
         {
@@ -802,7 +802,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"description\": \"Front of House\",\n  \"positionIds\": [{{positionId}}]\n}",
+              "raw": "{\n  \"description\": \"Front of House\",\n  \"positionIds\": [{{positionId}}]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -835,7 +835,7 @@
                 }
               }
             },
-            "url": "{{baseUrl}}/api/position-groups/{{positionGroupId}}?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/position-groups/{{positionGroupId}}"
           }
         },
         {
@@ -848,7 +848,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/position-groups/{{positionGroupId}}?companyId={{companyId}}"
+            "url": "{{baseUrl}}/api/position-groups/{{positionGroupId}}"
           }
         }
       ]

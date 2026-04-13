@@ -1,13 +1,13 @@
-package com.w2w.api.category;
+package com.w2w.api.categorygroup;
 
-import com.w2w.api.config.TenantContext;
-import com.w2w.api.category.dto.CategoryGroupSummary;
-import com.w2w.api.category.dto.CreateCategoryGroupRequest;
-import com.w2w.api.category.dto.UpdateCategoryGroupRequest;
 import com.w2w.api.category.model.Category;
-import com.w2w.api.category.model.CategoryGroup;
-import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
+import com.w2w.api.categorygroup.dto.CategoryGroupSummary;
+import com.w2w.api.categorygroup.dto.UpdateCategoryGroupRequest;
+import com.w2w.api.categorygroup.model.CategoryGroup;
+import com.w2w.api.categorygroup.repository.CategoryGroupRepository;
+import com.w2w.api.config.TenantContext;
+import com.w2w.api.config.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -106,7 +106,7 @@ class CategoryGroupServiceTest {
         categoryGroup.setIsDeleted(true);
         when(categoryGroupRepository.findByCompanyIdAndIsDeletedTrue(1)).thenReturn(List.of(categoryGroup));
 
-        List<CategoryGroupSummary> result = categoryGroupService.getCategoryGroups("non-active");
+        List<CategoryGroupSummary> result = categoryGroupService.getCategoryGroups("inactive");
 
         assertEquals(1, result.size());
         assertEquals(301, result.get(0).id());
@@ -199,7 +199,7 @@ class CategoryGroupServiceTest {
     void deleteCategoryGroup_throwsWhenMissing() {
         when(categoryGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(301, 1)).thenReturn(Optional.empty());
 
-        assertThrows(ResponseStatusException.class, () -> categoryGroupService.deleteCategoryGroup(301));
+        assertThrows(ResourceNotFoundException.class, () -> categoryGroupService.deleteCategoryGroup(301));
 
         verify(categoryGroupRepository, never()).save(any(CategoryGroup.class));
     }

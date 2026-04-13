@@ -1,4 +1,6 @@
-package com.w2w.api.category.dto;
+package com.w2w.api.categorygroup.dto;
+
+import com.w2w.api.category.dto.CategorySummary;
 
 import java.util.List;
 
