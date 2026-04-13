@@ -13,7 +13,7 @@
 - Group supporting types into subfolders only when there are multiple files:
   `dto/`, `model/`, `repository/`.
 - Current features:
-  `tenant`, `employee`, `position`, `positiongroup`, `category`, `scheduling`, `config`, `preferences`.
+  `tenant`, `employee`, `position`, `positiongroup`, `category`, `categorygroup`, `scheduling`, `config`, `preferences`.
 
 ## API Surface
 - `tenant`
@@ -36,24 +36,23 @@
   `DELETE /api/positions/{id}?companyId=...`
   `POST /api/positions/{id}/restore?companyId=...`
 - `positiongroup`
-  `GET /api/position-groups?companyId=...&status=...`
-  `GET /api/position-groups/active?companyId=...`
-  `GET /api/position-groups/non-active?companyId=...`
-  `GET /api/position-groups/{id}?companyId=...`
+  `GET /api/position-groups?status=...`
+  `GET /api/position-groups/{id}`
   `POST /api/position-groups`
-  `PUT /api/position-groups/{id}?companyId=...`
-  `DELETE /api/position-groups/{id}?companyId=...`
+  `PUT /api/position-groups/{id}`
+  `DELETE /api/position-groups/{id}`
 - `category`
   `GET /api/categories?status=...` default `active`
   `GET /api/categories/{id}`
   `POST /api/categories`
   `PUT /api/categories/{id}`
   `DELETE /api/categories/{id}`
-  `GET /api/category-groups?companyId=...&status=...`
-  `GET /api/category-groups/{id}?companyId=...`
+- `categorygroup`
+  `GET /api/category-groups?status=...`
+  `GET /api/category-groups/{id}`
   `POST /api/category-groups`
-  `PUT /api/category-groups/{id}?companyId=...`
-  `DELETE /api/category-groups/{id}?companyId=...`
+  `PUT /api/category-groups/{id}`
+  `DELETE /api/category-groups/{id}`
 - `scheduling`
   `POST /api/scheduling/shifts`
   `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` includes nullable `employmentType`, `alertDate`, and `publishedStage`
@@ -71,9 +70,9 @@
 ## Tenanting Rules
 - Reads and writes are tenant-scoped by setting `TenantContext` before repository access.
 - Controllers currently own tenant selection unless the feature explicitly derives tenant scope from authentication.
-- Category now relies on the authenticated tenant rather than request `companyId`.
+- Category, categorygroup, and positiongroup now rely on the authenticated tenant rather than request `companyId`.
 - For request params, use the provided `companyId` where the contract still exposes it.
-- For create endpoints, use the tenant id coming from the posted entity where applicable.
+- For create endpoints, use the authenticated tenant unless the contract explicitly requires a tenant id in the payload.
 
 ## Data and Query Notes
 - `schema.sql` is a checked-in schema snapshot and should stay aligned with Flyway migrations.

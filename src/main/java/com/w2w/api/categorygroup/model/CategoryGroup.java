@@ -1,5 +1,6 @@
-package com.w2w.api.category.model;
+package com.w2w.api.categorygroup.model;
 
+import com.w2w.api.category.model.Category;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;

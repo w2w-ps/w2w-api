@@ -1,6 +1,6 @@
-package com.w2w.api.category.repository;
+package com.w2w.api.categorygroup.repository;
 
-import com.w2w.api.category.model.CategoryGroup;
+import com.w2w.api.categorygroup.model.CategoryGroup;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

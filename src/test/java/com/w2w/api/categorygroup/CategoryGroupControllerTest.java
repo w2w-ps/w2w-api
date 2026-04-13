@@ -1,7 +1,7 @@
-package com.w2w.api.category;
+package com.w2w.api.categorygroup;
 
-import com.w2w.api.category.dto.CategoryGroupSummary;
 import com.w2w.api.category.dto.CategorySummary;
+import com.w2w.api.categorygroup.dto.CategoryGroupSummary;
 import com.w2w.api.login.JwtAuthFilter;
 import com.w2w.api.login.JwtUtil;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,7 @@ class CategoryGroupControllerTest {
                         )
                 ));
 
-        mockMvc.perform(get("/api/category-groups").param("companyId", "1"))
+        mockMvc.perform(get("/api/category-groups"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.categoryGroups[0].id").value(301))
                 .andExpect(jsonPath("$.categoryGroups[0].name").value("Standard Shifts"))
@@ -70,7 +70,7 @@ class CategoryGroupControllerTest {
 
     @Test
     void getCategoryGroups_withStatusFilter_returnsGroups() throws Exception {
-        when(categoryGroupService.getCategoryGroups("non-active"))
+        when(categoryGroupService.getCategoryGroups("inactive"))
                 .thenReturn(List.of(
                         new CategoryGroupSummary(
                                 302,
@@ -79,12 +79,12 @@ class CategoryGroupControllerTest {
                         )
                 ));
 
-        mockMvc.perform(get("/api/category-groups").param("companyId", "1").param("status", "non-active"))
+        mockMvc.perform(get("/api/category-groups").param("status", "inactive"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.categoryGroups[0].id").value(302))
                 .andExpect(jsonPath("$.categoryGroups[0].name").value("Archived Shifts"));
 
-        verify(categoryGroupService).getCategoryGroups("non-active");
+        verify(categoryGroupService).getCategoryGroups("inactive");
     }
 
     @Test
@@ -93,7 +93,7 @@ class CategoryGroupControllerTest {
                 .when(categoryGroupService)
                 .getCategoryGroups("archived");
 
-        mockMvc.perform(get("/api/category-groups").param("companyId", "1").param("status", "archived"))
+        mockMvc.perform(get("/api/category-groups").param("status", "archived"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -108,7 +108,7 @@ class CategoryGroupControllerTest {
                         )
                 ));
 
-        mockMvc.perform(get("/api/category-groups/301").param("companyId", "1"))
+        mockMvc.perform(get("/api/category-groups/301"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(301))
                 .andExpect(jsonPath("$.name").value("Standard Shifts"));
@@ -120,7 +120,7 @@ class CategoryGroupControllerTest {
     void getCategoryGroupById_returnsNotFoundWhenMissing() throws Exception {
         when(categoryGroupService.getCategoryGroupById(301)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/category-groups/301").param("companyId", "1"))
+        mockMvc.perform(get("/api/category-groups/301"))
                 .andExpect(status().isNotFound());
 
         verify(categoryGroupService).getCategoryGroupById(301);
@@ -132,7 +132,6 @@ class CategoryGroupControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "companyId": 1,
                                   "description": "Standard Shifts",
                                   "categoryIds": [4, 5]
                                 }
@@ -145,7 +144,6 @@ class CategoryGroupControllerTest {
     @Test
     void updateCategoryGroup_returnsNoContent() throws Exception {
         mockMvc.perform(put("/api/category-groups/301")
-                        .param("companyId", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -167,7 +165,6 @@ class CategoryGroupControllerTest {
                 .updateCategoryGroup(eq(301), argThat(value -> value.categoryIds().equals(List.of(999))));
 
         mockMvc.perform(put("/api/category-groups/301")
-                        .param("companyId", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -180,7 +177,7 @@ class CategoryGroupControllerTest {
 
     @Test
     void deleteCategoryGroup_returnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/category-groups/301").param("companyId", "1"))
+        mockMvc.perform(delete("/api/category-groups/301"))
                 .andExpect(status().isNoContent());
 
         verify(categoryGroupService).deleteCategoryGroup(301);
@@ -192,7 +189,7 @@ class CategoryGroupControllerTest {
                 .when(categoryGroupService)
                 .deleteCategoryGroup(301);
 
-        mockMvc.perform(delete("/api/category-groups/301").param("companyId", "1"))
+        mockMvc.perform(delete("/api/category-groups/301"))
                 .andExpect(status().isNotFound());
     }
 }

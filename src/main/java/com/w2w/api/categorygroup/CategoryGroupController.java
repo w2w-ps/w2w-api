@@ -1,10 +1,9 @@
-package com.w2w.api.category;
+package com.w2w.api.categorygroup;
 
-import com.w2w.api.category.dto.CategoryGroupSummary;
-import com.w2w.api.category.dto.CategoryGroupsResponse;
-import com.w2w.api.category.dto.CreateCategoryGroupRequest;
-import com.w2w.api.category.dto.UpdateCategoryGroupRequest;
-import com.w2w.api.config.TenantContext;
+import com.w2w.api.categorygroup.dto.CategoryGroupSummary;
+import com.w2w.api.categorygroup.dto.CategoryGroupsResponse;
+import com.w2w.api.categorygroup.dto.CreateCategoryGroupRequest;
+import com.w2w.api.categorygroup.dto.UpdateCategoryGroupRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,23 +22,21 @@ public class CategoryGroupController {
     }
 
     /**
-     * Returns the category groups for the requested company.
+     * Returns the category groups for the authenticated tenant.
      */
     @GetMapping
     public ResponseEntity<CategoryGroupsResponse> getCategoryGroups(
-            @RequestParam Integer companyId,
             @RequestParam(defaultValue = "all") String status
     ) {
         return ResponseEntity.ok(new CategoryGroupsResponse(categoryGroupService.getCategoryGroups(status)));
     }
 
     /**
-     * Returns a single category group when it exists for the requested company.
+     * Returns a single category group when it exists for the authenticated tenant.
      */
     @GetMapping("/{id}")
     public ResponseEntity<CategoryGroupSummary> getCategoryGroupById(
-            @PathVariable("id") Integer groupId,
-            @RequestParam Integer companyId
+            @PathVariable("id") Integer groupId
     ) {
         return categoryGroupService.getCategoryGroupById(groupId)
                 .map(ResponseEntity::ok)
@@ -47,7 +44,7 @@ public class CategoryGroupController {
     }
 
     /**
-     * Creates a category group for the tenant identified by the request payload.
+     * Creates a category group for the authenticated tenant.
      */
     @PostMapping
     public ResponseEntity<Void> createCategoryGroup(@Valid @RequestBody CreateCategoryGroupRequest request) {
@@ -61,7 +58,6 @@ public class CategoryGroupController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateCategoryGroup(
             @PathVariable("id") Integer groupId,
-            @RequestParam Integer companyId,
             @Valid @RequestBody UpdateCategoryGroupRequest request
     ) {
         categoryGroupService.updateCategoryGroup(groupId, request);
@@ -72,7 +68,7 @@ public class CategoryGroupController {
      * Deletes a category group and its join-table memberships.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategoryGroup(@PathVariable("id") Integer groupId, @RequestParam Integer companyId) {
+    public ResponseEntity<Void> deleteCategoryGroup(@PathVariable("id") Integer groupId) {
         categoryGroupService.deleteCategoryGroup(groupId);
         return ResponseEntity.noContent().build();
     }
