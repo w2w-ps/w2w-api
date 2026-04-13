@@ -529,7 +529,7 @@ class SchedulingServiceTest {
         List<EmployeeSchedule> result = schedulingService.getEmployeeShiftsGroupedInRange(startDate, endDate, null, null);
 
         EmployeeSchedule employee = result.getFirst();
-        assertEquals("Published", employee.getPublishedEmailStatus());
+        assertEquals("Published", employee.getPublishedStage());
         assertEquals("FRT", employee.getWeeklyShifts().get(0).shifts().getFirst().category());
     }
 

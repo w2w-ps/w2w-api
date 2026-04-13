@@ -1007,7 +1007,7 @@ components:
         alertDate:
           type: string
           nullable: true
-        publishedEmailStatus:
+        publishedStage:
           type: string
           nullable: true
     EmployeeScheduledShift:

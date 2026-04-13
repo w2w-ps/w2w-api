@@ -22,7 +22,7 @@ public class EmployeeSchedule {
     private int shiftCount;
     private String employmentType;
     private String alertDate;
-    private String publishedEmailStatus;
+    private String publishedStage;
 
     public EmployeeSchedule() {}
 
@@ -136,11 +136,11 @@ public class EmployeeSchedule {
         this.alertDate = alertDate;
     }
 
-    public String getPublishedEmailStatus() {
-        return publishedEmailStatus;
+    public String getPublishedStage() {
+        return publishedStage;
     }
 
-    public void setPublishedEmailStatus(String publishedEmailStatus) {
-        this.publishedEmailStatus = publishedEmailStatus;
+    public void setPublishedStage(String publishedStage) {
+        this.publishedStage = publishedStage;
     }
 }

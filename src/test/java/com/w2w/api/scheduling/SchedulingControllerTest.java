@@ -168,7 +168,7 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].employeeId").value(101))
                 .andExpect(jsonPath("$[0].employmentType").value(nullValue()))
-                .andExpect(jsonPath("$[0].publishedEmailStatus").value("Published"))
+                .andExpect(jsonPath("$[0].publishedStage").value("Published"))
                 .andExpect(jsonPath("$[0].weeklyShifts['0'].date").value("Wednesday Mar-25"))
                 .andExpect(jsonPath("$[0].weeklyShifts['0'].shifts", hasSize(1)))
                 .andExpect(jsonPath("$[0].weeklyShifts['0'].shifts[0].startTime").value("9am"))
@@ -713,7 +713,7 @@ class SchedulingControllerTest {
         ));
         employee.setTotalHours(new BigDecimal("8.00"));
         employee.setShiftCount(1);
-        employee.setPublishedEmailStatus("Published");
+        employee.setPublishedStage("Published");
         return employee;
     }
 }

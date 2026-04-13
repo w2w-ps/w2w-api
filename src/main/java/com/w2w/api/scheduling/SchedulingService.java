@@ -157,7 +157,7 @@ public class SchedulingService {
             }
 
             EmployeeSchedule employeeDto = getOrCreateEmployeeDto(grouped, row, startDate, endDate);
-            updatePublishedEmailStatus(employeeDto, row);
+            updatePublishedStage(employeeDto, row);
 
             for (ShiftSegment segment : matchingSegments) {
                 addShiftSegment(employeeDto, startDate, segment);
@@ -1029,19 +1029,19 @@ public class SchedulingService {
         return base.add(scaledHours(hours)).setScale(2, RoundingMode.HALF_UP);
     }
 
-    private void updatePublishedEmailStatus(EmployeeSchedule employeeDto, EmployeeShiftProjection row) {
+    private void updatePublishedStage(EmployeeSchedule employeeDto, EmployeeShiftProjection row) {
         if (row.getSchedulePublished() == null || row.getShiftId() == null) {
             return;
         }
 
         String nextStatus = Boolean.TRUE.equals(row.getSchedulePublished()) ? "Published" : "Unpublished";
-        if (employeeDto.getPublishedEmailStatus() == null || employeeDto.getPublishedEmailStatus().isBlank()) {
-            employeeDto.setPublishedEmailStatus(nextStatus);
+        if (employeeDto.getPublishedStage() == null || employeeDto.getPublishedStage().isBlank()) {
+            employeeDto.setPublishedStage(nextStatus);
             return;
         }
 
-        if (!employeeDto.getPublishedEmailStatus().equals(nextStatus)) {
-            employeeDto.setPublishedEmailStatus("Mixed");
+        if (!employeeDto.getPublishedStage().equals(nextStatus)) {
+            employeeDto.setPublishedStage("Mixed");
         }
     }
 
