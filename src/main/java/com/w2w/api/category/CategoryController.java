@@ -1,7 +1,6 @@
 package com.w2w.api.category;
 
 import com.w2w.api.category.dto.*;
-import com.w2w.api.config.TenantContext;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,25 +18,22 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<CategoriesResponse> getCategories(
-            @RequestParam Integer companyId,
-            @RequestParam(defaultValue = "all") String status
+    public ResponseEntity<CategoriesResponse> get(
+            @RequestParam(defaultValue = "active") String status
     ) {
-        List<CategorySummary> categories = categoryService.getCategories(status);
+        List<CategoryResponse> categories = categoryService.get(status);
         return ResponseEntity.ok(new CategoriesResponse(categories));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable("id") Integer categoryId, @RequestParam Integer companyId) {
-        return categoryService.getCategoryById(categoryId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<CategoryResponse> get(@PathVariable("id") Integer categoryId) {
+        return ResponseEntity.ok(categoryService.get(categoryId));
     }
 
     @PostMapping
-    public ResponseEntity<Void> createCategory(@Valid @RequestBody CreateCategoryRequest request) {
-        categoryService.createCategory(
-                request.shortName(),
+    public ResponseEntity<Void> create(@Valid @RequestBody CreateCategoryRequest request) {
+        categoryService.create(
+                request.shortDesc(),
                 request.description(),
                 request.startTime(),
                 request.endTime(),
@@ -48,18 +44,17 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateCategory(
+    public ResponseEntity<Void> update(
             @PathVariable("id") Integer categoryId,
-            @RequestParam Integer companyId,
             @Valid @RequestBody UpdateCategoryRequest request
     ) {
-        categoryService.updateCategory(categoryId, request);
+        categoryService.update(categoryId, request);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable("id") Integer categoryId, @RequestParam Integer companyId) {
-        categoryService.deleteCategory(categoryId);
+    public ResponseEntity<Void> delete(@PathVariable("id") Integer categoryId) {
+        categoryService.delete(categoryId);
         return ResponseEntity.noContent().build();
     }
 }

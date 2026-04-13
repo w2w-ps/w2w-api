@@ -2,42 +2,38 @@ package com.w2w.api.category;
 
 import com.w2w.api.category.dto.*;
 import com.w2w.api.category.model.Category;
-import com.w2w.api.category.repository.CategoryGroupRepository;
 import com.w2w.api.category.repository.CategoryRepository;
 import com.w2w.api.config.CurrentTenant;
-import com.w2w.api.config.TenantContext;
+import com.w2w.api.config.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final CategoryGroupRepository categoryGroupRepository;
 
-    public CategoryService(CategoryRepository categoryRepository, CategoryGroupRepository categoryGroupRepository) {
+    public CategoryService(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
-        this.categoryGroupRepository = categoryGroupRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<CategorySummary> getCategories(String status) {
-        Integer currentTenant = TenantContext.getCurrentTenant();
+    public List<CategoryResponse> get(String status) {
+        Integer currentTenant = CurrentTenant.requireCurrentTenant();
         return switch (status.toLowerCase()) {
             case "all" -> categoryRepository.findByCompanyId(currentTenant).stream()
-                    .map(this::toSummary)
+                    .map(this::toResponse)
                     .toList();
             case "active" -> categoryRepository.findByCompanyIdAndIsDeletedFalse(currentTenant).stream()
-                    .map(this::toSummary)
+                    .map(this::toResponse)
                     .toList();
             case "inactive" -> categoryRepository.findByCompanyIdAndIsDeletedTrue(currentTenant).stream()
-                    .map(this::toSummary)
+                    .map(this::toResponse)
                     .toList();
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported status filter");
         };
@@ -45,34 +41,21 @@ public class CategoryService {
 
     @Transactional(readOnly = true)
     public List<CategorySummary> getCategoriesByCompanyId() {
-        return getCategories("all");
+        Integer currentTenant = CurrentTenant.requireCurrentTenant();
+        return categoryRepository.findByCompanyId(currentTenant).stream()
+                .map(this::toSummary)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<CategoryGroupSummary> getCategoryGroupsByCompanyId() {
-        return categoryGroupRepository.findByCompanyId(TenantContext.getCurrentTenant()).stream()
-                .map(group -> new CategoryGroupSummary(
-                        group.getGroupId(),
-                        group.getDescription(),
-                        group.getCategories().stream()
-                                .map(cat -> new CategorySummary(cat.getCategoryId(), cat.getDescription(), cat.getShortDesc()))
-                                .collect(Collectors.toList())
-                ))
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<CategoryResponse> getCategoryById(Integer categoryId) {
-        return categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(
-                        categoryId,
-                        TenantContext.getCurrentTenant()
-                )
-                .map(this::toResponse);
+    public CategoryResponse get(Integer categoryId) {
+        return toResponse(requireActiveCategory(categoryId, CurrentTenant.requireCurrentTenant()));
     }
 
     @Transactional
-    public void createCategory(
-            String shortName,
+    @PreAuthorize("@categoryPolicy.canManage(authentication)")
+    public void create(
+            String shortDesc,
             String description,
             String startTime,
             String endTime,
@@ -81,7 +64,7 @@ public class CategoryService {
     ) {
         Category category = new Category();
         category.setCompanyId(CurrentTenant.requireCurrentTenant());
-        category.setShortDesc(shortName);
+        category.setShortDesc(shortDesc);
         category.setDescription(description);
         category.setStartTime(startTime);
         category.setEndTime(endTime);
@@ -93,9 +76,10 @@ public class CategoryService {
     }
 
     @Transactional
-    public void updateCategory(Integer categoryId, UpdateCategoryRequest request) {
+    @PreAuthorize("@categoryPolicy.canManage(authentication)")
+    public void update(Integer categoryId, UpdateCategoryRequest request) {
         Category category = requireActiveCategory(categoryId, CurrentTenant.requireCurrentTenant());
-        category.setShortDesc(request.shortName());
+        category.setShortDesc(request.shortDesc());
         category.setDescription(request.description());
         category.setStartTime(request.startTime());
         category.setEndTime(request.endTime());
@@ -106,7 +90,8 @@ public class CategoryService {
     }
 
     @Transactional
-    public void deleteCategory(Integer categoryId) {
+    @PreAuthorize("@categoryPolicy.canManage(authentication)")
+    public void delete(Integer categoryId) {
         Category category = requireActiveCategory(categoryId, CurrentTenant.requireCurrentTenant());
         category.setIsDeleted(true);
         categoryRepository.save(category);
@@ -130,6 +115,6 @@ public class CategoryService {
 
     private Category requireActiveCategory(Integer categoryId, Integer companyId) {
         return categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(categoryId, companyId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
     }
 }
