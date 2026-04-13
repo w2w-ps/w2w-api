@@ -93,10 +93,14 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                     rs.getObject("startTime", LocalTime.class),
                     rs.getObject("endTime", LocalTime.class),
                     getNullableBoolean(rs, "isOvernight"),
+                    getNullableInteger(rs, "positionId"),
                     rs.getString("position"),
+                    getNullableInteger(rs, "categoryId"),
                     rs.getString("category"),
+                    rs.getString("categoryShortDescription"),
                     rs.getString("description"),
                     getNullableFloat(rs, "duration"),
+                    getNullableBoolean(rs, "schedulePublished"),
                     rs.getString("color")
             );
         }
@@ -158,10 +162,14 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         private final LocalTime startTime;
         private final LocalTime endTime;
         private final Boolean isOvernight;
+        private final Integer positionId;
         private final String position;
+        private final Integer categoryId;
         private final String category;
+        private final String categoryShortDescription;
         private final String description;
         private final Float duration;
+        private final Boolean schedulePublished;
         private final String color;
 
         private EmployeeShiftRow(
@@ -175,10 +183,14 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                 LocalTime startTime,
                 LocalTime endTime,
                 Boolean isOvernight,
+                Integer positionId,
                 String position,
+                Integer categoryId,
                 String category,
+                String categoryShortDescription,
                 String description,
                 Float duration,
+                Boolean schedulePublished,
                 String color
         ) {
             this.shiftId = shiftId;
@@ -191,10 +203,14 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
             this.startTime = startTime;
             this.endTime = endTime;
             this.isOvernight = isOvernight;
+            this.positionId = positionId;
             this.position = position;
+            this.categoryId = categoryId;
             this.category = category;
+            this.categoryShortDescription = categoryShortDescription;
             this.description = description;
             this.duration = duration;
+            this.schedulePublished = schedulePublished;
             this.color = color;
         }
 
@@ -244,13 +260,28 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         }
 
         @Override
+        public Integer getPositionId() {
+            return positionId;
+        }
+
+        @Override
         public String getPosition() {
             return position;
         }
 
         @Override
+        public Integer getCategoryId() {
+            return categoryId;
+        }
+
+        @Override
         public String getCategory() {
             return category;
+        }
+
+        @Override
+        public String getCategoryShortDescription() {
+            return categoryShortDescription;
         }
 
         @Override
@@ -266,6 +297,11 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         @Override
         public Boolean getIsOvernight() {
             return isOvernight;
+        }
+
+        @Override
+        public Boolean getSchedulePublished() {
+            return schedulePublished;
         }
 
         @Override

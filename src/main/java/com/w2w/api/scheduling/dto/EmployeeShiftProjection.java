@@ -11,15 +11,22 @@ public interface EmployeeShiftProjection {
     Integer getEmployeeId();
     String getFirstName();
     String getLastName();
+    default String getEmploymentType() {
+        return null;
+    }
     List<String> getPhones();
     List<PositionSummary> getAvailablePositions();
     LocalDate getWeekCommencing();
     LocalTime getStartTime();
     LocalTime getEndTime();
+    Integer getPositionId();
     String getPosition();
+    Integer getCategoryId();
     String getCategory();
+    String getCategoryShortDescription();
     String getDescription();
     Float getDuration();
     Boolean getIsOvernight();
+    Boolean getSchedulePublished();
     String getColor();
 }

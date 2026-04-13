@@ -1,8 +1,5 @@
 package com.w2w.api.scheduling.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import java.time.LocalTime;
 import java.util.List;
 
 public record EmployeeShift(
@@ -11,8 +8,9 @@ public record EmployeeShift(
         String firstName,
         String lastName,
         List<String> phones,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma") LocalTime startTime,
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma") LocalTime endTime,
+        String employmentType,
+        String startTime,
+        String endTime,
         String category,
         String description,
         Float duration,

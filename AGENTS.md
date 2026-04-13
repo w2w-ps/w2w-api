@@ -52,9 +52,9 @@
   `DELETE /api/category-groups/{id}?companyId=...`
 - `scheduling`
   `POST /api/scheduling/shifts`
-  `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
-  `GET /api/scheduling/shifts/day-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
-  `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd` deprecated
+  `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` includes nullable `employmentType`, `alertDate`, and `publishedEmailStatus`
+  `GET /api/scheduling/shifts/date-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` wrapped response with `title`, `totalShifts`, `totalHours`, and `dates[{ weekday, date, ... }]`; shift items include nullable `employmentType`
+  `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` deprecated
 - `preferences`
   `GET /api/preferences/day?employeeId=...&date=...&companyId=...`
   `GET /api/preferences/day/range?employeeId=...&startDate=...&endDate=...&companyId=...`
@@ -76,7 +76,6 @@
 - Scheduling grouped results are built from a custom SQL query plus service-level grouping logic.
 - Grouped scheduling response uses day buckets relative to the requested `startDate`.
 - Each day bucket carries the bucket date; individual shifts do not repeat that date.
-- `availablePositions` in the grouped scheduling response is structured as `{ id, name }`.
 
 ## Testing
 - Existing automated coverage is under `src/test/java/com/w2w/api/scheduling`.

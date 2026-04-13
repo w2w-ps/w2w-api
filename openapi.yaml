@@ -76,9 +76,25 @@ paths:
           schema:
             type: string
             format: date
+        - in: query
+          name: positionIds
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+        - in: query
+          name: categoryIds
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
       responses:
         '200':
-          description: Employees with grouped daily shift buckets
+          description: Employees with grouped daily shift buckets and optional position/category filtering
           content:
             application/json:
               schema:
@@ -106,9 +122,25 @@ paths:
           schema:
             type: string
             format: date
+        - in: query
+          name: positionIds
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+        - in: query
+          name: categoryIds
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
       responses:
         '200':
-          description: Employees with grouped daily shift buckets
+          description: Employees with grouped daily shift buckets, formatted day labels, short category labels, publish-status metadata, and optional position/category filtering
           content:
             application/json:
               schema:
@@ -136,15 +168,29 @@ paths:
           schema:
             type: string
             format: date
+        - in: query
+          name: positionIds
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+        - in: query
+          name: categoryIds
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
       responses:
         '200':
-          description: Date buckets grouped by position, including empty buckets for company positions without shifts
+          description: Wrapped date-position summary for the requested range, including filtered totals and per-day buckets with split weekday/date fields
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DayPositionBucket'
+                $ref: '#/components/schemas/DatePositionSummaryResponse'
   /api/scheduling/shifts/grouped:
     get:
       summary: Get shifts grouped by date and the requested grouping strategy
@@ -928,7 +974,7 @@ components:
       properties:
         date:
           type: string
-          format: date
+          example: Wednesday Mar-25
         shifts:
           type: array
           items:
@@ -946,10 +992,6 @@ components:
           type: array
           items:
             type: string
-        availablePositions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Position'
         weeklyShifts:
           type: object
           additionalProperties:
@@ -959,6 +1001,15 @@ components:
           format: float
         shiftCount:
           type: integer
+        employmentType:
+          type: string
+          nullable: true
+        alertDate:
+          type: string
+          nullable: true
+        publishedEmailStatus:
+          type: string
+          nullable: true
     EmployeeScheduledShift:
       type: object
       properties:
@@ -987,6 +1038,37 @@ components:
           format: float
         color:
           type: string
+    EmployeeShift:
+      type: object
+      properties:
+        shiftId:
+          type: integer
+        employeeId:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phones:
+          type: array
+          items:
+            type: string
+        employmentType:
+          type: string
+          nullable: true
+        startTime:
+          type: string
+        endTime:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        duration:
+          type: number
+          format: float
+        color:
+          type: string
     PositionShiftBucket:
       type: object
       properties:
@@ -996,12 +1078,45 @@ components:
         shifts:
           type: array
           items:
-            $ref: '#/components/schemas/EmployeeScheduledShift'
+            $ref: '#/components/schemas/EmployeeShift'
         shiftCount:
           type: integer
         totalDuration:
           type: number
           format: float
+    DayPositionBucket:
+      type: object
+      properties:
+        weekday:
+          type: string
+          example: Wednesday
+        date:
+          type: string
+          example: 2026-03-25
+        positions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionShiftBucket'
+        shiftCount:
+          type: integer
+        totalDuration:
+          type: number
+          format: float
+    DatePositionSummaryResponse:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Week of Mar-25
+        totalShifts:
+          type: integer
+        totalHours:
+          type: number
+          format: float
+        dates:
+          type: array
+          items:
+            $ref: '#/components/schemas/DayPositionBucket'
     PositionTimingBucketDto:
       type: object
       properties:
@@ -1062,21 +1177,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ShiftTimingGroupDto'
-    DayPositionBucket:
-      type: object
-      properties:
-        date:
-          type: string
-          format: date
-        positions:
-          type: array
-          items:
-            $ref: '#/components/schemas/PositionShiftBucket'
-        shiftCount:
-          type: integer
-        totalDuration:
-          type: number
-          format: float
     GroupedShiftsResponse:
       type: object
       properties:

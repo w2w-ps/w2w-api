@@ -48,6 +48,15 @@ abstract class PostgresIntegrationTestBase {
     @BeforeEach
     void resetTestData() {
         TenantContext.setCurrentTenant(0);
+        jdbcTemplate.update("""
+                DELETE FROM manager_permissions
+                WHERE user_id IN (
+                    SELECT user_id
+                    FROM users
+                    WHERE company_id BETWEEN ? AND ?
+                )
+                """, TEST_COMPANY_MIN, TEST_COMPANY_MAX);
+        jdbcTemplate.update("DELETE FROM users WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM scheduled_employee WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("""
                 DELETE FROM employee_position
@@ -70,6 +79,7 @@ abstract class PostgresIntegrationTestBase {
         jdbcTemplate.update("DELETE FROM category WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM position WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM company WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
+        jdbcTemplate.update("DELETE FROM companies WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         TenantContext.clear();
     }
 

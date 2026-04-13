@@ -26,11 +26,15 @@ filtered_shifts AS (
         se.shift_id,
         se.employee_id,
         sc.start_date AS weekCommencing,
+        sc.is_published AS schedulePublished,
         se.start_time,
         se.end_time,
         se.is_overnight,
+        se.required_position_id AS positionId,
         p.description AS position,
+        se.category_id AS categoryId,
         cat.description AS category,
+        cat.short_desc AS categoryShortDescription,
         se.description,
         se.duration,
         se.color
@@ -78,10 +82,14 @@ SELECT
     fs.start_time AS "startTime",
     fs.end_time AS "endTime",
     fs.is_overnight AS "isOvernight",
+    fs.positionId AS "positionId",
     fs.position AS "position",
+    fs.categoryId AS "categoryId",
     fs.category AS "category",
+    fs.categoryShortDescription AS "categoryShortDescription",
     fs.description AS "description",
     fs.duration AS "duration",
+    fs.schedulePublished AS "schedulePublished",
     fs.color AS "color"
 FROM filtered_employees fe
 LEFT JOIN phone_data pd ON fe.employee_id = pd.employee_id
