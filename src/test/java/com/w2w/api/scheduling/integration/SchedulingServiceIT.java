@@ -406,6 +406,17 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         company.setStatus("active");
         company.setTimestamp(LocalDateTime.of(2026, 5, 1, 0, 0));
         companyRepository.save(company);
+        jdbcTemplate.update(
+                """
+                INSERT INTO companies (company_id, company_name, department_name, status)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT (company_id) DO NOTHING
+                """,
+                companyId,
+                companyName,
+                "Integration",
+                "active"
+        );
     }
 
     private void createEmployee(Integer employeeId, Integer companyId, String firstName, String lastName, List<String> phones) {

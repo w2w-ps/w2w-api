@@ -139,6 +139,47 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         company.setStatus("active");
         company.setTimestamp(LocalDateTime.of(2026, 5, 1, 0, 0));
         companyRepository.save(company);
+        jdbcTemplate.update(
+                """
+                INSERT INTO companies (company_id, company_name, department_name, status)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT (company_id) DO NOTHING
+                """,
+                companyId,
+                companyName,
+                "Integration",
+                "active"
+        );
+    }
+
+    private void createUserLogin(String loginId, Integer companyId, Integer employeeId, String roleName) {
+        jdbcTemplate.update(
+                """
+                INSERT INTO users (
+                    user_login_id,
+                    user_login_pw,
+                    company_id,
+                    role_id,
+                    employee_id,
+                    encryption_type,
+                    login_failures
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    (SELECT role_id FROM user_roles WHERE role_name = ?),
+                    ?,
+                    0,
+                    0
+                )
+                """,
+                loginId,
+                "$2a$12$9B69QSXuEqf6bgZcWbJXMOc0RHlFkwHQ4iInRtrIwiC9nAJSTgdk.",
+                companyId,
+                roleName,
+                employeeId
+        );
     }
 
     private void createUserLogin(String loginId, Integer companyId, Integer employeeId, String roleName) {
