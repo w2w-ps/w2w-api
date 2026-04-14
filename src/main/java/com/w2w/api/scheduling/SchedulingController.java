@@ -4,7 +4,7 @@ import com.w2w.api.config.TenantContext;
 import com.w2w.api.scheduling.dto.ConflictItem;
 import com.w2w.api.scheduling.dto.ConflictResponse;
 import com.w2w.api.scheduling.dto.CreateShiftRequest;
-import com.w2w.api.scheduling.dto.DayPositionBucket;
+import com.w2w.api.scheduling.dto.DatePositionSummaryResponse;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
 import com.w2w.api.scheduling.dto.GroupedShiftsResponse;
@@ -71,17 +71,21 @@ public class SchedulingController {
     @GetMapping("/employees")
     public List<EmployeeSchedule> getShiftsGroupedInRange(
             @RequestParam Integer companyId,
+            @RequestParam(required = false) List<Integer> positionIds,
+            @RequestParam(required = false) List<Integer> categoryIds,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        return getShiftEmployees(companyId, startDate, endDate);
+        return getShiftEmployees(companyId, positionIds, categoryIds, startDate, endDate);
     }
 
     @GetMapping("/shifts/employees")
     public List<EmployeeSchedule> getShiftEmployees(
             @RequestParam Integer companyId,
+            @RequestParam(required = false) List<Integer> positionIds,
+            @RequestParam(required = false) List<Integer> categoryIds,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        return schedulingService.getEmployeeShiftsGroupedInRange(startDate, endDate);
+        return schedulingService.getEmployeeShiftsGroupedInRange(startDate, endDate, positionIds, categoryIds);
     }
 
     @GetMapping("/shifts/grouped")
@@ -95,11 +99,13 @@ public class SchedulingController {
     }
 
     @GetMapping("/shifts/date-position")
-    public List<DayPositionBucket> getShiftsGroupedByDateAndPosition(
+    public DatePositionSummaryResponse getShiftsGroupedByDateAndPosition(
             @RequestParam Integer companyId,
+            @RequestParam(required = false) List<Integer> positionIds,
+            @RequestParam(required = false) List<Integer> categoryIds,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        return schedulingService.getShiftsGroupedByDateAndPosition(startDate, endDate);
+        return schedulingService.getShiftsGroupedByDateAndPosition(startDate, endDate, positionIds, categoryIds);
     }
 
     @PostMapping("/validation/precheck")

@@ -95,6 +95,31 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         assertEquals("Bartender", row.getPosition());
         assertEquals("Opening shift", row.getDescription());
         assertEquals("amber", row.getColor());
+        assertEquals(null, row.getEmploymentType());
+    }
+
+    @Test
+    void findAllEmployeeShiftsInRange_doesNotDuplicateRowsWhenEmployeeHasMultipleUsers() {
+        createCompany(COMPANY_A_ID, "Query Tenant A");
+
+        TenantContext.setCurrentTenant(COMPANY_A_ID);
+        createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of("111-222"));
+        Position bartender = createPosition(COMPANY_A_ID, "Bartender");
+        assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getPositionId());
+        Schedule companyASchedule = createSchedule(COMPANY_A_ID, SHIFT_DATE);
+        createShift(EMPLOYEE_A_ID, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), "amber");
+        createUserLogin("employee.701101", COMPANY_A_ID, EMPLOYEE_A_ID, "Employee");
+        createUserLogin("manager.701101", COMPANY_A_ID, EMPLOYEE_A_ID, "Manager");
+
+        List<EmployeeShiftProjection> rows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                COMPANY_A_ID,
+                SHIFT_DATE,
+                SHIFT_DATE
+        );
+
+        assertEquals(1, rows.size());
+        assertEquals(EMPLOYEE_A_ID, rows.getFirst().getEmployeeId());
+        assertEquals(null, rows.getFirst().getEmploymentType());
     }
 
     private void assignEmployeeSkill(Integer employeeId, Integer skillId) {
@@ -114,6 +139,36 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         company.setStatus("active");
         company.setTimestamp(LocalDateTime.of(2026, 5, 1, 0, 0));
         companyRepository.save(company);
+    }
+
+    private void createUserLogin(String loginId, Integer companyId, Integer employeeId, String roleName) {
+        jdbcTemplate.update(
+                """
+                INSERT INTO users (
+                    user_login_id,
+                    user_login_pw,
+                    company_id,
+                    role_id,
+                    employee_id,
+                    encryption_type,
+                    login_failures
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    (SELECT role_id FROM user_roles WHERE role_name = ?),
+                    ?,
+                    0,
+                    0
+                )
+                """,
+                loginId,
+                "$2a$12$9B69QSXuEqf6bgZcWbJXMOc0RHlFkwHQ4iInRtrIwiC9nAJSTgdk.",
+                companyId,
+                roleName,
+                employeeId
+        );
     }
 
     private void createEmployee(Integer employeeId, Integer companyId, String firstName, String lastName, List<String> phones) {

@@ -146,27 +146,11 @@ CREATE TABLE user_roles (
     role_name VARCHAR(100) UNIQUE NOT NULL
 );
 
-CREATE TABLE companies (
-    company_id SERIAL PRIMARY KEY,
-    company_name VARCHAR(255),
-    department_name VARCHAR(255),
-    address VARCHAR(255),
-    city VARCHAR(100),
-    state VARCHAR(100),
-    created_at TIMESTAMP DEFAULT NOW(),
-    timezone FLOAT,
-    status VARCHAR(50),
-    trial_start DATE,
-    drop_dead DATE,
-    price_table INTEGER,
-    tos VARCHAR(255)
-);
-
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     user_login_id VARCHAR(255) UNIQUE NOT NULL,
     user_login_pw VARCHAR(255) NOT NULL,
-    company_id INTEGER REFERENCES companies(company_id),
+    company_id INTEGER REFERENCES company(company_id),
     emp_type_id INTEGER REFERENCES emp_type(emp_type_id),
     role_id INTEGER REFERENCES user_roles(role_id),
     employee_id INTEGER REFERENCES employee(employee_id),
@@ -240,7 +224,7 @@ CREATE INDEX idx_category_company_id ON category(company_id);
 -- Bypass (tenant=0) flows through app.internal_system_lookup='true'.
 --
 -- Tables intentionally WITHOUT RLS (global/auth-side):
---   emp_type, user_roles, companies, users, manager_permissions
+--   emp_type, user_roles, users, manager_permissions
 -- ============================================================
 
 -- Direct company_id tables

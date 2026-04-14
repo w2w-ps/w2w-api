@@ -48,10 +48,14 @@ class SchedulingQueryRepositoryImplTest {
             when(resultSet.getObject("endTime", LocalTime.class)).thenReturn(LocalTime.of(17, 0));
             when(resultSet.getBoolean("isOvernight")).thenReturn(false);
             when(resultSet.wasNull()).thenReturn(false);
+            when(resultSet.getInt("positionId")).thenReturn(12);
             when(resultSet.getString("position")).thenReturn("Bartender");
+            when(resultSet.getInt("categoryId")).thenReturn(4);
             when(resultSet.getString("category")).thenReturn("Front");
+            when(resultSet.getString("categoryShortDescription")).thenReturn("FRT");
             when(resultSet.getString("description")).thenReturn("Opening shift");
             when(resultSet.getFloat("duration")).thenReturn(8.0f);
+            when(resultSet.getBoolean("schedulePublished")).thenReturn(true);
             when(resultSet.getString("color")).thenReturn("amber");
 
             return List.of(rowMapper.mapRow(resultSet, 0));
@@ -65,16 +69,21 @@ class SchedulingQueryRepositoryImplTest {
 
         assertEquals(1, result.size());
         assertEquals(1001, result.getFirst().getShiftId());
+        assertEquals(null, result.getFirst().getEmploymentType());
         assertEquals(2, result.getFirst().getAvailablePositions().size());
         assertEquals(12, result.getFirst().getAvailablePositions().getFirst().positionId());
         assertEquals("Bartender", result.getFirst().getAvailablePositions().getFirst().description());
+        assertEquals(12, result.getFirst().getPositionId());
+        assertEquals(4, result.getFirst().getCategoryId());
+        assertEquals("FRT", result.getFirst().getCategoryShortDescription());
+        assertEquals(true, result.getFirst().getSchedulePublished());
         assertEquals(List.of("111-222", "333-444"), result.getFirst().getPhones());
         assertEquals("amber", result.getFirst().getColor());
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void mapsNullShiftIdAndColorForGroupedRows() throws Exception {
+    void mapsNullableCategoryAndColorForGroupedRows() throws Exception {
         NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
         SchedulingQueryRepositoryImpl repository = new SchedulingQueryRepositoryImpl(
                 jdbcTemplate,
@@ -90,7 +99,6 @@ class SchedulingQueryRepositoryImplTest {
             ResultSet resultSet = mock(ResultSet.class);
 
             when(resultSet.getInt("shiftId")).thenReturn(0);
-            when(resultSet.wasNull()).thenReturn(false, true, false, false);
             when(resultSet.getInt("employeeId")).thenReturn(101);
             when(resultSet.getString("firstName")).thenReturn("Ava");
             when(resultSet.getString("lastName")).thenReturn("Stone");
@@ -100,11 +108,16 @@ class SchedulingQueryRepositoryImplTest {
             when(resultSet.getObject("startTime", LocalTime.class)).thenReturn(LocalTime.of(9, 0));
             when(resultSet.getObject("endTime", LocalTime.class)).thenReturn(LocalTime.of(17, 0));
             when(resultSet.getBoolean("isOvernight")).thenReturn(false);
+            when(resultSet.getInt("positionId")).thenReturn(12);
             when(resultSet.getString("position")).thenReturn("Bartender");
+            when(resultSet.getInt("categoryId")).thenReturn(0);
             when(resultSet.getString("category")).thenReturn("Front");
+            when(resultSet.getString("categoryShortDescription")).thenReturn(null);
             when(resultSet.getString("description")).thenReturn("Opening shift");
             when(resultSet.getFloat("duration")).thenReturn(8.0f);
+            when(resultSet.getBoolean("schedulePublished")).thenReturn(false);
             when(resultSet.getString("color")).thenReturn(null);
+            when(resultSet.wasNull()).thenReturn(true, false, false, true, false);
 
             return List.of(rowMapper.mapRow(resultSet, 0));
         });
@@ -116,7 +129,9 @@ class SchedulingQueryRepositoryImplTest {
         );
 
         assertEquals(1, result.size());
-        assertEquals(null, result.getFirst().getShiftId());
+        assertEquals(null, result.getFirst().getEmploymentType());
         assertEquals(null, result.getFirst().getColor());
+        assertEquals(0, result.getFirst().getCategoryId());
+        assertEquals(false, result.getFirst().getSchedulePublished());
     }
 }

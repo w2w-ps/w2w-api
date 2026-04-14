@@ -1,12 +1,13 @@
 package com.w2w.api.scheduling.dto;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.util.List;
 
 public record DayPositionBucket(
-        LocalDate date,
+        String weekday,
+        String date,
         List<PositionShiftBucket> positions,
         Integer shiftCount,
-        Float totalDuration
+        BigDecimal totalDuration
 ) {
 }

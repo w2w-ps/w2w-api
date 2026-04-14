@@ -2,7 +2,6 @@ package com.w2w.api.scheduling;
 
 import com.w2w.api.login.JwtAuthFilter;
 import com.w2w.api.login.JwtUtil;
-import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.scheduling.dto.*;
 import com.w2w.api.scheduling.model.Shift;
 import org.junit.jupiter.api.Test;
@@ -17,9 +16,11 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -151,7 +152,12 @@ class SchedulingControllerTest {
 
     @Test
     void getShiftEmployees_returnsEmployeeBuckets() throws Exception {
-        when(schedulingService.getEmployeeShiftsGroupedInRange(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
+        when(schedulingService.getEmployeeShiftsGroupedInRange(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                null,
+                null
+        ))
                 .thenReturn(List.of(createEmployeeWithShifts()));
 
         mockMvc.perform(get("/api/scheduling/shifts/employees")
@@ -161,20 +167,56 @@ class SchedulingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].employeeId").value(101))
-                .andExpect(jsonPath("$[0].availablePositions", hasSize(1)))
-                .andExpect(jsonPath("$[0].availablePositions[0].positionId").value(12))
-                .andExpect(jsonPath("$[0].weeklyShifts['0'].date").value("2026-03-25"))
+                .andExpect(jsonPath("$[0].employmentType").value(nullValue()))
+                .andExpect(jsonPath("$[0].publishedStage").value("Published"))
+                .andExpect(jsonPath("$[0].weeklyShifts['0'].date").value("Wednesday Mar-25"))
                 .andExpect(jsonPath("$[0].weeklyShifts['0'].shifts", hasSize(1)))
-                .andExpect(jsonPath("$[0].weeklyShifts['0'].shifts[0].startTime").value("9:00AM"))
-                .andExpect(jsonPath("$[0].weeklyShifts['1'].date").value("2026-03-26"))
+                .andExpect(jsonPath("$[0].weeklyShifts['0'].shifts[0].startTime").value("9am"))
+                .andExpect(jsonPath("$[0].weeklyShifts['0'].shifts[0].category").value("FRT"))
+                .andExpect(jsonPath("$[0].weeklyShifts['1'].date").value("Thursday Mar-26"))
                 .andExpect(jsonPath("$[0].weeklyShifts['1'].shifts", hasSize(0)));
 
-        verify(schedulingService).getEmployeeShiftsGroupedInRange(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
+        verify(schedulingService).getEmployeeShiftsGroupedInRange(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                null,
+                null
+        );
+    }
+
+    @Test
+    void getShiftEmployees_forwardsOptionalFilters() throws Exception {
+        when(schedulingService.getEmployeeShiftsGroupedInRange(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                List.of(12, 19),
+                List.of(4)
+        )).thenReturn(List.of(createEmployeeWithShifts()));
+
+        mockMvc.perform(get("/api/scheduling/shifts/employees")
+                        .param("companyId", "7")
+                        .param("positionIds", "12", "19")
+                        .param("categoryIds", "4")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk());
+
+        verify(schedulingService).getEmployeeShiftsGroupedInRange(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                List.of(12, 19),
+                List.of(4)
+        );
     }
 
     @Test
     void getShiftsGroupedInRange_deprecatedPathStillReturnsEmployeeBuckets() throws Exception {
-        when(schedulingService.getEmployeeShiftsGroupedInRange(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
+        when(schedulingService.getEmployeeShiftsGroupedInRange(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                null,
+                null
+        ))
                 .thenReturn(List.of(createEmployeeWithShifts()));
 
         mockMvc.perform(get("/api/scheduling/employees")
@@ -185,15 +227,29 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].employeeId").value(101));
 
-        verify(schedulingService).getEmployeeShiftsGroupedInRange(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
+        verify(schedulingService).getEmployeeShiftsGroupedInRange(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                null,
+                null
+        );
     }
 
     @Test
     void getShiftsGroupedByDateAndPosition_returnsGroupedBuckets() throws Exception {
-        when(schedulingService.getShiftsGroupedByDateAndPosition(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26)))
-                .thenReturn(List.of(
+        when(schedulingService.getShiftsGroupedByDateAndPosition(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                List.of(12, 19),
+                List.of(4)
+        )).thenReturn(new DatePositionSummaryResponse(
+                "Week of Mar-25",
+                1,
+                new BigDecimal("8.00"),
+                List.of(
                         new DayPositionBucket(
-                                LocalDate.of(2026, 3, 25),
+                                "Wednesday",
+                                "2026-03-25",
                                 List.of(
                                         new PositionShiftBucket(
                                                 "Bartender",
@@ -204,64 +260,81 @@ class SchedulingControllerTest {
                                                                 "Ava",
                                                                 "Stone",
                                                                 List.of("111-222"),
-                                                                LocalTime.of(9, 0),
-                                                                LocalTime.of(17, 0),
-                                                                "Front",
+                                                                null,
+                                                                "9am",
+                                                                "5pm",
+                                                                "FRT",
                                                                 "Opening shift",
                                                                 8.0f,
                                                                 "amber"
                                                         )
                                                 )),
                                                 1,
-                                                8.0f
+                                                new BigDecimal("8.00")
                                         ),
                                         new PositionShiftBucket(
                                                 "Server",
                                                 new ArrayList<>(),
                                                 0,
-                                                0.0f
+                                                new BigDecimal("0.00")
                                         )
                                 ),
                                 1,
-                                8.0f
+                                new BigDecimal("8.00")
                         ),
                         new DayPositionBucket(
-                                LocalDate.of(2026, 3, 26),
+                                "Thursday",
+                                "2026-03-26",
                                 List.of(
-                                        new PositionShiftBucket("Bartender", new ArrayList<>(), 0, 0.0f),
-                                        new PositionShiftBucket("Server", new ArrayList<>(), 0, 0.0f)
+                                        new PositionShiftBucket("Bartender", new ArrayList<>(), 0, new BigDecimal("0.00")),
+                                        new PositionShiftBucket("Server", new ArrayList<>(), 0, new BigDecimal("0.00"))
                                 ),
                                 0,
-                                0.0f
+                                new BigDecimal("0.00")
                         )
-                ));
+                )));
 
         mockMvc.perform(get("/api/scheduling/shifts/date-position")
                         .param("companyId", "7")
+                        .param("positionIds", "12", "19")
+                        .param("categoryIds", "4")
                         .param("startDate", "2026-03-25")
                         .param("endDate", "2026-03-26"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].date").value("2026-03-25"))
-                .andExpect(jsonPath("$[0].positions", hasSize(2)))
-                .andExpect(jsonPath("$[0].shiftCount").value(1))
-                .andExpect(jsonPath("$[0].positions[0].position").value("Bartender"))
-                .andExpect(jsonPath("$[0].positions[0].shifts", hasSize(1)))
-                .andExpect(jsonPath("$[0].positions[0].shiftCount").value(1))
-                .andExpect(jsonPath("$[0].positions[0].totalDuration").value(8.0))
-                .andExpect(jsonPath("$[0].positions[1].position").value("Server"))
-                .andExpect(jsonPath("$[0].positions[1].shiftCount").value(0))
-                .andExpect(jsonPath("$[0].positions[1].shifts", hasSize(0)))
-                .andExpect(jsonPath("$[0].positions[0].shifts[0].employeeId").value(101))
-                .andExpect(jsonPath("$[0].positions[0].shifts[0].startTime").value("9:00AM"))
-                .andExpect(jsonPath("$[0].totalDuration").value(8.0))
-                .andExpect(jsonPath("$[1].shiftCount").value(0))
-                .andExpect(jsonPath("$[1].totalDuration").value(0.0))
-                .andExpect(jsonPath("$[1].positions", hasSize(2)))
-                .andExpect(jsonPath("$[1].positions[0].position").value("Bartender"))
-                .andExpect(jsonPath("$[1].positions[1].position").value("Server"));
+                .andExpect(jsonPath("$.title").value("Week of Mar-25"))
+                .andExpect(jsonPath("$.totalShifts").value(1))
+                .andExpect(jsonPath("$.totalHours").value(8.0))
+                .andExpect(jsonPath("$.dates", hasSize(2)))
+                .andExpect(jsonPath("$.dates[0].weekday").value("Wednesday"))
+                .andExpect(jsonPath("$.dates[0].date").value("2026-03-25"))
+                .andExpect(jsonPath("$.dates[0].positions", hasSize(2)))
+                .andExpect(jsonPath("$.dates[0].shiftCount").value(1))
+                .andExpect(jsonPath("$.dates[0].positions[0].position").value("Bartender"))
+                .andExpect(jsonPath("$.dates[0].positions[0].shifts", hasSize(1)))
+                .andExpect(jsonPath("$.dates[0].positions[0].shiftCount").value(1))
+                .andExpect(jsonPath("$.dates[0].positions[0].totalDuration").value(8.0))
+                .andExpect(jsonPath("$.dates[0].positions[1].position").value("Server"))
+                .andExpect(jsonPath("$.dates[0].positions[1].shiftCount").value(0))
+                .andExpect(jsonPath("$.dates[0].positions[1].shifts", hasSize(0)))
+                .andExpect(jsonPath("$.dates[0].positions[0].shifts[0].employeeId").value(101))
+                .andExpect(jsonPath("$.dates[0].positions[0].shifts[0].employmentType").value(nullValue()))
+                .andExpect(jsonPath("$.dates[0].positions[0].shifts[0].startTime").value("9am"))
+                .andExpect(jsonPath("$.dates[0].positions[0].shifts[0].category").value("FRT"))
+                .andExpect(jsonPath("$.dates[0].totalDuration").value(8.0))
+                .andExpect(jsonPath("$.dates[1].shiftCount").value(0))
+                .andExpect(jsonPath("$.dates[1].totalDuration").value(0.0))
+                .andExpect(jsonPath("$.dates[1].positions", hasSize(2)))
+                .andExpect(jsonPath("$.dates[1].weekday").value("Thursday"))
+                .andExpect(jsonPath("$.dates[1].date").value("2026-03-26"))
+                .andExpect(jsonPath("$.dates[1].positions[0].position").value("Bartender"))
+                .andExpect(jsonPath("$.dates[1].positions[1].position").value("Server"));
 
-        verify(schedulingService).getShiftsGroupedByDateAndPosition(LocalDate.of(2026, 3, 25), LocalDate.of(2026, 3, 26));
+        verify(schedulingService).getShiftsGroupedByDateAndPosition(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                List.of(12, 19),
+                List.of(4)
+        );
     }
 
     @Test
@@ -625,22 +698,22 @@ class SchedulingControllerTest {
                 "Ava",
                 "Stone",
                 List.of("111-222"),
-                List.of(new PositionSummary(12, "Bartender")),
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26)
         );
-        employee.addShiftToDay(0, LocalDate.of(2026, 3, 25), new ShiftSummary(
+        employee.addShiftToDay(0, "Wednesday Mar-25", new ShiftSummary(
                 9001,
-                LocalTime.of(9, 0),
-                LocalTime.of(17, 0),
+                "9am",
+                "5pm",
                 "Bartender",
-                "Front",
+                "FRT",
                 "Opening shift",
                 8.0f,
                 "amber"
         ));
-        employee.setTotalHours(8.0);
+        employee.setTotalHours(new BigDecimal("8.00"));
         employee.setShiftCount(1);
+        employee.setPublishedStage("Published");
         return employee;
     }
 }

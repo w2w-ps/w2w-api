@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -285,14 +286,14 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         );
         assertEquals("Shift not found with id: " + savedShift.getShiftId(), exception.getMessage());
 
-        List<EmployeeSchedule> groupedSchedules = schedulingService.getEmployeeShiftsGroupedInRange(SHIFT_DATE, SHIFT_DATE);
+        List<EmployeeSchedule> groupedSchedules = schedulingService.getEmployeeShiftsGroupedInRange(SHIFT_DATE, SHIFT_DATE, null, null);
         assertEquals(1, groupedSchedules.size());
         assertEquals(0, groupedSchedules.getFirst().getShiftCount());
         assertTrue(groupedSchedules.getFirst().getWeeklyShifts().get(0).shifts().isEmpty());
     }
 
     @Test
-    void getEmployeeShiftsGroupedInRange_splitsOvernightShiftAndKeepsAvailablePositions() {
+    void getEmployeeShiftsGroupedInRange_splitsOvernightShift() {
         createCompany(COMPANY_A_ID, "Pilot Tenant A");
         TenantContext.setCurrentTenant(COMPANY_A_ID);
         createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of("111-222", "333-444"));
@@ -316,32 +317,32 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
 
         List<EmployeeSchedule> schedules = schedulingService.getEmployeeShiftsGroupedInRange(
                 SHIFT_DATE,
-                SHIFT_DATE.plusDays(1)
+                SHIFT_DATE.plusDays(1),
+                null,
+                null
         );
 
         assertEquals(1, schedules.size());
         EmployeeSchedule employeeSchedule = schedules.getFirst();
         assertEquals(EMPLOYEE_A_ID, employeeSchedule.getEmployeeId());
-        assertEquals(2, employeeSchedule.getAvailablePositions().size());
-        assertEquals("Bartender", employeeSchedule.getAvailablePositions().getFirst().description());
-        assertEquals("Server", employeeSchedule.getAvailablePositions().get(1).description());
         assertEquals(List.of("111-222", "333-444"), employeeSchedule.getPhones());
         assertEquals(1, employeeSchedule.getShiftCount());
-        assertEquals(8.0d, employeeSchedule.getTotalHours());
+        assertEquals(new BigDecimal("8.00"), employeeSchedule.getTotalHours());
+        assertEquals(null, employeeSchedule.getEmploymentType());
 
         DayShiftBucket firstDayBucket = employeeSchedule.getWeeklyShifts().get(0);
         DayShiftBucket secondDayBucket = employeeSchedule.getWeeklyShifts().get(1);
 
-        assertEquals(SHIFT_DATE, firstDayBucket.date());
+        assertEquals("Friday May-01", firstDayBucket.date());
         assertEquals(1, firstDayBucket.shifts().size());
-        assertEquals(LocalTime.of(22, 0), firstDayBucket.shifts().getFirst().startTime());
-        assertEquals(LocalTime.MIDNIGHT, firstDayBucket.shifts().getFirst().endTime());
+        assertEquals("10pm", firstDayBucket.shifts().getFirst().startTime());
+        assertEquals("12am", firstDayBucket.shifts().getFirst().endTime());
         assertEquals(2.0f, firstDayBucket.shifts().getFirst().duration());
 
-        assertEquals(SHIFT_DATE.plusDays(1), secondDayBucket.date());
+        assertEquals("Saturday May-02", secondDayBucket.date());
         assertEquals(1, secondDayBucket.shifts().size());
-        assertEquals(LocalTime.MIDNIGHT, secondDayBucket.shifts().getFirst().startTime());
-        assertEquals(LocalTime.of(6, 0), secondDayBucket.shifts().getFirst().endTime());
+        assertEquals("12am", secondDayBucket.shifts().getFirst().startTime());
+        assertEquals("6am", secondDayBucket.shifts().getFirst().endTime());
         assertEquals(6.0f, secondDayBucket.shifts().getFirst().duration());
     }
 
