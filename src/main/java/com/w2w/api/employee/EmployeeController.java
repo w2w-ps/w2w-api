@@ -1,9 +1,12 @@
 package com.w2w.api.employee;
 
-import com.w2w.api.config.TenantContext;
+import com.w2w.api.employee.dto.EmployeeListConfigResponse;
+import com.w2w.api.employee.dto.EmployeeRequest;
+import com.w2w.api.employee.dto.EmployeeResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -11,32 +14,42 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
 
-    @GetMapping("/company/{companyId}")
-    public List<Employee> getByCompany(@PathVariable Integer companyId) {
+    @Autowired
+    private EmployeeListConfigService configService;
+
+    @GetMapping
+    public List<EmployeeResponse> getByCompany() {
         return employeeService.getEmployeesByCompany();
     }
 
     @GetMapping("/{id}")
-    public Employee getById(@PathVariable Integer id, @RequestParam Integer companyId) {
+    public EmployeeResponse getById(@PathVariable Integer id) {
         return employeeService.getEmployeeById(id).orElse(null);
     }
 
     @PostMapping
-    public Employee create(@RequestBody Employee employee) {
-        return employeeService.saveEmployee(
-                employee.getEmployeeId(),
-                employee.getStatus(),
-                employee.getLastLogon(),
-                employee.getLogonCount(),
-                employee.getFirstName(),
-                employee.getLastName(),
-                employee.getEmployeeNumber(),
-                employee.getEmail(),
-                employee.getPhones(),
-                employee.getHireDate(),
-                employee.getMaxScheduledHours(),
-                employee.getMaxDailyHours(),
-                employee.getPayRate()
-        );
+    public EmployeeResponse create(@RequestBody EmployeeRequest request) {
+        return employeeService.saveEmployee(request);
+    }
+
+    @PutMapping("/{id}")
+    public EmployeeResponse update(@PathVariable Integer id, @RequestBody EmployeeRequest request) {
+        return employeeService.updateEmployee(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Integer id) {
+        employeeService.deleteEmployee(id);
+    }
+
+    @GetMapping("/config")
+    public List<EmployeeListConfigResponse> getConfigs() {
+        return configService.getConfigsByCompany();
+    }
+
+    @PatchMapping("/config")
+    public List<EmployeeListConfigResponse> saveConfigs(
+            @RequestBody Map<String, Boolean> columnVisibilities) {
+        return configService.saveConfigs(columnVisibilities);
     }
 }

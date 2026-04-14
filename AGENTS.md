@@ -21,9 +21,11 @@
   `GET /api/tenants/{id}`
   `POST /api/tenants`
 - `employee`
-  `GET /api/employees/company/{companyId}`
-  `GET /api/employees/{id}?companyId=...`
+  `GET /api/employees`
+  `GET /api/employees/{id}`
   `POST /api/employees`
+  `GET /api/employees/config`
+  `PATCH /api/employees/config`
 - `position`
   `GET /api/positions?companyId=...&status=...`
   `GET /api/positions/{id}?companyId=...`

@@ -1,7 +1,8 @@
 package com.w2w.api.manager;
 
-import com.w2w.api.employee.Employee;
-import com.w2w.api.employee.EmployeeRepository;
+import com.w2w.api.config.CurrentTenant;
+import com.w2w.api.employee.model.Employee;
+import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.login.EmpType;
 import com.w2w.api.login.EmpTypeRepository;
 import com.w2w.api.login.LoginRepository;
@@ -19,7 +20,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import com.w2w.api.manager.dto.ManagerResponse;
 
 @Service
 public class ManagerService {
@@ -44,7 +48,6 @@ public class ManagerService {
         this.empTypeRepository = empTypeRepository;
         this.passwordEncoder = passwordEncoder;
     }
-
 
     private void enforceMainManagerCheck() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -134,7 +137,8 @@ public class ManagerService {
             permissions.setCanManagePositions(Boolean.TRUE.equals(permissionsDto.canManagePositions()));
             permissions.setCanManageTeamMembers(Boolean.TRUE.equals(permissionsDto.canManageTeamMembers()));
 
-            permissions.setCanReceiveManagerNotifications(Boolean.TRUE.equals(permissionsDto.canReceiveManagerNotifications()));
+            permissions.setCanReceiveManagerNotifications(
+                    Boolean.TRUE.equals(permissionsDto.canReceiveManagerNotifications()));
         }
 
         permissionsRepository.save(permissions);
@@ -153,7 +157,7 @@ public class ManagerService {
 
         User user = loginRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Manager not found"));
-        
+
         Employee employee = user.getEmployee();
         if (employee != null) {
             employee.setFirstName(request.firstName());
@@ -168,7 +172,7 @@ public class ManagerService {
         ManagerPermissions permissions = permissionsRepository.findByUserId(user.getId())
                 .orElse(new ManagerPermissions());
         permissions.setUser(user);
-        
+
         ManagerPermissionsDto permissionsDto = request.permissions();
         if (permissionsDto != null) {
             permissions.setCanAddShifts(Boolean.TRUE.equals(permissionsDto.canAddShifts()));
@@ -181,23 +185,24 @@ public class ManagerService {
             permissions.setCanPublishSchedules(Boolean.TRUE.equals(permissionsDto.canPublishSchedules()));
             permissions.setCanUnpublishSchedules(Boolean.TRUE.equals(permissionsDto.canUnpublishSchedules()));
             permissions.setCanManageCategories(Boolean.TRUE.equals(permissionsDto.canManageCategories()));
-            
+
             permissions.setCanAddEmployees(Boolean.TRUE.equals(permissionsDto.canAddEmployees()));
             permissions.setCanViewPayRates(Boolean.TRUE.equals(permissionsDto.canViewPayRates()));
             permissions.setCanEditEmployees(Boolean.TRUE.equals(permissionsDto.canEditEmployees()));
-            
+
             permissions.setCanApproveTrades(Boolean.TRUE.equals(permissionsDto.canApproveTrades()));
             permissions.setCanApproveTimeOff(Boolean.TRUE.equals(permissionsDto.canApproveTimeOff()));
-            
+
             permissions.setCanChangeCompanySettings(Boolean.TRUE.equals(permissionsDto.canChangeCompanySettings()));
             permissions.setCanManagePositions(Boolean.TRUE.equals(permissionsDto.canManagePositions()));
             permissions.setCanManageTeamMembers(Boolean.TRUE.equals(permissionsDto.canManageTeamMembers()));
-            
-            permissions.setCanReceiveManagerNotifications(Boolean.TRUE.equals(permissionsDto.canReceiveManagerNotifications()));
+
+            permissions.setCanReceiveManagerNotifications(
+                    Boolean.TRUE.equals(permissionsDto.canReceiveManagerNotifications()));
         }
-        
+
         permissionsRepository.save(permissions);
-        
+
         return user;
     }
 
@@ -210,12 +215,59 @@ public class ManagerService {
 
         // 1. Delete associated manager permissions
         permissionsRepository.findByUserId(id).ifPresent(permissionsRepository::delete);
-        
+
         // 2. Soft-delete: Reassign to standard Employee role instead of deleting
         UserRole employeeRole = roleRepository.findByName("Employee")
                 .orElseThrow(() -> new RuntimeException("Employee role not found in database."));
         user.setRole(employeeRole);
 
         loginRepository.save(user);
+    }
+
+    public List<ManagerResponse> getAdditionalManagersByCompany() {
+        enforceMainManagerCheck();
+        Integer companyId = CurrentTenant.requireCurrentTenant();
+        List<User> addManagers = loginRepository.findByCompanyIdAndRoleName(companyId, "AddManager");
+
+        return addManagers.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private ManagerResponse mapToResponse(User user) {
+        Employee employee = user.getEmployee();
+        ManagerPermissions permissions = permissionsRepository.findByUserId(user.getId())
+                .orElse(new ManagerPermissions());
+
+        ManagerPermissionsDto permissionsDto = new ManagerPermissionsDto(
+                permissions.isMainManager(),
+                permissions.isCanAddShifts(),
+                permissions.isCanImportTemplates(),
+                permissions.isCanUploadShifts(),
+                permissions.isCanAutofillShifts(),
+                permissions.isCanClearSchedules(),
+                permissions.isCanEditShifts(),
+                permissions.isCanSaveTemplates(),
+                permissions.isCanPublishSchedules(),
+                permissions.isCanUnpublishSchedules(),
+                permissions.isCanManageCategories(),
+                permissions.isCanAddEmployees(),
+                permissions.isCanViewPayRates(),
+                permissions.isCanEditEmployees(),
+                permissions.isCanApproveTrades(),
+                permissions.isCanApproveTimeOff(),
+                permissions.isCanChangeCompanySettings(),
+                permissions.isCanManagePositions(),
+                permissions.isCanManageTeamMembers(),
+                permissions.isCanReceiveManagerNotifications());
+
+        return new ManagerResponse(
+                user.getId(),
+                employee != null ? employee.getFirstName() : null,
+                employee != null ? employee.getLastName() : null,
+                employee != null ? employee.getEmail() : user.getLoginId(),
+                employee != null ? employee.getLastLogon() : null,
+                user.getRole() != null ? user.getRole().getName() : null,
+                permissionsDto);
     }
 }

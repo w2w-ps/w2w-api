@@ -1,6 +1,5 @@
 package com.w2w.api.positiongroup;
 
-import com.w2w.api.config.TenantContext;
 import com.w2w.api.positiongroup.dto.CreatePositionGroupRequest;
 import com.w2w.api.positiongroup.dto.PositionGroupSummary;
 import com.w2w.api.positiongroup.dto.PositionGroupsResponse;
