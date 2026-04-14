@@ -1415,13 +1415,13 @@
       "name": "Notifications",
       "item": [
         {
-          "name": "Timeoff Approval",
+          "name": "Leave Submitted",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
-                "value": "text/plain"
+                "value": "application/json"
               },
               {
                 "key": "Authorization",
@@ -1430,20 +1430,25 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "Leave request for employee 101 on 11/11/2026 is approved"
+              "raw": "{\n  \"task\": \"leave_submitted\",\n  \"leaveRequestId\": 501\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": "{{baseUrl}}/api/notifications/trigger",
-            "description": "Extracts employee ID 101 and sends an approval email with the date."
+            "description": "Triggered when an employee submits a new leave request."
           }
         },
         {
-          "name": "Publish Schedule (Broadcast)",
+          "name": "Leave Approved",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
-                "value": "text/plain"
+                "value": "application/json"
               },
               {
                 "key": "Authorization",
@@ -1452,20 +1457,25 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "Published schedule for week starting from 20/05/2026 to 27/05/2026"
+              "raw": "{\n  \"task\": \"leave_approved\",\n  \"leaveRequestId\": 501\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": "{{baseUrl}}/api/notifications/trigger",
-            "description": "Sends a formal broadcast email to all employees."
+            "description": "Triggered when a leave request is approved."
           }
         },
         {
-          "name": "Unpublish Schedule (Broadcast)",
+          "name": "Leave Rejected",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
-                "value": "text/plain"
+                "value": "application/json"
               },
               {
                 "key": "Authorization",
@@ -1474,10 +1484,69 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "Unpublished schedule for week starting from 20/05/2026"
+              "raw": "{\n  \"task\": \"leave_rejected\",\n  \"leaveRequestId\": 501\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": "{{baseUrl}}/api/notifications/trigger",
-            "description": "Sends an unpublish notification to all employees."
+            "description": "Triggered when a leave request is rejected."
+          }
+        },
+        {
+          "name": "Publish Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"task\": \"publish\",\n  \"scheduleId\": 1001\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/notifications/trigger",
+            "description": "Publish schedule using scheduleId. Roles and dates are fetched from the database."
+          }
+        },
+        {
+          "name": "Unpublish Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"task\": \"unpublish\",\n  \"scheduleId\": 1001\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/notifications/trigger",
+            "description": "Unpublish schedule for all employees."
           }
         }
       ]

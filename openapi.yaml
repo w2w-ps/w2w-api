@@ -2108,3 +2108,15 @@ components:
           enum: [APPROVE, DECLINE]
         managerComments:
           type: string
+    NotificationRequest:
+      type: object
+      properties:
+        task:
+          type: string
+          example: "leave_approved"
+        leaveRequestId:
+          type: integer
+          example: 501
+        scheduleId:
+          type: integer
+          example: 1001
