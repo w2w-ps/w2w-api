@@ -50,12 +50,13 @@ public class PreferencesService {
 
     public void saveDayPreferenceWithRepeat(DayPreferenceRepeatRequest request) {
         validateDayPrefs(request.isDayPrefs(), request.prefs());
+        String effectivePrefs = getEffectivePrefs(request.isDayPrefs(), request.prefs());
         LocalDate currentDate = request.date();
         for (int i = 0; i < request.repeatCount(); i++) {
             DayPreference entity = new DayPreference();
             entity.setEmployeeId(request.employeeId());
             entity.setDate(currentDate);
-            entity.setPrefs(request.prefs());
+            entity.setPrefs(effectivePrefs);
             entity.setCompression(request.compression());
             entity.setEditedBy(request.editedBy());
             entity.setIsDayPrefs(request.isDayPrefs());
@@ -95,7 +96,7 @@ public class PreferencesService {
         DayPreference entity = new DayPreference();
         entity.setEmployeeId(request.employeeId());
         entity.setDate(request.date());
-        entity.setPrefs(request.prefs());
+        entity.setPrefs(getEffectivePrefs(request.isDayPrefs(), request.prefs()));
         entity.setCompression(request.compression());
         entity.setEditedBy(request.editedBy());
         entity.setIsDayPrefs(request.isDayPrefs());
@@ -103,14 +104,33 @@ public class PreferencesService {
     }
 
     private void validateDayPrefs(Boolean isDayPrefs, String prefs) {
-        if (Boolean.TRUE.equals(isDayPrefs) && prefs != null && prefs.length() > 1) {
-            char firstChar = prefs.charAt(0);
-            for (int i = 1; i < prefs.length(); i++) {
-                if (prefs.charAt(i) != firstChar) {
-                    throw new IllegalArgumentException("When isDayPrefs is true, all the prefs must be the same.");
+        if (prefs == null) {
+            throw new IllegalArgumentException("Preference string cannot be null.");
+        }
+        if (Boolean.TRUE.equals(isDayPrefs)) {
+            if (prefs.length() != 1 && prefs.length() != 96) {
+                throw new IllegalArgumentException("When isDayPrefs is true, preference must be either 1 or 96 characters.");
+            }
+            if (prefs.length() == 96) {
+                char firstChar = prefs.charAt(0);
+                for (int i = 1; i < prefs.length(); i++) {
+                    if (prefs.charAt(i) != firstChar) {
+                        throw new IllegalArgumentException("When isDayPrefs is true, all 96 characters must be the same.");
+                    }
                 }
             }
+        } else { // Handles false or null
+            if (prefs.length() != 96) {
+                throw new IllegalArgumentException("When isDayPrefs is false or null, exactly 96 characters are required.");
+            }
         }
+    }
+
+    private String getEffectivePrefs(Boolean isDayPrefs, String prefs) {
+        if (Boolean.TRUE.equals(isDayPrefs) && prefs != null && prefs.length() == 1) {
+            return prefs.repeat(96);
+        }
+        return prefs;
     }
 
     private WeekPreference mapToWeekEntity(WeekPreferenceRequest request) {

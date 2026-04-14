@@ -1338,12 +1338,14 @@ components:
           format: date
         prefs:
           type: string
+          description: "Preference string. If isDayPrefs is true, a single character will be expanded to 96 chars. If isDayPrefs is false, must be exactly 96 chars."
         compression:
           type: integer
         editedBy:
           type: integer
         isDayPrefs:
           type: boolean
+          description: "If true, preference is uniform across the day. Supports single-character shorthand."
     DayPreferenceResponse:
       type: object
       properties:
@@ -1370,6 +1372,7 @@ components:
           format: date
         prefs:
           type: string
+          description: "Preference string. If isDayPrefs is true, a single character will be expanded to 96 chars. If isDayPrefs is false, must be exactly 96 chars."
         compression:
           type: integer
         editedBy:
@@ -1378,6 +1381,7 @@ components:
           type: integer
         isDayPrefs:
           type: boolean
+          description: "If true, preference is uniform across the day. Supports single-character shorthand."
     DayPreferenceListRequest:
       type: object
       required: [preferences]

@@ -1051,7 +1051,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"REPEAT_PREF_EXAMPLE\",\n  \"repeatCount\": 5,\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}},\n  \"isDayPrefs\": true\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"P\",\n  \"repeatCount\": 5,\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}},\n  \"isDayPrefs\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1103,7 +1103,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"DAILY_PREF_STRING_EXAMPLE\",\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}},\n  \"isDayPrefs\": true\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"{{startDate}}\",\n  \"prefs\": \"P\",\n  \"compression\": 0,\n  \"editedBy\": {{employeeId}},\n  \"isDayPrefs\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1151,7 +1151,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"preferences\": [\n    {\n      \"companyId\": {{companyId}},\n      \"employeeId\": {{employeeId}},\n      \"date\": \"2026-04-06\",\n      \"prefs\": \"LIST_PREF_1\",\n      \"compression\": 0,\n      \"editedBy\": {{employeeId}},\n      \"isDayPrefs\": true\n    },\n    {\n      \"companyId\": {{companyId}},\n      \"employeeId\": {{employeeId}},\n      \"date\": \"2026-04-07\",\n      \"prefs\": \"LIST_PREF_2\",\n      \"compression\": 0,\n      \"editedBy\": {{employeeId}},\n      \"isDayPrefs\": true\n    }\n  ]\n}",
+              "raw": "{\n  \"preferences\": [\n    {\n      \"companyId\": {{companyId}},\n      \"employeeId\": {{employeeId}},\n      \"date\": \"2026-04-06\",\n      \"prefs\": \"P\",\n      \"compression\": 0,\n      \"editedBy\": {{employeeId}},\n      \"isDayPrefs\": true\n    },\n    {\n      \"companyId\": {{companyId}},\n      \"employeeId\": {{employeeId}},\n      \"date\": \"2026-04-07\",\n      \"prefs\": \"O\",\n      \"compression\": 0,\n      \"editedBy\": {{employeeId}},\n      \"isDayPrefs\": true\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
