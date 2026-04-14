@@ -1034,6 +1034,27 @@ paths:
       responses:
         '204':
           description: Manager deleted successfully
+  /api/notifications/trigger:
+    post:
+      summary: Trigger a notification based on a natural language string
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+            examples:
+              TimeoffApproval:
+                value: "Leave request for employee 101 on 11/11/2026 is approved"
+              PublishSchedule:
+                value: "Published schedule for week starting from 11/11/2026 to 12/12/2026"
+              UnpublishSchedule:
+                value: "Unpublished schedule for week starting from 11/11/2026"
+      responses:
+        '200':
+          description: Notification triggered successfully
+        '400':
+          description: Failed to parse notification message
 components:
   parameters:
     ShiftId:

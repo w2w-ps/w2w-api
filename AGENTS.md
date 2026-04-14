@@ -13,7 +13,7 @@
 - Group supporting types into subfolders only when there are multiple files:
   `dto/`, `model/`, `repository/`.
 - Current features:
-  `tenant`, `employee`, `position`, `positiongroup`, `category`, `categorygroup`, `scheduling`, `config`, `preferences`.
+  `tenant`, `employee`, `position`, `positiongroup`, `category`, `categorygroup`, `scheduling`, `config`, `preferences`, `notification`.
 
 ## API Surface
 - `tenant`
@@ -72,6 +72,8 @@
   `POST /api/preferences/day/repeat`
   `GET /api/preferences/week?employeeId=...&startDate=...&companyId=...`
   `POST /api/preferences/week`
+- `notification`
+  `POST /api/notifications/trigger`
 
 ## Tenanting Rules
 - Reads and writes are tenant-scoped by setting `TenantContext` before repository access.

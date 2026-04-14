@@ -1410,6 +1410,77 @@
           }
         }
       ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Timeoff Approval",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "Leave request for employee 101 on 11/11/2026 is approved"
+            },
+            "url": "{{baseUrl}}/api/notifications/trigger",
+            "description": "Extracts employee ID 101 and sends an approval email with the date."
+          }
+        },
+        {
+          "name": "Publish Schedule (Broadcast)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "Published schedule for week starting from 20/05/2026 to 27/05/2026"
+            },
+            "url": "{{baseUrl}}/api/notifications/trigger",
+            "description": "Sends a formal broadcast email to all employees."
+          }
+        },
+        {
+          "name": "Unpublish Schedule (Broadcast)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "Unpublished schedule for week starting from 20/05/2026"
+            },
+            "url": "{{baseUrl}}/api/notifications/trigger",
+            "description": "Sends an unpublish notification to all employees."
+          }
+        }
+      ]
     }
   ]
 }
