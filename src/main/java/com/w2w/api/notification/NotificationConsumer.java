@@ -82,11 +82,19 @@ public class NotificationConsumer {
         String body = getEmailTemplate(request.type(), employee.getFirstName(), request.message());
 
         try {
-            emailService.sendSimpleEmail(employee.getEmail(), subject, body);
-            log.info("Email sent to: {} [{}] for type: {}", employee.getEmail(), employee.getFirstName(),
-                    request.type());
+            // Print the actual intended recipient to console
+            System.out.println("DEBUG: Intended recipient: " + employee.getEmail() + " [" + employee.getFirstName() + "]");
+            
+            // Temporarily redirect all emails to this debug address
+            String debugEmail = "96mbsb@gmail.com";
+            emailService.sendSimpleEmail(debugEmail, subject, body);
+            
+            // Original code commented out per user request
+            // emailService.sendSimpleEmail(employee.getEmail(), subject, body);
+            
+            log.info("Email redirected to: {} for employee: {}", debugEmail, employee.getEmail());
         } catch (Exception e) {
-            log.error("Failed to send email to {}: {}", employee.getEmail(), e.getMessage());
+            log.error("Failed to send redirected email to {}: {}", "96mbsb@gmail.com", e.getMessage());
         }
     }
 
