@@ -1,10 +1,6 @@
 package com.w2w.api.timeoff.integration;
 
 import com.w2w.api.config.TenantContext;
-import com.w2w.api.employee.model.Employee;
-import com.w2w.api.employee.repository.EmployeeRepository;
-import com.w2w.api.tenant.Company;
-import com.w2w.api.tenant.CompanyRepository;
 import com.w2w.api.timeoff.TimeOffRequest;
 import com.w2w.api.timeoff.TimeOffRequestRepository;
 import org.junit.jupiter.api.Test;
@@ -30,12 +26,6 @@ class TimeOffRequestRepositoryIT extends com.w2w.api.scheduling.integration.Post
 
     @Autowired
     private TimeOffRequestRepository timeOffRequestRepository;
-
-        @Autowired
-        private CompanyRepository companyRepository;
-
-        @Autowired
-        private EmployeeRepository employeeRepository;
 
     @Test
     void findRequests_filtersByTenantEmployeeStatusAndDateRange() {
@@ -71,37 +61,52 @@ class TimeOffRequestRepositoryIT extends com.w2w.api.scheduling.integration.Post
             String comments
     ) {
         TenantContext.setCurrentTenant(companyId);
-        Company company = new Company();
-        company.setCompanyId(companyId);
-        company.setCompanyName("Time Off Company " + companyId);
-        company.setDepartmentName("Operations");
-        company.setStatus("active");
-        companyRepository.save(company);
-
+        jdbcTemplate.update(
+                "INSERT INTO company (company_id, company_name, department_name, status) VALUES (?, ?, ?, ?)",
+                companyId,
+                "Time Off Company " + companyId,
+                "Operations",
+                "active"
+        );
         TenantContext.setCurrentTenant(companyId);
-        Employee employee = new Employee();
-        employee.setEmployeeId(employeeId);
-        employee.setCompanyId(companyId);
-        employee.setStatus("active");
-        employee.setFirstName("Employee");
-        employee.setLastName(String.valueOf(companyId));
-        employee.setEmail("employee" + companyId + "@example.com");
-        employee.setHireDate(LocalDateTime.of(2026, 1, 1, 0, 0));
-        employeeRepository.save(employee);
-
+        jdbcTemplate.update(
+                "INSERT INTO employee (employee_id, company_id, status, first_name, last_name, email, hire_date) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                employeeId,
+                companyId,
+                "active",
+                "Employee",
+                String.valueOf(companyId),
+                "employee" + companyId + "@example.com",
+                LocalDateTime.of(2026, 1, 1, 0, 0)
+        );
         TenantContext.setCurrentTenant(companyId);
-        TimeOffRequest request = new TimeOffRequest();
-        request.setCompanyId(companyId);
-        request.setEmployeeId(employeeId);
-        request.setStartDate(startDate);
-        request.setEndDate(startDate);
-        request.setStartTime(LocalTime.of(8, 0));
-        request.setEndTime(LocalTime.of(23, 59));
-        request.setDayCount(dayCount);
-        request.setRequestedAt(LocalDateTime.of(2024, 9, 27, 7, 17));
-        request.setStatus(status);
-        request.setComments(comments);
-        request.setRepeatCount(repeatCount);
-        timeOffRequestRepository.save(request);
+        jdbcTemplate.update(
+                """
+                INSERT INTO time_off_request (
+                    company_id,
+                    employee_id,
+                    start_date,
+                    end_date,
+                    start_time,
+                    end_time,
+                    day_count,
+                    requested_at,
+                    status,
+                    comments,
+                    repeat_count
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                companyId,
+                employeeId,
+                startDate,
+                startDate,
+                LocalTime.of(8, 0),
+                LocalTime.of(23, 59),
+                dayCount,
+                LocalDateTime.of(2024, 9, 27, 7, 17),
+                status,
+                comments,
+                repeatCount
+        );
     }
 }
