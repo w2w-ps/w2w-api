@@ -1274,6 +1274,79 @@
           }
         }
       ]
+    },
+    {
+      "name": "Time Off",
+      "item": [
+        {
+          "name": "Create Time Off Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"2026-04-22\",\n  \"fullDay\": true,\n  \"dayCount\": 2,\n  \"comments\": \"Optional comment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Creates a pending full-day time off request using the form inputs from the New Time Off Request screen.",
+            "url": "{{baseUrl}}/api/time-off/requests"
+          }
+        },
+        {
+          "name": "Create Partial Or Repeating Time Off Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"2026-04-22\",\n  \"fullDay\": false,\n  \"startTime\": \"08:00:00\",\n  \"endTime\": \"17:00:00\",\n  \"repeatCount\": 2,\n  \"comments\": \"Optional comment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Creates a pending partial or repeating time off request using start/end times and a repeat count.",
+            "url": "{{baseUrl}}/api/time-off/requests"
+          }
+        },
+        {
+          "name": "List Time Off Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns tenant-scoped time off requests with the display fields used by the time-off list, including end date/time text, requested timestamp, comments, and repeat summary.",
+            "url": "{{baseUrl}}/api/time-off/requests?companyId={{companyId}}&status=all"
+          }
+        }
+      ]
     }
   ]
 }

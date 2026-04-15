@@ -375,6 +375,66 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ResolvedPreferenceResponse'
+  /api/time-off/requests:
+    get:
+      summary: Get time off requests for a company
+      parameters:
+        - in: query
+          name: companyId
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: employeeId
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum:
+              - all
+              - pending
+              - approved
+              - declined
+              - cancelled
+            default: all
+        - in: query
+          name: startDate
+          required: false
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Time off requests in descending request order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeOffRequestsResponse'
+    post:
+      summary: Create a time off request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTimeOffRequest'
+      responses:
+        '201':
+          description: Time off request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeOffRequestSummary'
   /api/positions:
     get:
       summary: Get positions for a company
@@ -1916,3 +1976,76 @@ components:
         password: { type: string }
         permissions:
           $ref: '#/components/schemas/ManagerPermissionsDto'
+    TimeOffRequestSummary:
+      type: object
+      properties:
+        requestId:
+          type: integer
+        employeeId:
+          type: integer
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        startTime:
+          type: string
+          nullable: true
+        endTime:
+          type: string
+          nullable: true
+        endDateTimes:
+          type: string
+        requestedAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+        comments:
+          type: string
+          nullable: true
+        repeatSummary:
+          type: string
+          nullable: true
+        canCancel:
+          type: boolean
+    TimeOffRequestsResponse:
+      type: object
+      properties:
+        timeOffRequests:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeOffRequestSummary'
+    CreateTimeOffRequest:
+      type: object
+      required:
+        - companyId
+        - employeeId
+        - date
+        - fullDay
+      properties:
+        companyId:
+          type: integer
+        employeeId:
+          type: integer
+        date:
+          type: string
+          format: date
+        fullDay:
+          type: boolean
+        dayCount:
+          type: integer
+          minimum: 1
+        startTime:
+          type: string
+          example: 8:00AM
+        endTime:
+          type: string
+          example: 5:00PM
+        repeatCount:
+          type: integer
+          minimum: 1
+          default: 1
+        comments:
+          type: string
