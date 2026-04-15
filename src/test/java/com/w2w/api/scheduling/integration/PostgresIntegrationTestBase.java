@@ -1,6 +1,13 @@
 package com.w2w.api.scheduling.integration;
 
+import com.w2w.api.category.repository.CategoryRepository;
 import com.w2w.api.config.TenantContext;
+import com.w2w.api.employee.repository.EmployeeRepository;
+import com.w2w.api.login.LoginRepository;
+import com.w2w.api.position.repository.PositionRepository;
+import com.w2w.api.scheduling.ScheduleRepository;
+import com.w2w.api.scheduling.ShiftRepository;
+import com.w2w.api.tenant.CompanyRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +35,33 @@ abstract class PostgresIntegrationTestBase {
             .withPassword("w2w_test");
 
     @Autowired
+    protected LoginRepository loginRepository;
+
+    @Autowired
     protected JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    protected ShiftRepository shiftRepository;
+
+    @Autowired
+    protected EmployeeRepository employeeRepository;
+
+    @Autowired
+    protected CategoryRepository categoryRepository;
+
+    @Autowired
+    protected PositionRepository positionRepository;
+
+    @Autowired
+    protected ScheduleRepository scheduleRepository;
+
+    @Autowired
+    protected CompanyRepository companyRepository;
 
     @DynamicPropertySource
     static void registerDataSourceProperties(DynamicPropertyRegistry registry) {
         // App datasource: non-superuser, subject to RLS.
-        // V3 migration provisions this role when it differs from the Flyway user.
+        // The consolidated base schema provisions this role when it differs from the Flyway user.
         registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.jdbc-url", POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", () -> APP_USER);
@@ -48,43 +76,46 @@ abstract class PostgresIntegrationTestBase {
     @BeforeEach
     void resetTestData() {
         TenantContext.setCurrentTenant(0);
-        jdbcTemplate.update("""
-                DELETE FROM manager_permissions
-                WHERE user_id IN (
-                    SELECT user_id
-                    FROM users
-                    WHERE company_id BETWEEN ? AND ?
-                )
-                """, TEST_COMPANY_MIN, TEST_COMPANY_MAX);
-        jdbcTemplate.update("DELETE FROM users WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
-        jdbcTemplate.update("DELETE FROM scheduled_employee WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
-        jdbcTemplate.update("""
-                DELETE FROM employee_position
-                WHERE employee_id IN (
-                    SELECT employee_id
-                    FROM employee
-                    WHERE company_id BETWEEN ? AND ?
-                )
-                """, TEST_COMPANY_MIN, TEST_COMPANY_MAX);
-        jdbcTemplate.update("""
-                DELETE FROM employee_phone
-                WHERE employee_id IN (
-                    SELECT employee_id
-                    FROM employee
-                    WHERE company_id BETWEEN ? AND ?
-                )
-                """, TEST_COMPANY_MIN, TEST_COMPANY_MAX);
-        jdbcTemplate.update("DELETE FROM schedule WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
-        jdbcTemplate.update("DELETE FROM employee WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
-        jdbcTemplate.update("DELETE FROM category WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
-        jdbcTemplate.update("DELETE FROM position WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
-        jdbcTemplate.update("DELETE FROM company WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
-        jdbcTemplate.update("DELETE FROM companies WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
+        loginRepository.deleteAll(
+                loginRepository.findAll().stream()
+                        .filter(user -> isTestCompany(user.getCompanyId()))
+                        .toList()
+        );
+        shiftRepository.deleteAll(
+                shiftRepository.findAll().stream()
+                        .filter(shift -> isTestCompany(shift.getCompanyId()))
+                        .toList()
+        );
+
+        categoryRepository.deleteAll(
+                categoryRepository.findAll().stream()
+                        .filter(category -> isTestCompany(category.getCompanyId()))
+                        .toList()
+        );
+        positionRepository.deleteAll(
+                positionRepository.findAll().stream()
+                        .filter(position -> isTestCompany(position.getCompanyId()))
+                        .toList()
+        );
+        scheduleRepository.deleteAll(
+                scheduleRepository.findAll().stream()
+                        .filter(schedule -> isTestCompany(schedule.getCompanyId()))
+                        .toList()
+        );
+        companyRepository.deleteAll(
+                companyRepository.findAll().stream()
+                        .filter(company -> isTestCompany(company.getCompanyId()))
+                        .toList()
+        );
         TenantContext.clear();
     }
 
     @AfterEach
     void clearTenantContext() {
         TenantContext.clear();
+    }
+
+    private boolean isTestCompany(Integer companyId) {
+        return companyId != null && companyId >= TEST_COMPANY_MIN && companyId <= TEST_COMPANY_MAX;
     }
 }

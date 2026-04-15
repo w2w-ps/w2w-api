@@ -183,6 +183,35 @@ CREATE TABLE manager_permissions (
     can_receive_manager_notifications BOOLEAN DEFAULT FALSE
 );
 
+-- Employee detail tables
+CREATE TABLE employee_address (
+    employee_id INTEGER PRIMARY KEY REFERENCES employee(employee_id) ON DELETE CASCADE,
+    address VARCHAR(255),
+    address2 VARCHAR(255),
+    city VARCHAR(255),
+    state VARCHAR(255),
+    zip VARCHAR(20)
+);
+
+ALTER TABLE employee ADD COLUMN emp_type_id INTEGER REFERENCES emp_type(emp_type_id);
+ALTER TABLE employee ADD COLUMN max_weekly_days INTEGER;
+ALTER TABLE employee ADD COLUMN max_daily_shifts INTEGER;
+ALTER TABLE employee ADD COLUMN comments TEXT;
+ALTER TABLE employee ADD COLUMN priority_group VARCHAR(255);
+ALTER TABLE employee ADD COLUMN google_cal_export BOOLEAN DEFAULT FALSE;
+ALTER TABLE employee ADD COLUMN next_alert_date DATE;
+ALTER TABLE employee ADD COLUMN custom_field_1 VARCHAR(255);
+ALTER TABLE employee ADD COLUMN custom_field_2 VARCHAR(255);
+ALTER TABLE employee ADD COLUMN employee_photo VARCHAR(255);
+
+CREATE TABLE employee_list_config (
+    config_id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL REFERENCES company(company_id),
+    column_name VARCHAR(255) NOT NULL,
+    is_visible BOOLEAN DEFAULT TRUE,
+    UNIQUE (company_id, column_name)
+);
+
 -- Preferences Tables
 CREATE TABLE day_prefs (
     employee_id INT NOT NULL REFERENCES employee(employee_id),
@@ -446,3 +475,81 @@ CREATE POLICY tenant_isolation ON week_prefs
     )
     OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
   );
+
+ALTER TABLE employee_address ENABLE ROW LEVEL SECURITY;
+ALTER TABLE employee_address FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON employee_address
+  USING (
+    EXISTS (
+      SELECT 1 FROM employee e
+      WHERE e.employee_id = employee_address.employee_id
+        AND e.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM employee e
+      WHERE e.employee_id = employee_address.employee_id
+        AND e.company_id = current_setting('app.current_tenant', true)::INTEGER
+    )
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+ALTER TABLE employee_list_config ENABLE ROW LEVEL SECURITY;
+ALTER TABLE employee_list_config FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON employee_list_config
+  USING (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  )
+  WITH CHECK (
+    current_setting('app.current_tenant', true)::INTEGER = company_id
+    OR current_setting('app.internal_system_lookup', true)::TEXT = 'true'
+  );
+
+DO $$
+BEGIN
+  IF '${app.db.user}' <> '${flyway.db.user}' THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${app.db.user}') THEN
+      EXECUTE format(
+        'CREATE ROLE %I LOGIN PASSWORD %L NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT NOREPLICATION',
+        '${app.db.user}',
+        '${app.db.password}'
+      );
+    ELSE
+      EXECUTE format(
+        'ALTER ROLE %I WITH LOGIN PASSWORD %L NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT NOREPLICATION',
+        '${app.db.user}',
+        '${app.db.password}'
+      );
+    END IF;
+
+    EXECUTE format('GRANT CONNECT ON DATABASE %I TO %I', current_database(), '${app.db.user}');
+    EXECUTE format('REVOKE CREATE ON SCHEMA public FROM %I', '${app.db.user}');
+    EXECUTE format('REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM %I', '${app.db.user}');
+    EXECUTE format('REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM %I', '${app.db.user}');
+    EXECUTE format('REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public FROM %I', '${app.db.user}');
+
+    EXECUTE format('GRANT USAGE ON SCHEMA public TO %I', '${app.db.user}');
+    EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO %I', '${app.db.user}');
+    EXECUTE format('GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO %I', '${app.db.user}');
+    EXECUTE format('GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO %I', '${app.db.user}');
+
+    EXECUTE format(
+      'ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO %I',
+      '${flyway.db.user}',
+      '${app.db.user}'
+    );
+    EXECUTE format(
+      'ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO %I',
+      '${flyway.db.user}',
+      '${app.db.user}'
+    );
+    EXECUTE format(
+      'ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO %I',
+      '${flyway.db.user}',
+      '${app.db.user}'
+    );
+  END IF;
+END $$;

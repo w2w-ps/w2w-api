@@ -3,6 +3,10 @@ package com.w2w.api.scheduling.integration;
 import com.w2w.api.config.TenantContext;
 import com.w2w.api.employee.model.Employee;
 import com.w2w.api.employee.repository.EmployeeRepository;
+import com.w2w.api.login.EmpTypeRepository;
+import com.w2w.api.login.LoginRepository;
+import com.w2w.api.login.User;
+import com.w2w.api.login.UserRoleRepository;
 import com.w2w.api.position.model.Position;
 import com.w2w.api.position.repository.PositionRepository;
 import com.w2w.api.scheduling.ScheduleRepository;
@@ -32,9 +36,8 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
 
     private static final Integer COMPANY_A_ID = 7011;
     private static final Integer COMPANY_B_ID = 7012;
-    private static final Integer EMPLOYEE_A_ID = 701101;
-    private static final Integer EMPLOYEE_B_ID = 701201;
     private static final LocalDate SHIFT_DATE = LocalDate.of(2026, 5, 9);
+    private static final String DEFAULT_PASSWORD_HASH = "$2a$12$9B69QSXuEqf6bgZcWbJXMOc0RHlFkwHQ4iInRtrIwiC9nAJSTgdk.";
 
     @Autowired
     private SchedulingQueryRepository schedulingQueryRepository;
@@ -54,26 +57,32 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
     @Autowired
     private ShiftRepository shiftRepository;
 
+    @Autowired
+    private LoginRepository loginRepository;
+
+    @Autowired
+    private UserRoleRepository userRoleRepository;
+
+    @Autowired
+    private EmpTypeRepository empTypeRepository;
+
     @Test
     void findAllEmployeeShiftsInRange_mapsPhonesAvailablePositionsAndFiltersByTenant() {
         createCompany(COMPANY_A_ID, "Query Tenant A");
         createCompany(COMPANY_B_ID, "Query Tenant B");
 
         TenantContext.setCurrentTenant(COMPANY_A_ID);
-        createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of("111-222", "333-444"));
+        Employee employeeA = createEmployee(COMPANY_A_ID, "Ava", "Stone", List.of("111-222", "333-444"));
         Position bartender = createPosition(COMPANY_A_ID, "Bartender");
         Position server = createPosition(COMPANY_A_ID, "Server");
-        assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getPositionId());
-        assignEmployeeSkill(EMPLOYEE_A_ID, server.getPositionId());
         Schedule companyASchedule = createSchedule(COMPANY_A_ID, SHIFT_DATE);
-        createShift(EMPLOYEE_A_ID, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), "amber");
+        createShift(employeeA.getEmployeeId(), COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), "amber");
 
         TenantContext.setCurrentTenant(COMPANY_B_ID);
-        createEmployee(EMPLOYEE_B_ID, COMPANY_B_ID, "Ben", "Miles", List.of("999-000"));
+        Employee employeeB = createEmployee(COMPANY_B_ID, "Ben", "Miles", List.of("999-000"));
         Position houseman = createPosition(COMPANY_B_ID, "Houseman");
-        assignEmployeeSkill(EMPLOYEE_B_ID, houseman.getPositionId());
         Schedule companyBSchedule = createSchedule(COMPANY_B_ID, SHIFT_DATE);
-        createShift(EMPLOYEE_B_ID, COMPANY_B_ID, companyBSchedule.getScheduleId(), houseman.getPositionId(), "green");
+        createShift(employeeB.getEmployeeId(), COMPANY_B_ID, companyBSchedule.getScheduleId(), houseman.getPositionId(), "green");
 
         TenantContext.setCurrentTenant(COMPANY_A_ID);
         List<EmployeeShiftProjection> rows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
@@ -84,7 +93,7 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
 
         assertEquals(1, rows.size());
         EmployeeShiftProjection row = rows.getFirst();
-        assertEquals(EMPLOYEE_A_ID, row.getEmployeeId());
+        assertEquals(employeeA.getEmployeeId(), row.getEmployeeId());
         assertEquals(List.of("111-222", "333-444"), row.getPhones());
         assertEquals(2, row.getAvailablePositions().size());
         assertEquals("Bartender", row.getAvailablePositions().getFirst().description());
@@ -103,13 +112,12 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         createCompany(COMPANY_A_ID, "Query Tenant A");
 
         TenantContext.setCurrentTenant(COMPANY_A_ID);
-        createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of("111-222"));
+        Employee employee = createEmployee(COMPANY_A_ID, "Ava", "Stone", List.of("111-222"));
         Position bartender = createPosition(COMPANY_A_ID, "Bartender");
-        assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getPositionId());
         Schedule companyASchedule = createSchedule(COMPANY_A_ID, SHIFT_DATE);
-        createShift(EMPLOYEE_A_ID, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), "amber");
-        createUserLogin("employee.701101", COMPANY_A_ID, EMPLOYEE_A_ID, "Employee");
-        createUserLogin("manager.701101", COMPANY_A_ID, EMPLOYEE_A_ID, "Manager");
+        createShift(employee.getEmployeeId(), COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), "amber");
+        createUserLogin("employee." + employee.getEmployeeId(), COMPANY_A_ID, employee, "Employee");
+        createUserLogin("manager." + employee.getEmployeeId(), COMPANY_A_ID, employee, "Manager");
 
         List<EmployeeShiftProjection> rows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
                 COMPANY_A_ID,
@@ -118,16 +126,8 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         );
 
         assertEquals(1, rows.size());
-        assertEquals(EMPLOYEE_A_ID, rows.getFirst().getEmployeeId());
+        assertEquals(employee.getEmployeeId(), rows.getFirst().getEmployeeId());
         assertEquals(null, rows.getFirst().getEmploymentType());
-    }
-
-    private void assignEmployeeSkill(Integer employeeId, Integer skillId) {
-        jdbcTemplate.update(
-                "INSERT INTO employee_position (employee_id, position_id) VALUES (?, ?)",
-                employeeId,
-                skillId
-        );
     }
 
     private void createCompany(Integer companyId, String companyName) {
@@ -139,109 +139,31 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         company.setStatus("active");
         company.setTimestamp(LocalDateTime.of(2026, 5, 1, 0, 0));
         companyRepository.save(company);
-        jdbcTemplate.update(
-                """
-                INSERT INTO companies (company_id, company_name, department_name, status)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT (company_id) DO NOTHING
-                """,
-                companyId,
-                companyName,
-                "Integration",
-                "active"
-        );
     }
 
-    private void createUserLogin(String loginId, Integer companyId, Integer employeeId, String roleName) {
-        jdbcTemplate.update(
-                """
-                INSERT INTO users (
-                    user_login_id,
-                    user_login_pw,
-                    company_id,
-                    role_id,
-                    employee_id,
-                    encryption_type,
-                    login_failures
-                )
-                VALUES (
-                    ?,
-                    ?,
-                    ?,
-                    (SELECT role_id FROM user_roles WHERE role_name = ?),
-                    ?,
-                    0,
-                    0
-                )
-                """,
-                loginId,
-                "$2a$12$9B69QSXuEqf6bgZcWbJXMOc0RHlFkwHQ4iInRtrIwiC9nAJSTgdk.",
-                companyId,
-                roleName,
-                employeeId
-        );
+    private void createUserLogin(String loginId, Integer companyId, Employee employee, String roleName) {
+        User user = new User();
+        user.setLoginId(loginId);
+        user.setPassword(DEFAULT_PASSWORD_HASH);
+        user.setCompanyId(companyId);
+        user.setEmployee(employee);
+        user.setEmpType(empTypeRepository.findByName("Full Time").orElseThrow());
+        user.setRole(userRoleRepository.findByName(roleName).orElseThrow());
+        user.setEncryptionType(0);
+        user.setLoginFailures(0);
+        loginRepository.save(user);
     }
 
-    private void createUserLogin(String loginId, Integer companyId, Integer employeeId, String roleName) {
-        jdbcTemplate.update(
-                """
-                INSERT INTO users (
-                    user_login_id,
-                    user_login_pw,
-                    company_id,
-                    role_id,
-                    employee_id,
-                    encryption_type,
-                    login_failures
-                )
-                VALUES (
-                    ?,
-                    ?,
-                    ?,
-                    (SELECT role_id FROM user_roles WHERE role_name = ?),
-                    ?,
-                    0,
-                    0
-                )
-                """,
-                loginId,
-                "$2a$12$9B69QSXuEqf6bgZcWbJXMOc0RHlFkwHQ4iInRtrIwiC9nAJSTgdk.",
-                companyId,
-                roleName,
-                employeeId
-        );
-    }
-
-    private void createEmployee(Integer employeeId, Integer companyId, String firstName, String lastName, List<String> phones) {
-        jdbcTemplate.update(
-                """
-                INSERT INTO employee (
-                    employee_id,
-                    company_id,
-                    status,
-                    first_name,
-                    last_name,
-                    email,
-                    hire_date
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                employeeId,
-                companyId,
-                "active",
-                firstName,
-                lastName,
-                firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com",
-                LocalDateTime.of(2026, 1, 1, 0, 0)
-        );
-
-        for (int i = 0; i < phones.size(); i++) {
-            jdbcTemplate.update(
-                    "INSERT INTO employee_phone (employee_id, sort_order, phone_number) VALUES (?, ?, ?)",
-                    employeeId,
-                    i,
-                    phones.get(i)
-            );
-        }
+    private Employee createEmployee(Integer companyId, String firstName, String lastName, List<String> phones) {
+        Employee employee = new Employee();
+        employee.setCompanyId(companyId);
+        employee.setStatus("active");
+        employee.setFirstName(firstName);
+        employee.setLastName(lastName);
+        employee.setEmail(firstName.toLowerCase() + "." + lastName.toLowerCase() + "@example.com");
+        employee.setHireDate(LocalDateTime.of(2026, 1, 1, 0, 0));
+        employee.setPhones(phones);
+        return employeeRepository.save(employee);
     }
 
     private Position createPosition(Integer companyId, String description) {
