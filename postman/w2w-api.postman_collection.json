@@ -164,6 +164,20 @@
           }
         },
         {
+          "name": "Get Employee Detail View",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}/view",
+            "description": "Full employee detail view including assigned positions, autofill options, and comment."
+          }
+        },
+        {
           "name": "Create Employee",
           "request": {
             "method": "POST",

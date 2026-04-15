@@ -1,9 +1,11 @@
 package com.w2w.api.employee;
 
+import com.w2w.api.employee.dto.EmployeeDetailResponse;
 import com.w2w.api.employee.dto.EmployeeListConfigResponse;
 import com.w2w.api.employee.dto.EmployeeRequest;
 import com.w2w.api.employee.dto.EmployeeResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,13 @@ public class EmployeeController {
     @GetMapping("/{id}")
     public EmployeeResponse getById(@PathVariable Integer id) {
         return employeeService.getEmployeeById(id).orElse(null);
+    }
+
+    @GetMapping("/{id}/view")
+    public ResponseEntity<EmployeeDetailResponse> getEmployeeDetail(@PathVariable Integer id) {
+        return employeeService.getEmployeeDetail(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
