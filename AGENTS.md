@@ -54,9 +54,9 @@
   `DELETE /api/category-groups/{id}?companyId=...`
 - `scheduling`
   `POST /api/scheduling/shifts`
-  `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` includes nullable `employmentType`, `alertDate`, and `publishedStage`
-  `GET /api/scheduling/shifts/date-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` wrapped response with `title`, `totalShifts`, `totalHours`, and `dates[{ weekday, date, ... }]`; shift items include nullable `employmentType`
-  `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` deprecated
+  `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
+  `GET /api/scheduling/shifts/day-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
+  `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd` deprecated
 - `timeoff`
   `GET /api/time-off/requests?companyId=...&employeeId=...&status=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
   `POST /api/time-off/requests`
