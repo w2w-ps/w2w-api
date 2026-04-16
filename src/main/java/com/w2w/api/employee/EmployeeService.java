@@ -10,10 +10,20 @@ import com.w2w.api.employee.model.EmployeeAddress;
 import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.login.EmpType;
 import com.w2w.api.login.EmpTypeRepository;
+import com.w2w.api.login.LoginRepository;
+import com.w2w.api.login.User;
+import com.w2w.api.login.UserRole;
+import com.w2w.api.login.UserRoleRepository;
+import com.w2w.api.manager.ManagerPermissions;
+import com.w2w.api.manager.ManagerPermissionsRepository;
 import com.w2w.api.position.dto.PositionSummary;
 import com.w2w.api.position.model.Position;
 import com.w2w.api.position.repository.PositionRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,11 +40,24 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final EmpTypeRepository empTypeRepository;
     private final PositionRepository positionRepository;
+    private final LoginRepository loginRepository;
+    private final ManagerPermissionsRepository permissionsRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public EmployeeService(EmployeeRepository employeeRepository, EmpTypeRepository empTypeRepository, PositionRepository positionRepository) {
+    ;
+
+    public EmployeeService(EmployeeRepository employeeRepository, EmpTypeRepository empTypeRepository,
+            PositionRepository positionRepository, LoginRepository loginRepository,
+            ManagerPermissionsRepository permissionsRepository, UserRoleRepository userRoleRepository,
+            PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.empTypeRepository = empTypeRepository;
         this.positionRepository = positionRepository;
+        this.loginRepository = loginRepository;
+        this.permissionsRepository = permissionsRepository;
+        this.userRoleRepository = userRoleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<EmployeeResponse> getEmployeesByCompany() {
@@ -51,7 +74,9 @@ public class EmployeeService {
                 .map(this::mapToDetailResponse);
     }
 
+    @Transactional
     public EmployeeResponse saveEmployee(EmployeeRequest request) {
+        enforceMainManagerCheck();
         if (request.email() != null && !request.email().isBlank()) {
             validateUniqueEmail(TenantContext.getCurrentTenant(), request.email(), null);
         }
@@ -62,6 +87,32 @@ public class EmployeeService {
         employee.setStatus("Active");
 
         Employee saved = employeeRepository.save(employee);
+
+        // Auto-create User account
+        User user = new User();
+        user.setEmployee(saved);
+        user.setCompanyId(saved.getCompanyId());
+        user.setEmpType(saved.getEmpType());
+        
+        // Use email as loginId if available, otherwise employee.id
+        String loginId = (saved.getEmail() != null && !saved.getEmail().isBlank()) 
+                ? saved.getEmail() 
+                : "employee." + saved.getEmployeeId();
+        user.setLoginId(loginId);
+        
+        // Default password "password" hashed
+        user.setPassword(passwordEncoder.encode("password"));
+        
+        // Assign "Employee" role
+        UserRole employeeRole = userRoleRepository.findByName("Employee")
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Target role 'Employee' not found"));
+        user.setRole(employeeRole);
+        
+        user.setEncryptionType(0);
+        user.setLoginFailures(0);
+        
+        loginRepository.save(user);
+
         return mapToResponse(saved);
     }
 
@@ -84,7 +135,8 @@ public class EmployeeService {
         employeeRepository.findByCompanyIdAndEmailAndStatusNot(companyId, email, "Deleted")
                 .ifPresent(existing -> {
                     if (employeeId == null || !existing.getEmployeeId().equals(employeeId)) {
-                        throw new ResponseStatusException(HttpStatus.CONFLICT, "Email address already in use for this company");
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "Email address already in use for this company");
                     }
                 });
     }
@@ -260,5 +312,28 @@ public class EmployeeService {
             return null;
         }
         return phones.get(index);
+    }
+
+    private void enforceMainManagerCheck() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new AccessDeniedException("User must be authenticated to manage managers.");
+        }
+
+        String currentUsername = auth.getName();
+        User currentUser = loginRepository.findByLoginId(currentUsername)
+                .orElseThrow(() -> new AccessDeniedException("Current user not found."));
+
+        boolean isMainManager = false;
+        Optional<ManagerPermissions> permsOpt = permissionsRepository.findByUserId(currentUser.getId());
+        if (permsOpt.isPresent() && permsOpt.get().isMainManager()) {
+            isMainManager = true;
+        } else if (currentUser.getRole() != null && "Manager".equalsIgnoreCase(currentUser.getRole().getName())) {
+            isMainManager = true;
+        }
+
+        if (!isMainManager) {
+            throw new AccessDeniedException("Only Main Managers can perform this action.");
+        }
     }
 }
