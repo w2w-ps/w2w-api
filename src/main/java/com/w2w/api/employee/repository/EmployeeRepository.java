@@ -10,8 +10,8 @@ import java.util.Optional;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
-    List<Employee> findByCompanyIdAndStatusNot(Integer companyId, String status);
-    Optional<Employee> findByEmployeeIdAndCompanyIdAndStatusNot(Integer employeeId, Integer companyId, String status);
+    List<Employee> findByCompanyIdAndIsDeletedFalse(Integer companyId);
+    Optional<Employee> findByEmployeeIdAndCompanyIdAndIsDeletedFalse(Integer employeeId, Integer companyId);
     
     // Kept for backward compatibility or internal lookups if needed
     List<Employee> findByCompanyId(Integer companyId);

@@ -1,6 +1,7 @@
 package com.w2w.api.employee.model;
 
 import com.w2w.api.login.EmpType;
+import com.w2w.api.position.model.Position;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -21,6 +22,9 @@ public class Employee {
 
     @Column(name = "status")
     private String status;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
 
     @Column(name = "last_logon")
     private LocalDateTime lastLogon;
@@ -92,6 +96,14 @@ public class Employee {
     @Column(name = "employee_photo")
     private String employeePhoto;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "employee_position",
+        joinColumns = @JoinColumn(name = "employee_id"),
+        inverseJoinColumns = @JoinColumn(name = "position_id")
+    )
+    private List<Position> positions = new ArrayList<>();
+
     public Employee() {
     }
 
@@ -117,6 +129,14 @@ public class Employee {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public LocalDateTime getLastLogon() {
@@ -293,5 +313,13 @@ public class Employee {
 
     public void setEmployeePhoto(String employeePhoto) {
         this.employeePhoto = employeePhoto;
+    }
+
+    public List<Position> getPositions() {
+        return positions;
+    }
+
+    public void setPositions(List<Position> positions) {
+        this.positions = positions;
     }
 }

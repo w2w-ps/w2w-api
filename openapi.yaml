@@ -890,7 +890,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmployeeResponse'
+                $ref: '#/components/schemas/EmployeeDetailResponse'
         '404':
           description: Employee not found
     put:
