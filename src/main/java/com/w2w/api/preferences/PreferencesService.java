@@ -9,7 +9,9 @@ import com.w2w.api.preferences.repository.DayPreferenceRepository;
 import com.w2w.api.preferences.repository.WeekPreferenceRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,8 +40,8 @@ public class PreferencesService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<WeekPreferenceResponse> getWeekPreference(Integer employeeId, LocalDate startDate) {
-        return weekPreferenceRepository.findById(new WeekPreferenceId(employeeId, startDate))
+    public Optional<WeekPreferenceResponse> getWeekPreference(Integer employeeId, LocalDate date) {
+        return weekPreferenceRepository.findFirstByEmployeeIdAndStartDateLessThanEqualOrderByStartDateDesc(employeeId, date)
                 .map(this::mapToWeekResponse);
     }
 
@@ -136,7 +138,10 @@ public class PreferencesService {
     private WeekPreference mapToWeekEntity(WeekPreferenceRequest request) {
         WeekPreference entity = new WeekPreference();
         entity.setEmployeeId(request.employeeId());
-        entity.setStartDate(request.startDate());
+        
+        LocalDate monday = request.startDate().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        entity.setStartDate(monday);
+        
         entity.setPrefs(request.prefs());
         entity.setCompression(request.compression());
         entity.setEditedBy(request.editedBy());
