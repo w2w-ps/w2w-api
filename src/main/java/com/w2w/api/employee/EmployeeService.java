@@ -44,9 +44,6 @@ public class EmployeeService {
     private final ManagerPermissionsRepository permissionsRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
-
-    ;
-
     public EmployeeService(EmployeeRepository employeeRepository, EmpTypeRepository empTypeRepository,
             PositionRepository positionRepository, LoginRepository loginRepository,
             ManagerPermissionsRepository permissionsRepository, UserRoleRepository userRoleRepository,
