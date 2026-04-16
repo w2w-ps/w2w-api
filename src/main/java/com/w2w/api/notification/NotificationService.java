@@ -48,11 +48,11 @@ public class NotificationService {
         String leaveDate = "2026-11-11";
 
         String action = request.task().replace("leave_", "");
-        String subject = "W2W: Leave Request " + action.substring(0, 1).toUpperCase() + action.substring(1);
+        String subject = "When2Work: Leave Request " + action.substring(0, 1).toUpperCase() + action.substring(1);
 
         String heading = "Leave Request Update";
         String message = String.format(
-                "Dear %s,<br/><br/>Your leave request for <strong>%s</strong> has been <strong>%s</strong>.<br/><br/>Best regards,<br/>W2W Team",
+                "Dear %s,<br/><br/>Your leave request for <strong>%s</strong> has been <strong>%s</strong>.<br/><br/>Best regards,<br/>When2Work Team",
                 employeeName, leaveDate, action);
 
         String htmlBody = buildHtmlTemplate(heading, message);
@@ -109,7 +109,7 @@ public class NotificationService {
         }
 
         String action = request.task().equals("publish") ? "published" : "unpublished";
-        String subject = "W2W: Schedule " + (request.task().equals("publish") ? "Published" : "Unpublished");
+        String subject = "When2Work: Schedule " + (request.task().equals("publish") ? "Published" : "Unpublished");
 
         String heading = "Schedule Update";
 
@@ -118,7 +118,7 @@ public class NotificationService {
             System.out.println("DEBUG: Sending notification for intended recipient: " + employee.getEmail() + " [" + employee.getFirstName() + "]");
             
             String message = String.format(
-                    "Dear %s,<br/><br/>The schedule from <strong>%s</strong> to <strong>%s</strong> has been <strong>%s</strong>.<br/>Please log in to the portal to view the details.<br/><br/>Best regards,<br/>W2W Team",
+                    "Dear %s,<br/><br/>The schedule from <strong>%s</strong> to <strong>%s</strong> has been <strong>%s</strong>.<br/>Please log in to the portal to view the details.<br/><br/>Best regards,<br/>When2Work Team",
                     employee.getFirstName(), startDate, endDate, action);
 
             String htmlBody = buildHtmlTemplate(heading, message);
