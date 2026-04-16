@@ -48,6 +48,12 @@ public class EmployeeController {
 
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> patch(@PathVariable Integer id, @RequestBody EmployeeRequest request) {
+        employeeService.patchEmployee(id, request);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         employeeService.deleteEmployee(id);

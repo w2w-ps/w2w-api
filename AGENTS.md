@@ -25,6 +25,7 @@
   `GET /api/employees/{id}` full employee detail view including assigned positions, accessibility mode, autofill options, and comment
   `POST /api/employees`
   `PUT /api/employees/{id}`
+  `PATCH /api/employees/{id}` partial update
   `DELETE /api/employees/{id}`
   `GET /api/employees/config`
   `PATCH /api/employees/config`

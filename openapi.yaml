@@ -849,6 +849,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EmployeeResponse'
+    patch:
+      summary: Partially update an employee
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequest'
+      responses:
+        '200':
+          description: Employee updated (partially)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeResponse'
     delete:
       summary: Soft-delete an employee
       parameters:

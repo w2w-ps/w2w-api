@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -126,6 +127,85 @@ public class EmployeeService {
 
         Employee saved = employeeRepository.save(employee);
         return mapToResponse(saved);
+    }
+
+    @Transactional
+    public EmployeeResponse patchEmployee(Integer id, EmployeeRequest request) {
+        Employee employee = employeeRepository
+                .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
+
+        if (request.email() != null) {
+            validateUniqueEmail(TenantContext.getCurrentTenant(), request.email(), id);
+        }
+
+        applyPatchToEntity(request, employee);
+
+        Employee saved = employeeRepository.save(employee);
+        return mapToResponse(saved);
+    }
+
+    private void applyPatchToEntity(EmployeeRequest request, Employee employee) {
+        if (request.firstName() != null) employee.setFirstName(request.firstName());
+        if (request.lastName() != null) employee.setLastName(request.lastName());
+        if (request.email() != null) employee.setEmail(request.email());
+        if (request.employeeNumber() != null) employee.setEmployeeNumber(request.employeeNumber());
+
+        if (request.phone() != null || request.phone2() != null || request.cell() != null) {
+            List<String> currentPhones = new ArrayList<>(employee.getPhones());
+            while (currentPhones.size() < 3) currentPhones.add(null);
+
+            if (request.phone() != null) currentPhones.set(0, request.phone());
+            if (request.phone2() != null) currentPhones.set(1, request.phone2());
+            if (request.cell() != null) currentPhones.set(2, request.cell());
+
+            employee.setPhones(currentPhones);
+        }
+
+        if (request.hireDate() != null) employee.setHireDate(request.hireDate());
+        if (request.maxScheduledHours() != null) employee.setMaxScheduledHours(request.maxScheduledHours());
+        if (request.maxDailyHours() != null) employee.setMaxDailyHours(request.maxDailyHours());
+        if (request.payRate() != null) employee.setPayRate(request.payRate());
+        if (request.maxWeeklyDays() != null) employee.setMaxWeeklyDays(request.maxWeeklyDays());
+        if (request.maxDailyShifts() != null) employee.setMaxDailyShifts(request.maxDailyShifts());
+        if (request.comments() != null) employee.setComments(request.comments());
+        if (request.priorityGroup() != null) employee.setPriorityGroup(request.priorityGroup());
+        if (request.googleCalExport() != null) employee.setGoogleCalExport(request.googleCalExport());
+        if (request.nextAlertDate() != null) employee.setNextAlertDate(request.nextAlertDate());
+        if (request.customField1() != null) employee.setCustomField1(request.customField1());
+        if (request.customField2() != null) employee.setCustomField2(request.customField2());
+        if (request.employeePhoto() != null) employee.setEmployeePhoto(request.employeePhoto());
+        if (request.accessibilityMode() != null) employee.setAccessibilityMode(request.accessibilityMode());
+
+        if (request.positionIds() != null) {
+            List<Position> positions = positionRepository.findByPositionIdInAndCompanyId(
+                    request.positionIds(), CurrentTenant.requireCurrentTenant());
+            employee.setPositions(positions);
+        }
+
+        if (request.empTypeId() != null) {
+            EmpType empType = empTypeRepository.findById(request.empTypeId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid EmpType ID"));
+            employee.setEmpType(empType);
+        }
+
+        if (request.address() != null) {
+            updateAddressPartially(request.address(), employee);
+        }
+    }
+
+    private void updateAddressPartially(EmployeeRequest.AddressRequest addressReq, Employee employee) {
+        EmployeeAddress address = employee.getAddress();
+        if (address == null) {
+            address = new EmployeeAddress();
+            address.setEmployee(employee);
+            employee.setAddress(address);
+        }
+        if (addressReq.address() != null) address.setAddress(addressReq.address());
+        if (addressReq.address2() != null) address.setAddress2(addressReq.address2());
+        if (addressReq.city() != null) address.setCity(addressReq.city());
+        if (addressReq.state() != null) address.setState(addressReq.state());
+        if (addressReq.zip() != null) address.setZip(addressReq.zip());
     }
 
     private void validateUniqueEmail(Integer companyId, String email, Integer employeeId) {
