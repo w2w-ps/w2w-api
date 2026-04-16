@@ -19,9 +19,15 @@ public class NotificationConsumer {
         System.out.println("Kafka Consumer received request: " + request);
 
         try {
+            // Transfer the tenant context from the message payload
+            if (request.companyId() != null) {
+                com.w2w.api.config.TenantContext.setCurrentTenant(request.companyId());
+            }
             notificationService.processNotification(request);
         } catch (Exception e) {
             log.error("Error consuming notification: {}", e.getMessage());
+        } finally {
+            com.w2w.api.config.TenantContext.clear();
         }
     }
 }

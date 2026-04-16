@@ -2,6 +2,8 @@ package com.w2w.api.notification;
 
 import com.w2w.api.employee.Employee;
 import com.w2w.api.employee.EmployeeRepository;
+import com.w2w.api.scheduling.ScheduleRepository;
+import com.w2w.api.scheduling.model.Schedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -16,10 +18,14 @@ public class NotificationService {
 
     private final EmailService emailService;
     private final EmployeeRepository employeeRepository;
+    private final ScheduleRepository scheduleRepository;
 
-    public NotificationService(EmailService emailService, EmployeeRepository employeeRepository) {
+    public NotificationService(EmailService emailService, 
+                               EmployeeRepository employeeRepository,
+                               ScheduleRepository scheduleRepository) {
         this.emailService = emailService;
         this.employeeRepository = employeeRepository;
+        this.scheduleRepository = scheduleRepository;
     }
 
     public void processNotification(NotificationRequest request) {
@@ -68,23 +74,38 @@ public class NotificationService {
     }
 
     private void handleScheduleNotification(NotificationRequest request) {
-        // TODO: Get schedule details (start date, end date, AND target roles) from
-        // schedule table using request.scheduleId()
-        String startDate = "2026-11-11";
-        String endDate = "2026-11-17";
+        if (request.scheduleId() == null) {
+            System.out.println("DEBUG: Notification failed - scheduleId is null");
+            return;
+        }
 
-        // Placeholder: Simulating fetching roles from the schedule table
-        // List<String> rolesFromTable =
-        // scheduleRepository.findRolesForSchedule(request.scheduleId());
-        List<String> rolesFromTable = new ArrayList<>();
+        Schedule schedule = scheduleRepository.findById(request.scheduleId()).orElse(null);
+        if (schedule == null) {
+            System.out.println("DEBUG: Notification failed - Schedule not found for id: " + request.scheduleId());
+            return;
+        }
+
+        String startDate = schedule.getStartDate() != null ? schedule.getStartDate().toString() : "TBD";
+        String endDate = schedule.getStartDate() != null ? schedule.getStartDate().plusDays(6).toString() : "TBD";
+        Integer companyId = schedule.getCompanyId();
+        System.out.println("DEBUG: Processing notification for scheduleId: " + request.scheduleId() + ", companyId: " + companyId);
 
         List<Employee> targets;
-        if (rolesFromTable.isEmpty()) {
-            // todo remove and replace this with needed logic while implementing with table
-            targets = employeeRepository.findByCompanyId(1);
+        if (request.positionIds() != null && !request.positionIds().isEmpty()) {
+            // Partial publish: Notify only employees with matching positions
+            System.out.println("DEBUG: Searching for employees with positionIds: " + request.positionIds());
+            targets = employeeRepository.findByPositionIdsAndCompanyId(request.positionIds(), companyId);
         } else {
-            // todo remove and replace this with needed logic while implementing with table
-            targets = employeeRepository.findByCompanyId(1);
+            // Full publish/unpublish: Notify all employees of the company
+            System.out.println("DEBUG: Searching for all employees in companyId: " + companyId);
+            targets = employeeRepository.findByCompanyId(companyId);
+        }
+
+        System.out.println("DEBUG: Found " + (targets != null ? targets.size() : 0) + " target employees.");
+
+        if (targets == null || targets.isEmpty()) {
+            System.out.println("DEBUG: No emails sent - empty target list.");
+            return;
         }
 
         String action = request.task().equals("publish") ? "published" : "unpublished";
@@ -92,7 +113,10 @@ public class NotificationService {
 
         String heading = "Schedule Update";
 
+        // Log and process each intended recipient
         for (Employee employee : targets) {
+            System.out.println("DEBUG: Sending notification for intended recipient: " + employee.getEmail() + " [" + employee.getFirstName() + "]");
+            
             String message = String.format(
                     "Dear %s,<br/><br/>The schedule from <strong>%s</strong> to <strong>%s</strong> has been <strong>%s</strong>.<br/>Please log in to the portal to view the details.<br/><br/>Best regards,<br/>W2W Team",
                     employee.getFirstName(), startDate, endDate, action);
@@ -100,17 +124,18 @@ public class NotificationService {
             String htmlBody = buildHtmlTemplate(heading, message);
 
             try {
-                // System.out.println("DEBUG: Intended recipient: " + employee.getEmail());
-
-                // Redirect to debug email
-                emailService.sendEmail("96mbsb@gmail.com", subject, htmlBody);
-
+                // Send separately to debug email for each employee
+                String debugEmail = "96mbsb@gmail.com";
+                emailService.sendEmail(debugEmail, subject, htmlBody);
+                
+                // Original logic to send to the actual employee (commented out per request)
                 // emailService.sendEmail(employee.getEmail(), subject, htmlBody);
             } catch (Exception e) {
-                log.error("Failed to send schedule notification to {}: {}", employee.getEmail(), e.getMessage());
+                log.error("Failed to send schedule notification for {}: {}", employee.getEmail(), e.getMessage());
             }
         }
-        log.info("Schedule notification [{}] processed for scheduleId: {}, targets: {}", request.task(),
+        
+        log.info("Schedule notification [{}] processed for scheduleId: {}, total targets: {}", request.task(),
                 request.scheduleId(), targets.size());
     }
 

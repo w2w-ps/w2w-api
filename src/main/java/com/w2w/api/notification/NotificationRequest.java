@@ -5,5 +5,7 @@ import java.util.List;
 public record NotificationRequest(
     String task,
     Integer leaveRequestId,
-    Integer scheduleId
+    Integer scheduleId,
+    List<Integer> positionIds,
+    Integer companyId
 ) {}
