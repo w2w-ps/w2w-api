@@ -151,7 +151,7 @@
           }
         },
         {
-          "name": "Get Employee By Id",
+          "name": "Get Employee (Detail)",
           "request": {
             "method": "GET",
             "header": [
@@ -160,21 +160,8 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "url": "{{baseUrl}}/api/employees/{{employeeId}}"
-          }
-        },
-        {
-          "name": "Get Employee Detail View",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{bearerToken}}"
-              }
-            ],
-            "url": "{{baseUrl}}/api/employees/{{employeeId}}/view",
-            "description": "Full employee detail view including assigned positions, autofill options, and comment."
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}",
+            "description": "Returns full employee detail view including assigned positions, autofill options, and comments."
           }
         },
         {

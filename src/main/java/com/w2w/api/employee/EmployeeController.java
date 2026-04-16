@@ -24,12 +24,8 @@ public class EmployeeController {
         return employeeService.getEmployeesByCompany();
     }
 
-    @GetMapping("/{id}")
-    public EmployeeResponse getById(@PathVariable Integer id) {
-        return employeeService.getEmployeeById(id).orElse(null);
-    }
 
-    @GetMapping("/{id}/view")
+    @GetMapping("/{id}")
     public ResponseEntity<EmployeeDetailResponse> getEmployeeDetail(@PathVariable Integer id) {
         return employeeService.getEmployeeDetail(id)
                 .map(ResponseEntity::ok)
