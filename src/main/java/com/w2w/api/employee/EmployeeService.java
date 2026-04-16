@@ -33,22 +33,16 @@ public class EmployeeService {
     }
 
     public List<EmployeeResponse> getEmployeesByCompany() {
-        return employeeRepository.findByCompanyIdAndStatusNot(TenantContext.getCurrentTenant(), "Deleted")
+        return employeeRepository.findByCompanyIdAndIsDeletedFalse(TenantContext.getCurrentTenant())
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    public Optional<EmployeeResponse> getEmployeeById(Integer id) {
-        return employeeRepository
-                .findByEmployeeIdAndCompanyIdAndStatusNot(id, TenantContext.getCurrentTenant(), "Deleted")
-                .map(this::mapToResponse);
-    }
-
     @Transactional(readOnly = true)
     public Optional<EmployeeDetailResponse> getEmployeeDetail(Integer id) {
         return employeeRepository
-                .findByEmployeeIdAndCompanyIdAndStatusNot(id, TenantContext.getCurrentTenant(), "Deleted")
+                .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, TenantContext.getCurrentTenant())
                 .map(this::mapToDetailResponse);
     }
 
@@ -64,7 +58,7 @@ public class EmployeeService {
 
     public EmployeeResponse updateEmployee(Integer id, EmployeeRequest request) {
         Employee employee = employeeRepository
-                .findByEmployeeIdAndCompanyIdAndStatusNot(id, CurrentTenant.requireCurrentTenant(), "Deleted")
+                .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
 
         mapRequestToEntity(request, employee);
@@ -118,10 +112,10 @@ public class EmployeeService {
 
     public void deleteEmployee(Integer id) {
         Employee employee = employeeRepository
-                .findByEmployeeIdAndCompanyIdAndStatusNot(id, CurrentTenant.requireCurrentTenant(), "Deleted")
+                .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
 
-        employee.setStatus("Deleted");
+        employee.setIsDeleted(true);
         employeeRepository.save(employee);
     }
 

@@ -23,6 +23,9 @@ public class Employee {
     @Column(name = "status")
     private String status;
 
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
     @Column(name = "last_logon")
     private LocalDateTime lastLogon;
 
@@ -126,6 +129,14 @@ public class Employee {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Boolean getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public LocalDateTime getLastLogon() {
