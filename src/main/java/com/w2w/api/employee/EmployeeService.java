@@ -129,7 +129,7 @@ public class EmployeeService {
     }
 
     private void validateUniqueEmail(Integer companyId, String email, Integer employeeId) {
-        employeeRepository.findByCompanyIdAndEmailAndStatusNot(companyId, email, "Deleted")
+        employeeRepository.findByCompanyIdAndEmailAndIsDeletedFalse(companyId, email)
                 .ifPresent(existing -> {
                     if (employeeId == null || !existing.getEmployeeId().equals(employeeId)) {
                         throw new ResponseStatusException(HttpStatus.CONFLICT,
