@@ -22,8 +22,10 @@
   `POST /api/tenants`
 - `employee`
   `GET /api/employees`
-  `GET /api/employees/{id}` full employee detail view including assigned positions, autofill options, and comment
+  `GET /api/employees/{id}` full employee detail view including assigned positions, accessibility mode, autofill options, and comment
   `POST /api/employees`
+  `PUT /api/employees/{id}`
+  `DELETE /api/employees/{id}`
   `GET /api/employees/config`
   `PATCH /api/employees/config`
 - `position`

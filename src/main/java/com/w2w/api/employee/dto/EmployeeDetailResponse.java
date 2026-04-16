@@ -21,7 +21,9 @@ public record EmployeeDetailResponse(
         String lastName,
         String email,
         String employeeNumber,
-        List<String> phones,
+        String phone,
+        String phone2,
+        String cell,
         LocalDateTime hireDate,
         BigDecimal payRate,
         EmpTypeSummary empType,
@@ -40,7 +42,8 @@ public record EmployeeDetailResponse(
         String priorityGroup,
         // Comment section
         String comments,
-        Boolean googleCalExport) {
+        Boolean googleCalExport,
+        Boolean accessibilityMode) {
     public record AddressSummary(
             String address,
             String address2,

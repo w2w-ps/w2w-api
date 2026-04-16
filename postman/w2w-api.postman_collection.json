@@ -180,7 +180,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Morgan\",\n  \"email\": \"alex.morgan@example.com\",\n  \"employeeNumber\": \"EMP-5001\",\n  \"phones\": [\n    \"555-0100\",\n    \"555-0101\"\n  ],\n  \"hireDate\": \"2026-01-15T09:00:00\",\n  \"maxScheduledHours\": 40,\n  \"maxDailyHours\": 8,\n  \"payRate\": 20.5,\n  \"empTypeId\": 1,\n  \"address\": {\n    \"address\": \"100 Main St\",\n    \"city\": \"Austin\",\n    \"state\": \"TX\",\n    \"zip\": \"78701\"\n  }\n}",
+              "raw": "{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Morgan\",\n  \"email\": \"alex.morgan@example.com\",\n  \"employeeNumber\": \"EMP-5001\",\n  \"phone\": \"555-0100\",\n  \"phone2\": \"555-0101\",\n  \"cell\": \"555-0102\",\n  \"hireDate\": \"2026-01-15T09:00:00\",\n  \"maxScheduledHours\": 40,\n  \"maxDailyHours\": 8,\n  \"payRate\": 20.5,\n  \"empTypeId\": 1,\n  \"address\": {\n    \"address\": \"100 Main St\",\n    \"city\": \"Austin\",\n    \"state\": \"TX\",\n    \"zip\": \"78701\"\n  },\n  \"positionIds\": [1, 2],\n  \"accessibilityMode\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -206,7 +206,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Morgan-Smith\",\n  \"email\": \"alex.ms@example.com\"\n}",
+              "raw": "{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Morgan-Smith\",\n  \"email\": \"alex.ms@example.com\",\n  \"phone\": \"555-9999\",\n  \"phone2\": \"\",\n  \"cell\": \"\",\n  \"positionIds\": [1],\n  \"accessibilityMode\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"

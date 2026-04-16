@@ -10,13 +10,26 @@ import com.w2w.api.employee.model.EmployeeAddress;
 import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.login.EmpType;
 import com.w2w.api.login.EmpTypeRepository;
+import com.w2w.api.login.LoginRepository;
+import com.w2w.api.login.User;
+import com.w2w.api.login.UserRole;
+import com.w2w.api.login.UserRoleRepository;
+import com.w2w.api.manager.ManagerPermissions;
+import com.w2w.api.manager.ManagerPermissionsRepository;
 import com.w2w.api.position.dto.PositionSummary;
+import com.w2w.api.position.model.Position;
+import com.w2w.api.position.repository.PositionRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -26,10 +39,22 @@ import java.util.stream.Collectors;
 public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final EmpTypeRepository empTypeRepository;
-
-    public EmployeeService(EmployeeRepository employeeRepository, EmpTypeRepository empTypeRepository) {
+    private final PositionRepository positionRepository;
+    private final LoginRepository loginRepository;
+    private final ManagerPermissionsRepository permissionsRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final PasswordEncoder passwordEncoder;
+    public EmployeeService(EmployeeRepository employeeRepository, EmpTypeRepository empTypeRepository,
+            PositionRepository positionRepository, LoginRepository loginRepository,
+            ManagerPermissionsRepository permissionsRepository, UserRoleRepository userRoleRepository,
+            PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.empTypeRepository = empTypeRepository;
+        this.positionRepository = positionRepository;
+        this.loginRepository = loginRepository;
+        this.permissionsRepository = permissionsRepository;
+        this.userRoleRepository = userRoleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<EmployeeResponse> getEmployeesByCompany() {
@@ -46,13 +71,45 @@ public class EmployeeService {
                 .map(this::mapToDetailResponse);
     }
 
+    @Transactional
     public EmployeeResponse saveEmployee(EmployeeRequest request) {
+        enforceMainManagerCheck();
+        if (request.email() != null && !request.email().isBlank()) {
+            validateUniqueEmail(TenantContext.getCurrentTenant(), request.email(), null);
+        }
+
         Employee employee = new Employee();
         mapRequestToEntity(request, employee);
         employee.setCompanyId(CurrentTenant.requireCurrentTenant());
         employee.setStatus("Active");
 
         Employee saved = employeeRepository.save(employee);
+
+        // Auto-create User account
+        User user = new User();
+        user.setEmployee(saved);
+        user.setCompanyId(saved.getCompanyId());
+        user.setEmpType(saved.getEmpType());
+        
+        // Use email as loginId if available, otherwise employee.id
+        String loginId = (saved.getEmail() != null && !saved.getEmail().isBlank()) 
+                ? saved.getEmail() 
+                : "employee." + saved.getEmployeeId();
+        user.setLoginId(loginId);
+        
+        // Default password "password" hashed
+        user.setPassword(passwordEncoder.encode("password"));
+        
+        // Assign "Employee" role
+        UserRole employeeRole = userRoleRepository.findByName("Employee")
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Target role 'Employee' not found"));
+        user.setRole(employeeRole);
+        
+        user.setEncryptionType(0);
+        user.setLoginFailures(0);
+        
+        loginRepository.save(user);
+
         return mapToResponse(saved);
     }
 
@@ -61,10 +118,24 @@ public class EmployeeService {
                 .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
 
+        if (request.email() != null && !request.email().isBlank()) {
+            validateUniqueEmail(TenantContext.getCurrentTenant(), request.email(), id);
+        }
+
         mapRequestToEntity(request, employee);
 
         Employee saved = employeeRepository.save(employee);
         return mapToResponse(saved);
+    }
+
+    private void validateUniqueEmail(Integer companyId, String email, Integer employeeId) {
+        employeeRepository.findByCompanyIdAndEmailAndIsDeletedFalse(companyId, email)
+                .ifPresent(existing -> {
+                    if (employeeId == null || !existing.getEmployeeId().equals(employeeId)) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "Email address already in use for this company");
+                    }
+                });
     }
 
     private void mapRequestToEntity(EmployeeRequest request, Employee employee) {
@@ -72,7 +143,7 @@ public class EmployeeService {
         employee.setLastName(request.lastName());
         employee.setEmail(request.email());
         employee.setEmployeeNumber(request.employeeNumber());
-        employee.setPhones(request.phones());
+        employee.setPhones(Arrays.asList(request.phone(), request.phone2(), request.cell()));
         employee.setHireDate(request.hireDate());
         employee.setMaxScheduledHours(request.maxScheduledHours());
         employee.setMaxDailyHours(request.maxDailyHours());
@@ -86,6 +157,13 @@ public class EmployeeService {
         employee.setCustomField1(request.customField1());
         employee.setCustomField2(request.customField2());
         employee.setEmployeePhoto(request.employeePhoto());
+        employee.setAccessibilityMode(request.accessibilityMode() != null ? request.accessibilityMode() : false);
+
+        if (request.positionIds() != null) {
+            List<Position> positions = positionRepository.findByPositionIdInAndCompanyId(
+                    request.positionIds(), CurrentTenant.requireCurrentTenant());
+            employee.setPositions(positions);
+        }
 
         if (request.empTypeId() != null) {
             EmpType empType = empTypeRepository.findById(request.empTypeId())
@@ -147,7 +225,9 @@ public class EmployeeService {
                 employee.getLastName(),
                 employee.getEmail(),
                 employee.getEmployeeNumber(),
-                employee.getPhones(),
+                getPhone(employee.getPhones(), 0),
+                getPhone(employee.getPhones(), 1),
+                getPhone(employee.getPhones(), 2),
                 employee.getHireDate(),
                 employee.getMaxScheduledHours(),
                 employee.getMaxDailyHours(),
@@ -162,7 +242,8 @@ public class EmployeeService {
                 employee.getNextAlertDate(),
                 employee.getCustomField1(),
                 employee.getCustomField2(),
-                employee.getEmployeePhoto());
+                employee.getEmployeePhoto(),
+                employee.getAccessibilityMode());
     }
 
     private EmployeeDetailResponse mapToDetailResponse(Employee employee) {
@@ -202,7 +283,9 @@ public class EmployeeService {
                 employee.getLastName(),
                 employee.getEmail(),
                 employee.getEmployeeNumber(),
-                employee.getPhones(),
+                getPhone(employee.getPhones(), 0),
+                getPhone(employee.getPhones(), 1),
+                getPhone(employee.getPhones(), 2),
                 employee.getHireDate(),
                 employee.getPayRate() != null ? BigDecimal.valueOf(employee.getPayRate()) : null,
                 empTypeSummary,
@@ -218,6 +301,37 @@ public class EmployeeService {
                 employee.getMaxDailyShifts(),
                 employee.getPriorityGroup(),
                 employee.getComments(),
-                employee.getGoogleCalExport());
+                employee.getGoogleCalExport(),
+                employee.getAccessibilityMode());
+    }
+
+    private String getPhone(List<String> phones, int index) {
+        if (phones == null || index < 0 || index >= phones.size()) {
+            return null;
+        }
+        return phones.get(index);
+    }
+
+    private void enforceMainManagerCheck() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new AccessDeniedException("User must be authenticated to manage managers.");
+        }
+
+        String currentUsername = auth.getName();
+        User currentUser = loginRepository.findByLoginId(currentUsername)
+                .orElseThrow(() -> new AccessDeniedException("Current user not found."));
+
+        boolean isMainManager = false;
+        Optional<ManagerPermissions> permsOpt = permissionsRepository.findByUserId(currentUser.getId());
+        if (permsOpt.isPresent() && permsOpt.get().isMainManager()) {
+            isMainManager = true;
+        } else if (currentUser.getRole() != null && "Manager".equalsIgnoreCase(currentUser.getRole().getName())) {
+            isMainManager = true;
+        }
+
+        if (!isMainManager) {
+            throw new AccessDeniedException("Only Main Managers can perform this action.");
+        }
     }
 }
