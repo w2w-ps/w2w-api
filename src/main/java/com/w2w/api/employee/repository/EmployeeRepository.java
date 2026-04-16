@@ -17,5 +17,5 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
     List<Employee> findByCompanyId(Integer companyId);
     Optional<Employee> findByEmployeeIdAndCompanyId(Integer employeeId, Integer companyId);
 
-    Optional<Employee> findByCompanyIdAndEmailAndStatusNot(Integer companyId, String email, String status);
+    Optional<Employee> findByCompanyIdAndEmailAndIsDeletedFalse(Integer companyId, String email);
 }
