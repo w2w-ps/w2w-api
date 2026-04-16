@@ -14,7 +14,9 @@ public record EmployeeResponse(
     String lastName,
     String email,
     String employeeNumber,
-    List<String> phones,
+    String phone,
+    String phone2,
+    String cell,
     LocalDateTime hireDate,
     Integer maxScheduledHours,
     Integer maxDailyHours,
@@ -29,7 +31,8 @@ public record EmployeeResponse(
     LocalDate nextAlertDate,
     String customField1,
     String customField2,
-    String employeePhoto
+    String employeePhoto,
+    Boolean accessibilityMode
 ) {
     public record AddressSummary(
         String address,

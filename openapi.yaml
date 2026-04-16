@@ -746,15 +746,6 @@ paths:
           description: Position group soft-deleted successfully
         '404':
   /api/employees:
-    get:
-      summary: Get employees for the current company
-      responses:
-        '200':
-          description: A list of employees
-          content:
-            application/json:
-              schema:
-                type: array
                 items:
                   $ref: '#/components/schemas/EmployeeResponse'
     post:
@@ -766,12 +757,28 @@ paths:
             schema:
               $ref: '#/components/schemas/EmployeeRequest'
       responses:
-        '200':
+        '201':
           description: Employee created
+        '409':
+          description: Email already in use within the company
+  /api/employees/{id}/view:
+    get:
+      summary: Get full employee details including positions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detailed employee view
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmployeeResponse'
+                $ref: '#/components/schemas/EmployeeDetailResponse'
+        '404':
+          description: Employee not found
   /api/employees/config:
     get:
       summary: Get employee list configuration
@@ -1596,10 +1603,12 @@ components:
           type: string
         employeeNumber:
           type: string
-        phones:
-          type: array
-          items:
-            type: string
+        phone:
+          type: string
+        phone2:
+          type: string
+        cell:
+          type: string
         hireDate:
           type: string
           format: date-time
@@ -1633,6 +1642,12 @@ components:
           type: string
         employeePhoto:
           type: string
+        positionIds:
+          type: array
+          items:
+            type: integer
+        accessibilityMode:
+          type: boolean
     AddressRequest:
       type: object
       properties:
@@ -1681,10 +1696,12 @@ components:
           type: string
         employeeNumber:
           type: string
-        phones:
-          type: array
-          items:
-            type: string
+        phone:
+          type: string
+        phone2:
+          type: string
+        cell:
+          type: string
         hireDate:
           type: string
           format: date-time
@@ -1718,6 +1735,74 @@ components:
           type: string
         employeePhoto:
           type: string
+        accessibilityMode:
+          type: boolean
+    EmployeeDetailResponse:
+      type: object
+      properties:
+        employeeId:
+          type: integer
+        companyId:
+          type: integer
+        status:
+          type: string
+        lastLogon:
+          type: string
+          format: date-time
+        logonCount:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        employeeNumber:
+          type: string
+        phone:
+          type: string
+        phone2:
+          type: string
+        cell:
+          type: string
+        hireDate:
+          type: string
+          format: date-time
+        payRate:
+          type: number
+        empType:
+          $ref: '#/components/schemas/EmpTypeSummary'
+        address:
+          $ref: '#/components/schemas/AddressSummary'
+        nextAlertDate:
+          type: string
+          format: date
+        customField1:
+          type: string
+        customField2:
+          type: string
+        employeePhoto:
+          type: string
+        positions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PositionSummary'
+        maxScheduledHours:
+          type: integer
+        maxDailyHours:
+          type: integer
+        maxWeeklyDays:
+          type: integer
+        maxDailyShifts:
+          type: integer
+        priorityGroup:
+          type: string
+        comments:
+          type: string
+        googleCalExport:
+          type: boolean
+        accessibilityMode:
+          type: boolean
     AddressSummary:
       type: object
       properties:

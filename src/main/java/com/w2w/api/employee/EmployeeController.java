@@ -4,7 +4,9 @@ import com.w2w.api.employee.dto.EmployeeDetailResponse;
 import com.w2w.api.employee.dto.EmployeeListConfigResponse;
 import com.w2w.api.employee.dto.EmployeeRequest;
 import com.w2w.api.employee.dto.EmployeeResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -33,18 +35,23 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public EmployeeResponse create(@RequestBody EmployeeRequest request) {
-        return employeeService.saveEmployee(request);
+    public ResponseEntity<Void> create(@Valid @RequestBody EmployeeRequest request) {
+        employeeService.saveEmployee(request);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+
     }
 
     @PutMapping("/{id}")
-    public EmployeeResponse update(@PathVariable Integer id, @RequestBody EmployeeRequest request) {
-        return employeeService.updateEmployee(id, request);
+    public ResponseEntity<Void> update(@PathVariable Integer id, @Valid @RequestBody EmployeeRequest request) {
+        employeeService.updateEmployee(id, request);
+        return ResponseEntity.noContent().build();
+
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id) {
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
         employeeService.deleteEmployee(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/config")

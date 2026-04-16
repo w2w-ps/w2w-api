@@ -1,21 +1,27 @@
 package com.w2w.api.employee.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public record EmployeeRequest(
-    String firstName,
-    String lastName,
-    String email,
+    @NotBlank String firstName,
+    @NotBlank String lastName,
+    @Email String email,
     String employeeNumber,
-    List<String> phones,
+    String phone,
+    String phone2,
+    String cell,
     LocalDateTime hireDate,
     Integer maxScheduledHours,
     Integer maxDailyHours,
     Float payRate,
     Integer empTypeId,
-    AddressRequest address,
+    @Valid AddressRequest address,
     Integer maxWeeklyDays,
     Integer maxDailyShifts,
     String comments,
@@ -24,7 +30,9 @@ public record EmployeeRequest(
     LocalDate nextAlertDate,
     String customField1,
     String customField2,
-    String employeePhoto
+    String employeePhoto,
+    List<Integer> positionIds,
+    Boolean accessibilityMode
 ) {
     public record AddressRequest(
         String address,
