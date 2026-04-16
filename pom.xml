@@ -12,7 +12,7 @@
 	<artifactId>w2w-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>w2w-api</name>
-	<description>Work2Work API</description>
+	<description>When2Work API</description>
 	<properties>
 		<java.version>25</java.version>
 		<jjwt.version>0.12.6</jjwt.version>

@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Work2Work API
+  title: When2Work API
   version: 0.0.1
   description: OpenAPI specification for the current scheduling endpoints and response shapes.
 servers:

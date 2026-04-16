@@ -44,8 +44,12 @@ public class NotificationService {
         String action = request.task().replace("leave_", "");
         String subject = "W2W: Leave Request " + action.substring(0, 1).toUpperCase() + action.substring(1);
 
-        String body = String.format("Dear %s,\n\nYour leave request for %s has been %s.\n\nBest regards,\nW2W Team",
+        String heading = "Leave Request Update";
+        String message = String.format(
+                "Dear %s,<br/><br/>Your leave request for <strong>%s</strong> has been <strong>%s</strong>.<br/><br/>Best regards,<br/>W2W Team",
                 employeeName, leaveDate, action);
+
+        String htmlBody = buildHtmlTemplate(heading, message);
 
         try {
             // Print intended recipient to console
@@ -53,9 +57,9 @@ public class NotificationService {
 
             // Redirect to debug email
             String debugEmail = "96mbsb@gmail.com";
-            emailService.sendSimpleEmail(debugEmail, subject, body);
+            emailService.sendEmail(debugEmail, subject, htmlBody);
 
-            // emailService.sendSimpleEmail(intendedEmail, subject, body);
+            // emailService.sendEmail(intendedEmail, subject, htmlBody);
 
             log.info("Leave notification [{}] sent for leaveRequestId: {}", request.task(), request.leaveRequestId());
         } catch (Exception e) {
@@ -86,23 +90,64 @@ public class NotificationService {
         String action = request.task().equals("publish") ? "published" : "unpublished";
         String subject = "W2W: Schedule " + (request.task().equals("publish") ? "Published" : "Unpublished");
 
+        String heading = "Schedule Update";
+
         for (Employee employee : targets) {
-            String body = String.format(
-                    "Dear %s,\n\nThe schedule from %s to %s has been %s.\nPlease log in to the portal to view the details.\n\nBest regards,\nW2W Team",
+            String message = String.format(
+                    "Dear %s,<br/><br/>The schedule from <strong>%s</strong> to <strong>%s</strong> has been <strong>%s</strong>.<br/>Please log in to the portal to view the details.<br/><br/>Best regards,<br/>W2W Team",
                     employee.getFirstName(), startDate, endDate, action);
+
+            String htmlBody = buildHtmlTemplate(heading, message);
 
             try {
                 // System.out.println("DEBUG: Intended recipient: " + employee.getEmail());
 
                 // Redirect to debug email
-                emailService.sendSimpleEmail("96mbsb@gmail.com", subject, body);
+                emailService.sendEmail("96mbsb@gmail.com", subject, htmlBody);
 
-                // emailService.sendSimpleEmail(employee.getEmail(), subject, body);
+                // emailService.sendEmail(employee.getEmail(), subject, htmlBody);
             } catch (Exception e) {
                 log.error("Failed to send schedule notification to {}: {}", employee.getEmail(), e.getMessage());
             }
         }
         log.info("Schedule notification [{}] processed for scheduleId: {}, targets: {}", request.task(),
                 request.scheduleId(), targets.size());
+    }
+
+    private String buildHtmlTemplate(String heading, String message) {
+        return """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
+                        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+                        .header { background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); padding: 30px; text-align: center; color: white; }
+                        .header h1 { margin: 0; font-size: 24px; letter-spacing: 1px; color: white; }
+                        .content { padding: 40px; color: #333333; line-height: 1.6; }
+                        .content h2 { color: #764ba2; margin-top: 0; }
+                        .footer { background-color: #f4f7f6; padding: 20px; text-align: center; color: #777777; font-size: 12px; }
+                        .btn { display: inline-block; padding: 12px 24px; background-color: #764ba2; color: white !important; text-decoration: none; border-radius: 4px; margin-top: 20px; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>When2Work</h1>
+                        </div>
+                        <div class="content">
+                            <h2>%s</h2>
+                            <p>%s</p>
+                            <a href="#" class="btn">View in Portal</a>
+                        </div>
+                        <div class="footer">
+                            <p>&copy; 2026 When2Work Team. All rights reserved.</p>
+                            <p>This is an automated message, please do not reply.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+                .formatted(heading, message);
     }
 }

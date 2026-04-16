@@ -2,7 +2,7 @@
   "info": {
     "name": "w2w-api",
     "_postman_id": "c5f52dbb-6a77-4f7d-8d40-e87dd6970344",
-    "description": "Postman collection for the current Work2Work API feature set.",
+    "description": "Postman collection for the current When2Work API feature set.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
