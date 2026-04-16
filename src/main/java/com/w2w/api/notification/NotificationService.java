@@ -20,9 +20,9 @@ public class NotificationService {
     private final EmployeeRepository employeeRepository;
     private final ScheduleRepository scheduleRepository;
 
-    public NotificationService(EmailService emailService, 
-                               EmployeeRepository employeeRepository,
-                               ScheduleRepository scheduleRepository) {
+    public NotificationService(EmailService emailService,
+            EmployeeRepository employeeRepository,
+            ScheduleRepository scheduleRepository) {
         this.emailService = emailService;
         this.employeeRepository = employeeRepository;
         this.scheduleRepository = scheduleRepository;
@@ -88,7 +88,8 @@ public class NotificationService {
         String startDate = schedule.getStartDate() != null ? schedule.getStartDate().toString() : "TBD";
         String endDate = schedule.getStartDate() != null ? schedule.getStartDate().plusDays(6).toString() : "TBD";
         Integer companyId = schedule.getCompanyId();
-        System.out.println("DEBUG: Processing notification for scheduleId: " + request.scheduleId() + ", companyId: " + companyId);
+        System.out.println(
+                "DEBUG: Processing notification for scheduleId: " + request.scheduleId() + ", companyId: " + companyId);
 
         List<Employee> targets;
         if (request.positionIds() != null && !request.positionIds().isEmpty()) {
@@ -115,8 +116,9 @@ public class NotificationService {
 
         // Log and process each intended recipient
         for (Employee employee : targets) {
-            System.out.println("DEBUG: Sending notification for intended recipient: " + employee.getEmail() + " [" + employee.getFirstName() + "]");
-            
+            System.out.println("DEBUG: Sending notification for intended recipient: " + employee.getEmail() + " ["
+                    + employee.getFirstName() + "]");
+
             String message = String.format(
                     "Dear %s,<br/><br/>The schedule from <strong>%s</strong> to <strong>%s</strong> has been <strong>%s</strong>.<br/>Please log in to the portal to view the details.<br/><br/>Best regards,<br/>When2Work Team",
                     employee.getFirstName(), startDate, endDate, action);
@@ -127,14 +129,14 @@ public class NotificationService {
                 // Send separately to debug email for each employee
                 String debugEmail = "96mbsb@gmail.com";
                 emailService.sendEmail(debugEmail, subject, htmlBody);
-                
+
                 // Original logic to send to the actual employee (commented out per request)
                 // emailService.sendEmail(employee.getEmail(), subject, htmlBody);
             } catch (Exception e) {
                 log.error("Failed to send schedule notification for {}: {}", employee.getEmail(), e.getMessage());
             }
         }
-        
+
         log.info("Schedule notification [{}] processed for scheduleId: {}, total targets: {}", request.task(),
                 request.scheduleId(), targets.size());
     }
@@ -147,23 +149,22 @@ public class NotificationService {
                     <style>
                         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
                         .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-                        .header { background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); padding: 30px; text-align: center; color: white; }
+                        .header { background-color: #2C467C; padding: 30px; text-align: center; color: white; }
                         .header h1 { margin: 0; font-size: 24px; letter-spacing: 1px; color: white; }
                         .content { padding: 40px; color: #333333; line-height: 1.6; }
-                        .content h2 { color: #764ba2; margin-top: 0; }
+                        .content h2 { color: #2C467C; margin-top: 0; }
                         .footer { background-color: #f4f7f6; padding: 20px; text-align: center; color: #777777; font-size: 12px; }
-                        .btn { display: inline-block; padding: 12px 24px; background-color: #764ba2; color: white !important; text-decoration: none; border-radius: 4px; margin-top: 20px; font-weight: bold; }
                     </style>
                 </head>
                 <body>
                     <div class="container">
                         <div class="header">
+                            <img src="https://whentowork.com/images_sales/w2w_logo_circle_und.png" alt="When2Work Logo" style="height: 60px; margin-bottom: 10px;"/>
                             <h1>When2Work</h1>
                         </div>
                         <div class="content">
                             <h2>%s</h2>
                             <p>%s</p>
-                            <a href="#" class="btn">View in Portal</a>
                         </div>
                         <div class="footer">
                             <p>&copy; 2026 When2Work Team. All rights reserved.</p>
