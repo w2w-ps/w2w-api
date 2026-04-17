@@ -5,6 +5,7 @@ import com.w2w.api.config.TenantContext;
 import com.w2w.api.employee.dto.EmployeeDetailResponse;
 import com.w2w.api.employee.dto.EmployeeRequest;
 import com.w2w.api.employee.dto.EmployeeResponse;
+import com.w2w.api.config.exception.ResourceNotFoundException;
 import com.w2w.api.employee.model.Employee;
 import com.w2w.api.employee.model.EmployeeAddress;
 import com.w2w.api.employee.repository.EmployeeRepository;
@@ -119,7 +120,7 @@ public class EmployeeService {
     public EmployeeResponse updateEmployee(Integer id, EmployeeRequest request) {
         Employee employee = employeeRepository
                 .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
 
         if (request.email() != null && !request.email().isBlank()) {
             validateUniqueEmail(TenantContext.getCurrentTenant(), request.email(), id);
@@ -136,7 +137,7 @@ public class EmployeeService {
         enforceMainManagerCheck();
         Employee employee = employeeRepository
                 .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
 
         if (request.email() != null) {
             validateUniqueEmail(TenantContext.getCurrentTenant(), request.email(), id);
@@ -301,7 +302,7 @@ public class EmployeeService {
     public void deleteEmployee(Integer id) {
         Employee employee = employeeRepository
                 .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
 
         employee.setIsDeleted(true);
         employeeRepository.save(employee);
