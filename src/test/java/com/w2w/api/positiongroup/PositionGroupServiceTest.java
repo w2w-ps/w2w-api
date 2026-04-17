@@ -3,6 +3,7 @@ package com.w2w.api.positiongroup;
 import com.w2w.api.config.TenantContext;
 import com.w2w.api.position.model.Position;
 import com.w2w.api.position.repository.PositionRepository;
+import com.w2w.api.config.exception.ResourceNotFoundException;
 import com.w2w.api.positiongroup.dto.PositionGroupSummary;
 import com.w2w.api.positiongroup.dto.UpdatePositionGroupRequest;
 import com.w2w.api.positiongroup.model.PositionGroup;
@@ -143,6 +144,15 @@ class PositionGroupServiceTest {
 
         assertTrue(positionGroup.getIsDeleted());
         verify(positionGroupRepository).save(positionGroup);
+    }
+
+    @Test
+    void deletePositionGroup_missingGroup_throwsNotFound() {
+        when(positionGroupRepository.findByGroupIdAndCompanyIdAndIsDeletedFalse(201, 1)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> positionGroupService.deletePositionGroup(201));
+
+        verify(positionGroupRepository, never()).save(any(PositionGroup.class));
     }
 
     @Test

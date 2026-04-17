@@ -1,4 +1,4 @@
-package com.w2w.api.category.dto;
+package com.w2w.api.categorygroup.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -20,27 +20,13 @@ public class PositionGroupController {
 
     @GetMapping
     public ResponseEntity<PositionGroupsResponse> getPositionGroups(
-            @RequestParam Integer companyId,
             @RequestParam(defaultValue = "all") String status
     ) {
         return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups(status)));
     }
 
-    @GetMapping("/active")
-    public ResponseEntity<PositionGroupsResponse> getActivePositionGroups(@RequestParam Integer companyId) {
-        return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups("active")));
-    }
-
-    @GetMapping("/non-active")
-    public ResponseEntity<PositionGroupsResponse> getInactivePositionGroups(@RequestParam Integer companyId) {
-        return ResponseEntity.ok(new PositionGroupsResponse(positionGroupService.getPositionGroups("inactive")));
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<PositionGroupSummary> getPositionGroupById(
-            @PathVariable("id") Integer groupId,
-            @RequestParam Integer companyId
-    ) {
+    public ResponseEntity<PositionGroupSummary> getPositionGroupById(@PathVariable("id") Integer groupId) {
         return positionGroupService.getPositionGroupById(groupId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -55,7 +41,6 @@ public class PositionGroupController {
     @PutMapping("/{id}")
     public ResponseEntity<Void> updatePositionGroup(
             @PathVariable("id") Integer groupId,
-            @RequestParam Integer companyId,
             @Valid @RequestBody UpdatePositionGroupRequest request
     ) {
         positionGroupService.updatePositionGroup(groupId, request);
@@ -63,7 +48,7 @@ public class PositionGroupController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePositionGroup(@PathVariable("id") Integer groupId, @RequestParam Integer companyId) {
+    public ResponseEntity<Void> deletePositionGroup(@PathVariable("id") Integer groupId) {
         positionGroupService.deletePositionGroup(groupId);
         return ResponseEntity.noContent().build();
     }

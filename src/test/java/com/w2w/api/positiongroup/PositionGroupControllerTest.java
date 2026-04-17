@@ -57,7 +57,7 @@ class PositionGroupControllerTest {
                         )
                 ));
 
-        mockMvc.perform(get("/api/position-groups").param("companyId", "1"))
+        mockMvc.perform(get("/api/position-groups"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.positionGroups[0].id").value(201))
                 .andExpect(jsonPath("$.positionGroups[0].name").value("Front of House"))
@@ -78,46 +78,10 @@ class PositionGroupControllerTest {
                         )
                 ));
 
-        mockMvc.perform(get("/api/position-groups").param("companyId", "1").param("status", "inactive"))
+        mockMvc.perform(get("/api/position-groups").param("status", "inactive"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.positionGroups[0].id").value(202))
                 .andExpect(jsonPath("$.positionGroups[0].name").value("Archived Group"));
-
-        verify(positionGroupService).getPositionGroups("inactive");
-    }
-
-    @Test
-    void getActivePositionGroups_returnsGroups() throws Exception {
-        when(positionGroupService.getPositionGroups("active"))
-                .thenReturn(List.of(
-                        new PositionGroupSummary(
-                                201,
-                                "Front of House",
-                                List.of(new PositionSummary(101, "Server"))
-                        )
-                ));
-
-        mockMvc.perform(get("/api/position-groups/active").param("companyId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.positionGroups[0].id").value(201));
-
-        verify(positionGroupService).getPositionGroups("active");
-    }
-
-    @Test
-    void getInactivePositionGroups_returnsGroups() throws Exception {
-        when(positionGroupService.getPositionGroups("inactive"))
-                .thenReturn(List.of(
-                        new PositionGroupSummary(
-                                202,
-                                "Archived Group",
-                                List.of(new PositionSummary(102, "Bartender"))
-                        )
-                ));
-
-        mockMvc.perform(get("/api/position-groups/non-active").param("companyId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.positionGroups[0].id").value(202));
 
         verify(positionGroupService).getPositionGroups("inactive");
     }
@@ -133,7 +97,7 @@ class PositionGroupControllerTest {
                         )
                 ));
 
-        mockMvc.perform(get("/api/position-groups/201").param("companyId", "1"))
+        mockMvc.perform(get("/api/position-groups/201"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(201))
                 .andExpect(jsonPath("$.name").value("Front of House"));
@@ -145,7 +109,7 @@ class PositionGroupControllerTest {
     void getPositionGroupById_returnsNotFoundWhenMissing() throws Exception {
         when(positionGroupService.getPositionGroupById(201)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/position-groups/201").param("companyId", "1"))
+        mockMvc.perform(get("/api/position-groups/201"))
                 .andExpect(status().isNotFound());
 
         verify(positionGroupService).getPositionGroupById(201);
@@ -157,7 +121,6 @@ class PositionGroupControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "companyId": 1,
                                   "description": "Front of House",
                                   "positionIds": [101, 102]
                                 }
@@ -170,7 +133,6 @@ class PositionGroupControllerTest {
     @Test
     void updatePositionGroup_returnsNoContent() throws Exception {
         mockMvc.perform(put("/api/position-groups/201")
-                        .param("companyId", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -192,7 +154,6 @@ class PositionGroupControllerTest {
                 .updatePositionGroup(eq(201), argThat(value -> value.positionIds().equals(List.of(999))));
 
         mockMvc.perform(put("/api/position-groups/201")
-                        .param("companyId", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -205,7 +166,7 @@ class PositionGroupControllerTest {
 
     @Test
     void deletePositionGroup_returnsNoContent() throws Exception {
-        mockMvc.perform(delete("/api/position-groups/201").param("companyId", "1"))
+        mockMvc.perform(delete("/api/position-groups/201"))
                 .andExpect(status().isNoContent());
 
         verify(positionGroupService).deletePositionGroup(201);
@@ -217,7 +178,7 @@ class PositionGroupControllerTest {
                 .when(positionGroupService)
                 .deletePositionGroup(201);
 
-        mockMvc.perform(delete("/api/position-groups/201").param("companyId", "1"))
+        mockMvc.perform(delete("/api/position-groups/201"))
                 .andExpect(status().isNotFound());
     }
 }
