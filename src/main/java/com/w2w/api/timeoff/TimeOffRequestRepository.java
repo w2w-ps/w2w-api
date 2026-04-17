@@ -17,7 +17,7 @@ public interface TimeOffRequestRepository extends JpaRepository<TimeOffRequest, 
             FROM TimeOffRequest request
             WHERE request.companyId = :companyId
               AND (:employeeId IS NULL OR request.employeeId = :employeeId)
-              AND (:status IS NULL OR UPPER(request.status) = UPPER(:status))
+              AND (:status IS NULL OR request.status = :status)
               AND (:startDate IS NULL OR request.endDate >= :startDate)
               AND (:endDate IS NULL OR request.startDate <= :endDate)
             ORDER BY request.requestedAt DESC, request.requestId DESC
