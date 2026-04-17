@@ -34,6 +34,11 @@ public class TimeOffService {
             LocalDate startDate,
             LocalDate endDate
     ) {
+        Integer tenantCompanyId = CurrentTenant.requireCurrentTenant();
+        if (!tenantCompanyId.equals(companyId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company id does not match the active tenant");
+        }
+
         String normalizedStatus = normalizeStatus(status);
         List<TimeOffRequestSummary> requests = timeOffRequestRepository.findRequests(
                         companyId,
