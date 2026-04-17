@@ -1,8 +1,8 @@
 package com.w2w.api.timeoff.integration;
 
 import com.w2w.api.config.TenantContext;
-import com.w2w.api.employee.Employee;
-import com.w2w.api.employee.EmployeeRepository;
+import com.w2w.api.employee.model.Employee;
+import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.tenant.Company;
 import com.w2w.api.tenant.CompanyRepository;
 import com.w2w.api.timeoff.TimeOffRequest;

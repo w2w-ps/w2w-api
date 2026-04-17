@@ -14,7 +14,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers(disabledWithoutDocker = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-abstract class PostgresIntegrationTestBase {
+public abstract class PostgresIntegrationTestBase {
     protected static final int TEST_COMPANY_MIN = 7000;
     protected static final int TEST_COMPANY_MAX = 7999;
 
