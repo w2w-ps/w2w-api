@@ -45,6 +45,7 @@ public class EmployeeService {
     private final ManagerPermissionsRepository permissionsRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
+
     public EmployeeService(EmployeeRepository employeeRepository, EmpTypeRepository empTypeRepository,
             PositionRepository positionRepository, LoginRepository loginRepository,
             ManagerPermissionsRepository permissionsRepository, UserRoleRepository userRoleRepository,
@@ -91,24 +92,25 @@ public class EmployeeService {
         user.setEmployee(saved);
         user.setCompanyId(saved.getCompanyId());
         user.setEmpType(saved.getEmpType());
-        
+
         // Use email as loginId if available, otherwise employee.id
-        String loginId = (saved.getEmail() != null && !saved.getEmail().isBlank()) 
-                ? saved.getEmail() 
+        String loginId = (saved.getEmail() != null && !saved.getEmail().isBlank())
+                ? saved.getEmail()
                 : "employee." + saved.getEmployeeId();
         user.setLoginId(loginId);
-        
+
         // Default password "password" hashed
         user.setPassword(passwordEncoder.encode("password"));
-        
+
         // Assign "Employee" role
         UserRole employeeRole = userRoleRepository.findByName("Employee")
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Target role 'Employee' not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Target role 'Employee' not found"));
         user.setRole(employeeRole);
-        
+
         user.setEncryptionType(0);
         user.setLoginFailures(0);
-        
+
         loginRepository.save(user);
 
         return mapToResponse(saved);
@@ -131,6 +133,7 @@ public class EmployeeService {
 
     @Transactional
     public EmployeeResponse patchEmployee(Integer id, EmployeeRequest request) {
+        enforceMainManagerCheck();
         Employee employee = employeeRepository
                 .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
@@ -146,36 +149,58 @@ public class EmployeeService {
     }
 
     private void applyPatchToEntity(EmployeeRequest request, Employee employee) {
-        if (request.firstName() != null) employee.setFirstName(request.firstName());
-        if (request.lastName() != null) employee.setLastName(request.lastName());
-        if (request.email() != null) employee.setEmail(request.email());
-        if (request.employeeNumber() != null) employee.setEmployeeNumber(request.employeeNumber());
+        if (request.firstName() != null)
+            employee.setFirstName(request.firstName());
+        if (request.lastName() != null)
+            employee.setLastName(request.lastName());
+        if (request.email() != null)
+            employee.setEmail(request.email());
+        if (request.employeeNumber() != null)
+            employee.setEmployeeNumber(request.employeeNumber());
 
         if (request.phone() != null || request.phone2() != null || request.cell() != null) {
             List<String> currentPhones = new ArrayList<>(employee.getPhones());
-            while (currentPhones.size() < 3) currentPhones.add(null);
+            while (currentPhones.size() < 3)
+                currentPhones.add(null);
 
-            if (request.phone() != null) currentPhones.set(0, request.phone());
-            if (request.phone2() != null) currentPhones.set(1, request.phone2());
-            if (request.cell() != null) currentPhones.set(2, request.cell());
+            if (request.phone() != null)
+                currentPhones.set(0, request.phone());
+            if (request.phone2() != null)
+                currentPhones.set(1, request.phone2());
+            if (request.cell() != null)
+                currentPhones.set(2, request.cell());
 
             employee.setPhones(currentPhones);
         }
 
-        if (request.hireDate() != null) employee.setHireDate(request.hireDate());
-        if (request.maxScheduledHours() != null) employee.setMaxScheduledHours(request.maxScheduledHours());
-        if (request.maxDailyHours() != null) employee.setMaxDailyHours(request.maxDailyHours());
-        if (request.payRate() != null) employee.setPayRate(request.payRate());
-        if (request.maxWeeklyDays() != null) employee.setMaxWeeklyDays(request.maxWeeklyDays());
-        if (request.maxDailyShifts() != null) employee.setMaxDailyShifts(request.maxDailyShifts());
-        if (request.comments() != null) employee.setComments(request.comments());
-        if (request.priorityGroup() != null) employee.setPriorityGroup(request.priorityGroup());
-        if (request.googleCalExport() != null) employee.setGoogleCalExport(request.googleCalExport());
-        if (request.nextAlertDate() != null) employee.setNextAlertDate(request.nextAlertDate());
-        if (request.customField1() != null) employee.setCustomField1(request.customField1());
-        if (request.customField2() != null) employee.setCustomField2(request.customField2());
-        if (request.employeePhoto() != null) employee.setEmployeePhoto(request.employeePhoto());
-        if (request.accessibilityMode() != null) employee.setAccessibilityMode(request.accessibilityMode());
+        if (request.hireDate() != null)
+            employee.setHireDate(request.hireDate());
+        if (request.maxScheduledHours() != null)
+            employee.setMaxScheduledHours(request.maxScheduledHours());
+        if (request.maxDailyHours() != null)
+            employee.setMaxDailyHours(request.maxDailyHours());
+        if (request.payRate() != null)
+            employee.setPayRate(request.payRate());
+        if (request.maxWeeklyDays() != null)
+            employee.setMaxWeeklyDays(request.maxWeeklyDays());
+        if (request.maxDailyShifts() != null)
+            employee.setMaxDailyShifts(request.maxDailyShifts());
+        if (request.comments() != null)
+            employee.setComments(request.comments());
+        if (request.priorityGroup() != null)
+            employee.setPriorityGroup(request.priorityGroup());
+        if (request.googleCalExport() != null)
+            employee.setGoogleCalExport(request.googleCalExport());
+        if (request.nextAlertDate() != null)
+            employee.setNextAlertDate(request.nextAlertDate());
+        if (request.customField1() != null)
+            employee.setCustomField1(request.customField1());
+        if (request.customField2() != null)
+            employee.setCustomField2(request.customField2());
+        if (request.employeePhoto() != null)
+            employee.setEmployeePhoto(request.employeePhoto());
+        if (request.accessibilityMode() != null)
+            employee.setAccessibilityMode(request.accessibilityMode());
 
         if (request.positionIds() != null) {
             List<Position> positions = positionRepository.findByPositionIdInAndCompanyId(
@@ -201,11 +226,16 @@ public class EmployeeService {
             address.setEmployee(employee);
             employee.setAddress(address);
         }
-        if (addressReq.address() != null) address.setAddress(addressReq.address());
-        if (addressReq.address2() != null) address.setAddress2(addressReq.address2());
-        if (addressReq.city() != null) address.setCity(addressReq.city());
-        if (addressReq.state() != null) address.setState(addressReq.state());
-        if (addressReq.zip() != null) address.setZip(addressReq.zip());
+        if (addressReq.address() != null)
+            address.setAddress(addressReq.address());
+        if (addressReq.address2() != null)
+            address.setAddress2(addressReq.address2());
+        if (addressReq.city() != null)
+            address.setCity(addressReq.city());
+        if (addressReq.state() != null)
+            address.setState(addressReq.state());
+        if (addressReq.zip() != null)
+            address.setZip(addressReq.zip());
     }
 
     private void validateUniqueEmail(Integer companyId, String email, Integer employeeId) {
