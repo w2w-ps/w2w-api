@@ -29,13 +29,12 @@ public class TimeOffController {
 
     @GetMapping("/requests")
     public ResponseEntity<TimeOffRequestsResponse> getTimeOffRequests(
-            @RequestParam Integer companyId,
             @RequestParam(required = false) Integer employeeId,
             @RequestParam(defaultValue = "all") String status,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
-        return ResponseEntity.ok(timeOffService.getTimeOffRequests(companyId, employeeId, status, startDate, endDate));
+        return ResponseEntity.ok(timeOffService.getTimeOffRequests(employeeId, status, startDate, endDate));
     }
 
     @PostMapping("/requests")
@@ -45,10 +44,9 @@ public class TimeOffController {
 
     @PutMapping("/requests/{requestId}/cancel")
     public ResponseEntity<Void> cancelTimeOffRequest(
-            @RequestParam Integer companyId,
             @PathVariable Integer requestId
     ) {
-        timeOffService.cancelTimeOffRequest(companyId, requestId);
+        timeOffService.cancelTimeOffRequest(requestId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -7,11 +7,10 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public record CreateTimeOffRequest(
-        @NotNull Integer companyId,
         @NotNull Integer employeeId,
-        @NotNull LocalDate date,
+        @NotNull LocalDate startDate,
+        @NotNull LocalDate endDate,
         @NotNull Boolean fullDay,
-        Integer dayCount,
         LocalTime startTime,
         LocalTime endTime,
         @Min(1) Integer repeatCount,

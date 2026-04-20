@@ -1294,7 +1294,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"2026-04-22\",\n  \"fullDay\": true,\n  \"dayCount\": 2,\n  \"comments\": \"Optional comment\"\n}",
+              "raw": "{\n  \"employeeId\": {{employeeId}},\n  \"startDate\": \"2026-04-22\",\n  \"endDate\": \"2026-04-23\",\n  \"fullDay\": true,\n  \"comments\": \"Optional comment\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1321,7 +1321,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"employeeId\": {{employeeId}},\n  \"date\": \"2026-04-22\",\n  \"fullDay\": false,\n  \"startTime\": \"08:00:00\",\n  \"endTime\": \"17:00:00\",\n  \"repeatCount\": 2,\n  \"comments\": \"Optional comment\"\n}",
+              "raw": "{\n  \"employeeId\": {{employeeId}},\n  \"startDate\": \"2026-04-22\",\n  \"endDate\": \"2026-04-22\",\n  \"fullDay\": false,\n  \"startTime\": \"08:00:00\",\n  \"endTime\": \"17:00:00\",\n  \"repeatCount\": 2,\n  \"comments\": \"Optional comment\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1343,7 +1343,7 @@
               }
             ],
             "description": "Returns tenant-scoped time off requests with the display fields used by the time-off list, including end date/time text, requested timestamp, comments, and repeat summary.",
-            "url": "{{baseUrl}}/api/time-off/requests?companyId={{companyId}}&status=all"
+            "url": "{{baseUrl}}/api/time-off/requests?status=all"
           }
         }
       ]

@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
 
@@ -28,17 +29,12 @@ public class TimeOffService {
 
     @Transactional(readOnly = true)
     public TimeOffRequestsResponse getTimeOffRequests(
-            Integer companyId,
             Integer employeeId,
             String status,
             LocalDate startDate,
             LocalDate endDate
     ) {
-        Integer tenantCompanyId = CurrentTenant.requireCurrentTenant();
-        if (!tenantCompanyId.equals(companyId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company id does not match the active tenant");
-        }
-
+        Integer companyId = CurrentTenant.requireCurrentTenant();
         String normalizedStatus = normalizeStatus(status);
         List<TimeOffRequestSummary> requests = timeOffRequestRepository.findRequests(
                         companyId,
@@ -56,30 +52,29 @@ public class TimeOffService {
 
     @Transactional
     public TimeOffRequestSummary createTimeOffRequest(CreateTimeOffRequest request) {
-        Integer tenantCompanyId = CurrentTenant.requireCurrentTenant();
-        if (!tenantCompanyId.equals(request.companyId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company id does not match the active tenant");
-        }
+        Integer companyId = CurrentTenant.requireCurrentTenant();
 
         validateCreateRequest(request);
 
         TimeOffRequest entity = new TimeOffRequest();
-        entity.setCompanyId(request.companyId());
+        entity.setCompanyId(companyId);
         entity.setEmployeeId(request.employeeId());
-        entity.setStartDate(request.date());
+        entity.setStartDate(request.startDate());
+        entity.setEndDate(request.endDate());
         entity.setFullDay(Boolean.TRUE.equals(request.fullDay()));
+        
+        // Calculate dayCount from date range
+        long calculatedDayCount = ChronoUnit.DAYS.between(request.startDate(), request.endDate()) + 1;
+        entity.setDayCount((int) calculatedDayCount);
+        
         if (Boolean.TRUE.equals(request.fullDay())) {
-            int dayCount = request.dayCount();
-            entity.setDayCount(dayCount);
             entity.setStartTime(null);
             entity.setEndTime(null);
-            entity.setEndDate(request.date().plusDays(dayCount - 1L));
             entity.setRepeatCount(1);
         } else {
             entity.setDayCount(1);
             entity.setStartTime(request.startTime());
             entity.setEndTime(request.endTime());
-            entity.setEndDate(request.date());
             entity.setRepeatCount(request.repeatCount());
         }
         entity.setRequestedAt(LocalDateTime.now());
@@ -90,11 +85,8 @@ public class TimeOffService {
     }
 
     @Transactional
-    public void cancelTimeOffRequest(Integer companyId, Integer requestId) {
-        Integer tenantCompanyId = CurrentTenant.requireCurrentTenant();
-        if (!tenantCompanyId.equals(companyId)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Company id does not match the active tenant");
-        }
+    public void cancelTimeOffRequest(Integer requestId) {
+        Integer companyId = CurrentTenant.requireCurrentTenant();
 
         TimeOffRequest request = timeOffRequestRepository.findByRequestIdAndCompanyId(requestId, companyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Time off request not found"));
@@ -125,10 +117,12 @@ public class TimeOffService {
     }
 
     private void validateCreateRequest(CreateTimeOffRequest request) {
+        if (request.startDate().isAfter(request.endDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "startDate must be before or equal to endDate");
+        }
+        
         if (Boolean.TRUE.equals(request.fullDay())) {
-            if (request.dayCount() == null || request.dayCount() < 1) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "dayCount is required for full day requests");
-            }
+            // No dayCount validation needed - calculated from date range
         } else {
             if (request.startTime() == null || request.endTime() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "startTime and endTime are required for partial requests");

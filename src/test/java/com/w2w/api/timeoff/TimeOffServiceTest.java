@@ -49,13 +49,18 @@ class TimeOffServiceTest {
 
         when(timeOffRequestRepository.findRequests(1, null, null, null, null)).thenReturn(List.of(request));
 
-        TimeOffRequestsResponse response = timeOffService.getTimeOffRequests(1, null, "all", null, null);
+        TenantContext.setCurrentTenant(1);
+        try {
+            TimeOffRequestsResponse response = timeOffService.getTimeOffRequests(null, "all", null, null);
 
-        assertEquals(1, response.timeOffRequests().size());
-        assertEquals("8am to 11:59pm", response.timeOffRequests().getFirst().endDateTimes());
-        assertEquals("Repeats for 2 Weeks", response.timeOffRequests().getFirst().repeatSummary());
-        assertEquals(true, response.timeOffRequests().getFirst().canCancel());
-        assertEquals(LocalDateTime.of(2024, 9, 27, 7, 17), response.timeOffRequests().getFirst().requestedAt());
+            assertEquals(1, response.timeOffRequests().size());
+            assertEquals("8am to 11:59pm", response.timeOffRequests().getFirst().endDateTimes());
+            assertEquals("Repeats for 2 Weeks", response.timeOffRequests().getFirst().repeatSummary());
+            assertEquals(true, response.timeOffRequests().getFirst().canCancel());
+            assertEquals(LocalDateTime.of(2024, 9, 27, 7, 17), response.timeOffRequests().getFirst().requestedAt());
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     @Test
@@ -72,11 +77,16 @@ class TimeOffServiceTest {
 
         when(timeOffRequestRepository.findRequests(1, 11, null, null, null)).thenReturn(List.of(request));
 
-        TimeOffRequestsResponse response = timeOffService.getTimeOffRequests(1, 11, "all", null, null);
+        TenantContext.setCurrentTenant(1);
+        try {
+            TimeOffRequestsResponse response = timeOffService.getTimeOffRequests(11, "all", null, null);
 
-        assertEquals("Jun 5, 2023", response.timeOffRequests().getFirst().endDateTimes());
-        assertNull(response.timeOffRequests().getFirst().repeatSummary());
-        assertEquals(false, response.timeOffRequests().getFirst().canCancel());
+            assertEquals("Jun 5, 2023", response.timeOffRequests().getFirst().endDateTimes());
+            assertNull(response.timeOffRequests().getFirst().repeatSummary());
+            assertEquals(false, response.timeOffRequests().getFirst().canCancel());
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     @Test
@@ -97,11 +107,10 @@ class TimeOffServiceTest {
         when(timeOffRequestRepository.save(any(TimeOffRequest.class))).thenReturn(saved);
 
         CreateTimeOffRequest request = new CreateTimeOffRequest(
-                1,
                 11,
                 LocalDate.of(2026, 4, 22),
+                LocalDate.of(2026, 4, 23),
                 true,
-                2,
                 null,
                 null,
                 null,
@@ -130,7 +139,7 @@ class TimeOffServiceTest {
 
         TenantContext.setCurrentTenant(1);
         try {
-            timeOffService.cancelTimeOffRequest(1, 3001);
+            timeOffService.cancelTimeOffRequest(3001);
         } finally {
             TenantContext.clear();
         }
@@ -151,7 +160,7 @@ class TimeOffServiceTest {
 
         TenantContext.setCurrentTenant(1);
         try {
-            ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> timeOffService.cancelTimeOffRequest(1, 3002));
+            ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> timeOffService.cancelTimeOffRequest(3002));
             assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
             assertEquals("Only pending time off requests can be cancelled", exception.getReason());
         } finally {
@@ -163,9 +172,9 @@ class TimeOffServiceTest {
     void cancelTimeOffRequestRejectsCompanyMismatch() {
         TenantContext.setCurrentTenant(1);
         try {
-            ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> timeOffService.cancelTimeOffRequest(2, 3003));
-            assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
-            assertEquals("Company id does not match the active tenant", exception.getReason());
+            ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> timeOffService.cancelTimeOffRequest(3003));
+            assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+            assertEquals("Time off request not found", exception.getReason());
         } finally {
             TenantContext.clear();
         }

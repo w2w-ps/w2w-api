@@ -60,8 +60,9 @@
   `GET /api/scheduling/shifts/date-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` wrapped response with `title`, `totalShifts`, `totalHours`, and `dates[{ weekday, date, ... }]`; shift items include nullable `employmentType`
   `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` deprecated
 - `timeoff`
-  `GET /api/time-off/requests?companyId=...&employeeId=...&status=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
+  `GET /api/time-off/requests?employeeId=...&status=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
   `POST /api/time-off/requests`
+  `PUT /api/time-off/requests/{requestId}/cancel`
 - `preferences`
   `GET /api/preferences/day?employeeId=...&date=...&companyId=...`
   `GET /api/preferences/day/range?employeeId=...&startDate=...&endDate=...&companyId=...`

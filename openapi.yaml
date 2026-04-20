@@ -380,11 +380,6 @@ paths:
       summary: Get time off requests for a company
       parameters:
         - in: query
-          name: companyId
-          required: true
-          schema:
-            type: integer
-        - in: query
           name: employeeId
           required: false
           schema:
@@ -435,6 +430,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TimeOffRequestSummary'
+  /api/time-off/requests/{requestId}/cancel:
+    put:
+      summary: Cancel a time off request
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Time off request cancelled successfully
   /api/positions:
     get:
       summary: Get positions for a company
@@ -2020,23 +2027,21 @@ components:
     CreateTimeOffRequest:
       type: object
       required:
-        - companyId
         - employeeId
-        - date
+        - startDate
+        - endDate
         - fullDay
       properties:
-        companyId:
-          type: integer
         employeeId:
           type: integer
-        date:
+        startDate:
+          type: string
+          format: date
+        endDate:
           type: string
           format: date
         fullDay:
           type: boolean
-        dayCount:
-          type: integer
-          minimum: 1
         startTime:
           type: string
           example: 8:00AM
