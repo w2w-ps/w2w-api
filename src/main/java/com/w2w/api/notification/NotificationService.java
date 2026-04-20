@@ -1,7 +1,7 @@
 package com.w2w.api.notification;
 
-import com.w2w.api.employee.Employee;
-import com.w2w.api.employee.EmployeeRepository;
+import com.w2w.api.employee.model.Employee;
+import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.scheduling.ScheduleRepository;
 import com.w2w.api.scheduling.model.Schedule;
 import org.slf4j.Logger;

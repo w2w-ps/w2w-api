@@ -56,8 +56,7 @@ public class SchedulingController {
                 request.duration(),
                 request.position(),
                 request.category(),
-                request.color()
-        );
+                request.color());
     }
 
     @PutMapping("/shifts/{shiftId}")
@@ -96,8 +95,7 @@ public class SchedulingController {
             @RequestParam Integer companyId,
             @RequestParam ShiftGrouping grouping,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
-    ) {
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         return schedulingService.getShiftsGrouped(startDate, endDate, grouping);
     }
 
