@@ -7,10 +7,14 @@ pipeline {
     ECR_REPO = 'poc-when-to-work'
     IMAGE_TAG = "backend-dev-${BUILD_NUMBER}"
     K8S_PATH = 'k8s'
-    DOCKER_BUILDKIT=1
+    DOCKER_BUILDKIT = 1
     KUBECONFIG = credentials('kubeconfig-credential-id')
+
+    // 🔥 JaCoCo + Sonar paths
+    SONAR_JACOCO_REPORT_PATH = 'target/site/jacoco/jacoco.xml'
   }
-   tools {
+
+  tools {
     jdk 'java25'
     maven 'maven-3.9.2'
   }
@@ -23,23 +27,31 @@ pipeline {
       }
     }
 
-    stage('Build (Maven)') {
+    /* ---------------- BUILD + TEST + JACOCO ---------------- */
+
+    stage('Build + Test (with JaCoCo)') {
       steps {
-        sh "mvn clean package "
+        sh """
+          mvn clean verify
+        """
       }
     }
 
+    /* ---------------- SONAR ---------------- */
+
     stage('SonarQube Scan') {
-    steps {
-      withSonarQubeEnv('wm-ps-team-sonar') {
-      sh """
-      mvn sonar:sonar \
-        -Dsonar.projectKey=w2w-api \
-        -Dsonar.projectName=w2w-api
-      """
-     }
+      steps {
+        withSonarQubeEnv('wm-ps-team-sonar') {
+          sh """
+            mvn sonar:sonar \
+              -Dsonar.projectKey=w2w-api \
+              -Dsonar.projectName=w2w-api \
+              -Dsonar.coverage.jacoco.xmlReportPaths=${SONAR_JACOCO_REPORT_PATH}
+          """
+        }
+      }
     }
-   }
+
     stage('Quality Gate') {
       steps {
         timeout(time: 5, unit: 'MINUTES') {
@@ -47,6 +59,22 @@ pipeline {
         }
       }
     }
+
+    /* ---------------- OPTIONAL REPORT PUBLISHING ---------------- */
+
+    stage('Publish Test Reports') {
+      steps {
+        junit '**/target/surefire-reports/*.xml'
+      }
+    }
+
+    stage('Publish JaCoCo Report') {
+      steps {
+        jacoco execPattern: '**/target/jacoco.exec'
+      }
+    }
+
+    /* ---------------- AWS ---------------- */
 
     stage('Prepare AWS') {
       steps {
@@ -59,8 +87,8 @@ pipeline {
           env.ECR_REGISTRY = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_REGION}.amazonaws.com"
 
           sh """
-          aws ecr get-login-password --region ${AWS_REGION} \
-          | docker login --username AWS --password-stdin ${env.ECR_REGISTRY}
+            aws ecr get-login-password --region ${AWS_REGION} \
+            | docker login --username AWS --password-stdin ${env.ECR_REGISTRY}
           """
         }
       }
@@ -69,8 +97,8 @@ pipeline {
     stage('Build Docker Image') {
       steps {
         sh """
-        docker buildx build --no-cache \
-        -t ${ECR_REPO}:${IMAGE_TAG} .
+          docker buildx build --no-cache \
+            -t ${ECR_REPO}:${IMAGE_TAG} .
         """
       }
     }
@@ -78,8 +106,8 @@ pipeline {
     stage('Push Image to ECR') {
       steps {
         sh """
-        docker tag ${ECR_REPO}:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
-        docker push ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
+          docker tag ${ECR_REPO}:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
+          docker push ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
         """
       }
     }
@@ -90,14 +118,13 @@ pipeline {
           def image = "${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}"
 
           sh """
-          sed -i 's|image: .*|image: ${image}|' ${K8S_PATH}/deployment.yaml
+            sed -i 's|image: .*|image: ${image}|' ${K8S_PATH}/deployment.yaml
 
-          kubectl apply -f ${K8S_PATH}/deployment.yaml
-          kubectl apply -f ${K8S_PATH}/ingress.yaml
+            kubectl apply -f ${K8S_PATH}/deployment.yaml
+            kubectl apply -f ${K8S_PATH}/ingress.yaml
           """
         }
       }
     }
-
   }
 }

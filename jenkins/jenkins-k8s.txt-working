@@ -1,0 +1,103 @@
+pipeline {
+
+  agent any
+
+  environment {
+    AWS_REGION = 'us-east-1'
+    ECR_REPO = 'poc-when-to-work'
+    IMAGE_TAG = "backend-dev-${BUILD_NUMBER}"
+    K8S_PATH = 'k8s'
+    DOCKER_BUILDKIT=1
+    KUBECONFIG = credentials('kubeconfig-credential-id')
+  }
+   tools {
+    jdk 'java25'
+    maven 'maven-3.9.2'
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Build (Maven)') {
+      steps {
+        sh "mvn clean package "
+      }
+    }
+
+    stage('SonarQube Scan') {
+    steps {
+      withSonarQubeEnv('wm-ps-team-sonar') {
+      sh """
+      mvn sonar:sonar \
+        -Dsonar.projectKey=w2w-api \
+        -Dsonar.projectName=w2w-api
+      """
+     }
+    }
+   }
+    stage('Quality Gate') {
+      steps {
+        timeout(time: 5, unit: 'MINUTES') {
+          waitForQualityGate abortPipeline: true
+        }
+      }
+    }
+
+    stage('Prepare AWS') {
+      steps {
+        script {
+          env.AWS_ACCOUNT_ID = sh(
+            script: "aws sts get-caller-identity --query Account --output text",
+            returnStdout: true
+          ).trim()
+
+          env.ECR_REGISTRY = "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_REGION}.amazonaws.com"
+
+          sh """
+          aws ecr get-login-password --region ${AWS_REGION} \
+          | docker login --username AWS --password-stdin ${env.ECR_REGISTRY}
+          """
+        }
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        sh """
+        docker buildx build --no-cache \
+        -t ${ECR_REPO}:${IMAGE_TAG} .
+        """
+      }
+    }
+
+    stage('Push Image to ECR') {
+      steps {
+        sh """
+        docker tag ${ECR_REPO}:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
+        docker push ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
+        """
+      }
+    }
+
+    stage('Deploy to Kubernetes') {
+      steps {
+        script {
+          def image = "${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}"
+
+          sh """
+          sed -i 's|image: .*|image: ${image}|' ${K8S_PATH}/deployment.yaml
+
+          kubectl apply -f ${K8S_PATH}/deployment.yaml
+          kubectl apply -f ${K8S_PATH}/ingress.yaml
+          """
+        }
+      }
+    }
+
+  }
+}
