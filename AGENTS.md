@@ -77,6 +77,9 @@
   `POST /api/preferences/day/repeat`
   `GET /api/preferences/week?employeeId=...&startDate=...&companyId=...`
   `POST /api/preferences/week`
+- `reports`
+  `POST /api/reports/csv` generate CSV from JSON data
+  `POST /api/reports/pdf` generate PDF from JSON data
 
 ## Tenanting Rules
 - Reads and writes are tenant-scoped by setting `TenantContext` before repository access.

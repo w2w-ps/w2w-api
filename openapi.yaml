@@ -18,6 +18,40 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ShiftColorResponse'
+  /api/reports/csv:
+    post:
+      summary: Generate CSV report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+  /api/reports/pdf:
+    post:
+      summary: Generate PDF report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
   /api/scheduling/shifts:
     post:
       summary: Create a shift
@@ -2125,7 +2159,7 @@ components:
         password: { type: string }
         permissions:
           $ref: '#/components/schemas/ManagerPermissionsDto'
-    TimeOffRequestSummary:
+    TimeOffSummary:
       type: object
       properties:
         requestId:
@@ -2206,3 +2240,27 @@ components:
           enum: [APPROVE, DECLINE]
         managerComments:
           type: string
+    ReportRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        categoryFilter:
+          type: string
+        positionsFilter:
+          type: string
+        statusFilter:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportItem'
+    ReportItem:
+      type: object
+      additionalProperties: true
