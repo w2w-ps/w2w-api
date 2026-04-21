@@ -10,7 +10,7 @@ pipeline {
     DOCKER_BUILDKIT = 1
     KUBECONFIG = credentials('kubeconfig-credential-id')
 
-    // 🔥 JaCoCo + Sonar paths
+    //  JaCoCo + Sonar paths
     SONAR_JACOCO_REPORT_PATH = 'target/site/jacoco/jacoco.xml'
   }
 
@@ -20,6 +20,11 @@ pipeline {
   }
 
   stages {
+    stage('Clean Workspace') {
+    steps {
+       cleanWs()
+    }
+   }
 
     stage('Checkout') {
       steps {
