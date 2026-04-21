@@ -1,3 +1,7 @@
+properties([
+  pipelineTriggers([])
+])
+
 pipeline {
 
   agent any
@@ -10,43 +14,8 @@ pipeline {
     DOCKER_BUILDKIT=1
     KUBECONFIG = credentials('kubeconfig-credential-id')
   }
-   tools {
-    jdk 'java21'
-    maven 'maven-3.9.2'
-  }
 
   stages {
-
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
-    }
-
-    stage('Build (Maven)') {
-      steps {
-        sh "mvn clean package -DskipTests"
-      }
-    }
-
-    stage('SonarQube Scan') {
-    steps {
-      withSonarQubeEnv('wm-ps-team-sonar') {
-      sh """
-      mvn sonar:sonar \
-        -Dsonar.projectKey=w2w-api \
-        -Dsonar.projectName=w2w-api
-      """
-     }
-    }
-   }
-    stage('Quality Gate') {
-      steps {
-        timeout(time: 5, unit: 'MINUTES') {
-          waitForQualityGate abortPipeline: true
-        }
-      }
-    }
 
     stage('Prepare AWS') {
       steps {
@@ -75,10 +44,12 @@ pipeline {
       }
     }
 
+
     stage('Push Image to ECR') {
       steps {
         sh """
         docker tag ${ECR_REPO}:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
+
         docker push ${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}
         """
       }
@@ -87,6 +58,7 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         script {
+
           def image = "${ECR_REGISTRY}/${ECR_REPO}:${IMAGE_TAG}"
 
           sh """
@@ -100,4 +72,5 @@ pipeline {
     }
 
   }
+
 }
