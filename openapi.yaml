@@ -417,6 +417,7 @@ paths:
                 $ref: '#/components/schemas/TimeOffRequestsResponse'
     post:
       summary: Create a time off request
+      description: Employees can create requests for themselves; managers can create requests for any employee by setting employeeId.
       requestBody:
         required: true
         content:

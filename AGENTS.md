@@ -61,7 +61,7 @@
   `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` deprecated
 - `timeoff`
   `GET /api/time-off/requests?employeeId=...&status=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
-  `POST /api/time-off/requests`
+  `POST /api/time-off/requests` accepts `employeeId`; managers can create for any employee
   `PUT /api/time-off/requests/{requestId}/cancel`
 - `preferences`
   `GET /api/preferences/day?employeeId=...&date=...&companyId=...`

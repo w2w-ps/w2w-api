@@ -5,6 +5,7 @@ import com.w2w.api.timeoff.dto.CreateTimeOffRequest;
 import com.w2w.api.timeoff.dto.TimeOffRequestSummary;
 import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -51,6 +52,7 @@ public class TimeOffService {
     }
 
     @Transactional
+    @PreAuthorize("@timeOffPolicy.canCreateForEmployee(#request.employeeId(), authentication)")
     public TimeOffRequestSummary createTimeOffRequest(CreateTimeOffRequest request) {
         Integer companyId = CurrentTenant.requireCurrentTenant();
 
