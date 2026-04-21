@@ -430,7 +430,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TimeOffRequestSummary'
+                $ref: '#/components/schemas/TimeOffSummary'
   /api/time-off/requests/{requestId}/cancel:
     put:
       summary: Cancel a time off request
@@ -464,7 +464,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TimeOffRequestSummary'
+                $ref: '#/components/schemas/TimeOffSummary'
   /api/positions:
     get:
       summary: Get positions for a company
@@ -2046,7 +2046,7 @@ components:
         timeOffRequests:
           type: array
           items:
-            $ref: '#/components/schemas/TimeOffRequestSummary'
+            $ref: '#/components/schemas/TimeOffSummary'
     CreateTimeOffRequest:
       type: object
       required:

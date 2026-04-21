@@ -3,7 +3,7 @@ package com.w2w.api.timeoff;
 import com.w2w.api.config.CurrentTenant;
 import com.w2w.api.timeoff.dto.ApproveTimeOffRequest;
 import com.w2w.api.timeoff.dto.CreateTimeOffRequest;
-import com.w2w.api.timeoff.dto.TimeOffRequestSummary;
+import com.w2w.api.timeoff.dto.TimeOffSummary;
 import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -38,7 +38,7 @@ public class TimeOffService {
     ) {
         Integer companyId = CurrentTenant.requireCurrentTenant();
         String normalizedStatus = normalizeStatus(status);
-        List<TimeOffRequestSummary> requests = timeOffRequestRepository.findRequests(
+        List<TimeOffSummary> requests = timeOffRequestRepository.findRequests(
                         companyId,
                         employeeId,
                         normalizedStatus,
@@ -54,7 +54,7 @@ public class TimeOffService {
 
     @Transactional
     @PreAuthorize("@timeOffPolicy.canCreateForEmployee(#request.employeeId(), authentication)")
-    public TimeOffRequestSummary createTimeOffRequest(CreateTimeOffRequest request) {
+    public TimeOffSummary createTimeOffRequest(CreateTimeOffRequest request) {
         Integer companyId = CurrentTenant.requireCurrentTenant();
 
         validateCreateRequest(request);
@@ -89,7 +89,7 @@ public class TimeOffService {
 
     @Transactional
     @PreAuthorize("@timeOffPolicy.canApproveTimeOffRequest(authentication)")
-    public TimeOffRequestSummary approveTimeOffRequest(Integer requestId, ApproveTimeOffRequest request) {
+    public TimeOffSummary approveTimeOffRequest(Integer requestId, ApproveTimeOffRequest request) {
         Integer companyId = CurrentTenant.requireCurrentTenant();
 
         TimeOffRequest timeOffRequest = timeOffRequestRepository.findByRequestIdAndCompanyId(requestId, companyId)
@@ -129,8 +129,8 @@ public class TimeOffService {
         timeOffRequestRepository.save(request);
     }
 
-    private TimeOffRequestSummary toSummary(TimeOffRequest request) {
-        return new TimeOffRequestSummary(
+    private TimeOffSummary toSummary(TimeOffRequest request) {
+        return new TimeOffSummary(
                 request.getRequestId(),
                 request.getEmployeeId(),
                 request.getStartDate(),

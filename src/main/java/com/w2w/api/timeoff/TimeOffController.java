@@ -2,7 +2,7 @@ package com.w2w.api.timeoff;
 
 import com.w2w.api.timeoff.dto.ApproveTimeOffRequest;
 import com.w2w.api.timeoff.dto.CreateTimeOffRequest;
-import com.w2w.api.timeoff.dto.TimeOffRequestSummary;
+import com.w2w.api.timeoff.dto.TimeOffSummary;
 import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -39,12 +39,12 @@ public class TimeOffController {
     }
 
     @PostMapping("/requests")
-    public ResponseEntity<TimeOffRequestSummary> createTimeOffRequest(@Valid @RequestBody CreateTimeOffRequest request) {
+    public ResponseEntity<TimeOffSummary> createTimeOffRequest(@Valid @RequestBody CreateTimeOffRequest request) {
         return ResponseEntity.status(201).body(timeOffService.createTimeOffRequest(request));
     }
 
     @PutMapping("/requests/{requestId}/approve")
-    public ResponseEntity<TimeOffRequestSummary> approveTimeOffRequest(
+    public ResponseEntity<TimeOffSummary> approveTimeOffRequest(
             @PathVariable Integer requestId,
             @Valid @RequestBody ApproveTimeOffRequest request
     ) {
