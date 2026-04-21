@@ -1,5 +1,6 @@
 package com.w2w.api.timeoff;
 
+import com.w2w.api.config.CurrentTenant;
 import com.w2w.api.login.LoginRepository;
 import com.w2w.api.login.User;
 import com.w2w.api.manager.ManagerPermissions;
@@ -12,13 +13,16 @@ public class TimeOffPolicy {
 
     private final LoginRepository loginRepository;
     private final ManagerPermissionsRepository managerPermissionsRepository;
+    private final TimeOffRequestRepository timeOffRequestRepository;
 
     public TimeOffPolicy(
             LoginRepository loginRepository,
-            ManagerPermissionsRepository managerPermissionsRepository
+            ManagerPermissionsRepository managerPermissionsRepository,
+            TimeOffRequestRepository timeOffRequestRepository
     ) {
         this.loginRepository = loginRepository;
         this.managerPermissionsRepository = managerPermissionsRepository;
+        this.timeOffRequestRepository = timeOffRequestRepository;
     }
 
     public boolean canCreateForEmployee(Integer employeeId, Authentication authentication) {
@@ -37,6 +41,23 @@ public class TimeOffPolicy {
 
     public boolean canApproveTimeOffRequest(Authentication authentication) {
         return canManage(authentication);
+    }
+
+    public boolean canCancelTimeOffRequest(Integer requestId, Authentication authentication) {
+        User currentUser = resolveCurrentUser(authentication);
+        if (currentUser == null || requestId == null) {
+            return false;
+        }
+
+        if (canManage(currentUser)) {
+            return true;
+        }
+
+        Integer companyId = CurrentTenant.requireCurrentTenant();
+        return timeOffRequestRepository.findByRequestIdAndCompanyId(requestId, companyId)
+                .map(timeOffRequest -> currentUser.getEmployeeId() != null
+                        && currentUser.getEmployeeId().equals(timeOffRequest.getEmployeeId()))
+                .orElse(false);
     }
 
     public boolean canManage(Authentication authentication) {

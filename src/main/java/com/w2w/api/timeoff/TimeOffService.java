@@ -115,6 +115,7 @@ public class TimeOffService {
     }
 
     @Transactional
+    @PreAuthorize("@timeOffPolicy.canCancelTimeOffRequest(#requestId, authentication)")
     public void cancelTimeOffRequest(Integer requestId) {
         Integer companyId = CurrentTenant.requireCurrentTenant();
 

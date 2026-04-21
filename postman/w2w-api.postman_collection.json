@@ -1394,6 +1394,20 @@
             "description": "Approves or declines a pending time off request. Managers can use this to process employee time off requests. Use action: APPROVE or action: DECLINE.",
             "url": "{{baseUrl}}/api/time-off/requests/1001/approve"
           }
+        },
+        {
+          "name": "Cancel Time Off Request",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Cancels a pending time off request. Employees can cancel their own requests, and managers can cancel any request in their tenant.",
+            "url": "{{baseUrl}}/api/time-off/requests/1001/cancel"
+          }
         }
       ]
     }
