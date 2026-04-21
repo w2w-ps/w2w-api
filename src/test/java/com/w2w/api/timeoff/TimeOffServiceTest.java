@@ -1,6 +1,7 @@
 package com.w2w.api.timeoff;
 
 import com.w2w.api.config.TenantContext;
+import com.w2w.api.timeoff.dto.ApproveTimeOffRequest;
 import com.w2w.api.timeoff.dto.CreateTimeOffRequest;
 import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -173,6 +174,137 @@ class TimeOffServiceTest {
         TenantContext.setCurrentTenant(1);
         try {
             ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> timeOffService.cancelTimeOffRequest(3003));
+            assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+            assertEquals("Time off request not found", exception.getReason());
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    @Test
+    void approveTimeOffRequestApprovesPendingRequest() {
+        TimeOffRequest request = new TimeOffRequest();
+        request.setRequestId(4001);
+        request.setCompanyId(1);
+        request.setEmployeeId(11);
+        request.setStatus("PENDING");
+        request.setComments("Original comment");
+
+        when(timeOffRequestRepository.findByRequestIdAndCompanyId(4001, 1)).thenReturn(Optional.of(request));
+        when(timeOffRequestRepository.save(any(TimeOffRequest.class))).thenReturn(request);
+
+        ApproveTimeOffRequest approveRequest = new ApproveTimeOffRequest(
+                ApproveTimeOffRequest.Action.APPROVE,
+                "Approved by manager"
+        );
+
+        TenantContext.setCurrentTenant(1);
+        try {
+            var result = timeOffService.approveTimeOffRequest(4001, approveRequest);
+            assertEquals("APPROVED", request.getStatus());
+            assertEquals("Original comment\n\nManager: Approved by manager", request.getComments());
+            assertEquals(4001, result.requestId());
+        } finally {
+            TenantContext.clear();
+        }
+
+        verify(timeOffRequestRepository).save(request);
+    }
+
+    @Test
+    void approveTimeOffRequestDeclinesPendingRequest() {
+        TimeOffRequest request = new TimeOffRequest();
+        request.setRequestId(4002);
+        request.setCompanyId(1);
+        request.setEmployeeId(11);
+        request.setStatus("PENDING");
+        request.setComments(null);
+
+        when(timeOffRequestRepository.findByRequestIdAndCompanyId(4002, 1)).thenReturn(Optional.of(request));
+        when(timeOffRequestRepository.save(any(TimeOffRequest.class))).thenReturn(request);
+
+        ApproveTimeOffRequest approveRequest = new ApproveTimeOffRequest(
+                ApproveTimeOffRequest.Action.DECLINE,
+                "Insufficient coverage"
+        );
+
+        TenantContext.setCurrentTenant(1);
+        try {
+            var result = timeOffService.approveTimeOffRequest(4002, approveRequest);
+            assertEquals("DECLINED", request.getStatus());
+            assertEquals("Manager: Insufficient coverage", request.getComments());
+            assertEquals(4002, result.requestId());
+        } finally {
+            TenantContext.clear();
+        }
+
+        verify(timeOffRequestRepository).save(request);
+    }
+
+    @Test
+    void approveTimeOffRequestApprovesWithoutManagerComments() {
+        TimeOffRequest request = new TimeOffRequest();
+        request.setRequestId(4003);
+        request.setCompanyId(1);
+        request.setEmployeeId(11);
+        request.setStatus("PENDING");
+        request.setComments("Original comment");
+
+        when(timeOffRequestRepository.findByRequestIdAndCompanyId(4003, 1)).thenReturn(Optional.of(request));
+        when(timeOffRequestRepository.save(any(TimeOffRequest.class))).thenReturn(request);
+
+        ApproveTimeOffRequest approveRequest = new ApproveTimeOffRequest(
+                ApproveTimeOffRequest.Action.APPROVE,
+                null
+        );
+
+        TenantContext.setCurrentTenant(1);
+        try {
+            var result = timeOffService.approveTimeOffRequest(4003, approveRequest);
+            assertEquals("APPROVED", request.getStatus());
+            assertEquals("Original comment", request.getComments());
+            assertEquals(4003, result.requestId());
+        } finally {
+            TenantContext.clear();
+        }
+
+        verify(timeOffRequestRepository).save(request);
+    }
+
+    @Test
+    void approveTimeOffRequestRejectsNonPendingRequests() {
+        TimeOffRequest request = new TimeOffRequest();
+        request.setRequestId(4004);
+        request.setCompanyId(1);
+        request.setEmployeeId(11);
+        request.setStatus("APPROVED");
+
+        when(timeOffRequestRepository.findByRequestIdAndCompanyId(4004, 1)).thenReturn(Optional.of(request));
+
+        ApproveTimeOffRequest approveRequest = new ApproveTimeOffRequest(
+                ApproveTimeOffRequest.Action.DECLINE,
+                "Should not work"
+        );
+
+        TenantContext.setCurrentTenant(1);
+        try {
+            ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> timeOffService.approveTimeOffRequest(4004, approveRequest));
+            assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+            assertEquals("Only pending time off requests can be approved or declined", exception.getReason());
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    @Test
+    void approveTimeOffRequestRejectsCompanyMismatch() {
+        TenantContext.setCurrentTenant(1);
+        try {
+            ApproveTimeOffRequest approveRequest = new ApproveTimeOffRequest(
+                    ApproveTimeOffRequest.Action.APPROVE,
+                    "Should not work"
+            );
+            ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> timeOffService.approveTimeOffRequest(4005, approveRequest));
             assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
             assertEquals("Time off request not found", exception.getReason());
         } finally {

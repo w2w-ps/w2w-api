@@ -1,6 +1,7 @@
 package com.w2w.api.timeoff;
 
 import com.w2w.api.config.CurrentTenant;
+import com.w2w.api.timeoff.dto.ApproveTimeOffRequest;
 import com.w2w.api.timeoff.dto.CreateTimeOffRequest;
 import com.w2w.api.timeoff.dto.TimeOffRequestSummary;
 import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
@@ -84,6 +85,33 @@ public class TimeOffService {
         entity.setComments(request.comments());
 
         return toSummary(timeOffRequestRepository.save(entity));
+    }
+
+    @Transactional
+    @PreAuthorize("@timeOffPolicy.canApproveTimeOffRequest(authentication)")
+    public TimeOffRequestSummary approveTimeOffRequest(Integer requestId, ApproveTimeOffRequest request) {
+        Integer companyId = CurrentTenant.requireCurrentTenant();
+
+        TimeOffRequest timeOffRequest = timeOffRequestRepository.findByRequestIdAndCompanyId(requestId, companyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Time off request not found"));
+
+        if (!canApprove(timeOffRequest.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending time off requests can be approved or declined");
+        }
+
+        String newStatus = switch (request.action()) {
+            case APPROVE -> "APPROVED";
+            case DECLINE -> "DECLINED";
+        };
+
+        timeOffRequest.setStatus(newStatus);
+        if (request.managerComments() != null && !request.managerComments().trim().isEmpty()) {
+            timeOffRequest.setComments(timeOffRequest.getComments() != null 
+                ? timeOffRequest.getComments() + "\n\nManager: " + request.managerComments().trim()
+                : "Manager: " + request.managerComments().trim());
+        }
+
+        return toSummary(timeOffRequestRepository.save(timeOffRequest));
     }
 
     @Transactional
@@ -177,6 +205,10 @@ public class TimeOffService {
     }
 
     private boolean canCancel(String status) {
+        return status != null && "PENDING".equalsIgnoreCase(status);
+    }
+
+    private boolean canApprove(String status) {
         return status != null && "PENDING".equalsIgnoreCase(status);
     }
 }

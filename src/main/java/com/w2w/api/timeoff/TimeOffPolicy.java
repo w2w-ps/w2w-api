@@ -35,6 +35,10 @@ public class TimeOffPolicy {
         return currentEmployeeId != null && currentEmployeeId.equals(employeeId);
     }
 
+    public boolean canApproveTimeOffRequest(Authentication authentication) {
+        return canManage(authentication);
+    }
+
     public boolean canManage(Authentication authentication) {
         User currentUser = resolveCurrentUser(authentication);
         return canManage(currentUser);

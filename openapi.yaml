@@ -443,6 +443,28 @@ paths:
       responses:
         '204':
           description: Time off request cancelled successfully
+  /api/time-off/requests/{requestId}/approve:
+    put:
+      summary: Approve or decline a time off request
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApproveTimeOffRequest'
+      responses:
+        '200':
+          description: Time off request processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeOffRequestSummary'
   /api/positions:
     get:
       summary: Get positions for a company
@@ -2054,4 +2076,14 @@ components:
           minimum: 1
           default: 1
         comments:
+          type: string
+    ApproveTimeOffRequest:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [APPROVE, DECLINE]
+        managerComments:
           type: string

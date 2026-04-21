@@ -1,5 +1,6 @@
 package com.w2w.api.timeoff;
 
+import com.w2w.api.timeoff.dto.ApproveTimeOffRequest;
 import com.w2w.api.timeoff.dto.CreateTimeOffRequest;
 import com.w2w.api.timeoff.dto.TimeOffRequestSummary;
 import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
@@ -40,6 +41,14 @@ public class TimeOffController {
     @PostMapping("/requests")
     public ResponseEntity<TimeOffRequestSummary> createTimeOffRequest(@Valid @RequestBody CreateTimeOffRequest request) {
         return ResponseEntity.status(201).body(timeOffService.createTimeOffRequest(request));
+    }
+
+    @PutMapping("/requests/{requestId}/approve")
+    public ResponseEntity<TimeOffRequestSummary> approveTimeOffRequest(
+            @PathVariable Integer requestId,
+            @Valid @RequestBody ApproveTimeOffRequest request
+    ) {
+        return ResponseEntity.ok(timeOffService.approveTimeOffRequest(requestId, request));
     }
 
     @PutMapping("/requests/{requestId}/cancel")
