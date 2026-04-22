@@ -1626,6 +1626,8 @@ components:
           type: string
         lastName:
           type: string
+        username:
+          type: string
         email:
           type: string
         employeeNumber:
@@ -1719,6 +1721,8 @@ components:
           type: string
         lastName:
           type: string
+        username:
+          type: string
         email:
           type: string
         employeeNumber:
@@ -1781,6 +1785,8 @@ components:
         firstName:
           type: string
         lastName:
+          type: string
+        username:
           type: string
         email:
           type: string
