@@ -38,7 +38,8 @@ public class TenantService {
             java.time.LocalDate trialStart,
             java.time.LocalDate dropDead,
             Integer priceTable,
-            String tos
+            String tos,
+            Integer weekStartDay
     ) {
         Company company = new Company();
         company.setCompanyId(CurrentTenant.requireCurrentTenant());
@@ -54,7 +55,29 @@ public class TenantService {
         company.setDropDead(dropDead);
         company.setPriceTable(priceTable);
         company.setTos(tos);
+        company.setWeekStartDay(weekStartDay);
         return companyRepository.save(company);
+    }
+
+    public Company updateCompanySettings(Company updates) {
+        Company existing = companyRepository.findById(CurrentTenant.requireCurrentTenant())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found"));
+
+        if (updates.getCompanyName() != null) existing.setCompanyName(updates.getCompanyName());
+        if (updates.getDepartmentName() != null) existing.setDepartmentName(updates.getDepartmentName());
+        if (updates.getAddress() != null) existing.setAddress(updates.getAddress());
+        if (updates.getCity() != null) existing.setCity(updates.getCity());
+        if (updates.getState() != null) existing.setState(updates.getState());
+        if (updates.getTimestamp() != null) existing.setTimestamp(updates.getTimestamp());
+        if (updates.getTimezone() != null) existing.setTimezone(updates.getTimezone());
+        if (updates.getStatus() != null) existing.setStatus(updates.getStatus());
+        if (updates.getTrialStart() != null) existing.setTrialStart(updates.getTrialStart());
+        if (updates.getDropDead() != null) existing.setDropDead(updates.getDropDead());
+        if (updates.getPriceTable() != null) existing.setPriceTable(updates.getPriceTable());
+        if (updates.getTos() != null) existing.setTos(updates.getTos());
+        if (updates.getWeekStartDay() != null) existing.setWeekStartDay(updates.getWeekStartDay());
+
+        return companyRepository.save(existing);
     }
 
     public void deleteCompany(Integer id) {
