@@ -375,6 +375,96 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ResolvedPreferenceResponse'
+  /api/time-off/requests:
+    get:
+      summary: Get time off requests for a company
+      parameters:
+        - in: query
+          name: employeeId
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum:
+              - all
+              - pending
+              - approved
+              - declined
+              - cancelled
+            default: all
+        - in: query
+          name: startDate
+          required: false
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Time off requests in descending request order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeOffRequestsResponse'
+    post:
+      summary: Create a time off request
+      description: Employees can create requests for themselves; managers can create requests for any employee by setting employeeId.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTimeOffRequest'
+      responses:
+        '201':
+          description: Time off request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeOffSummary'
+  /api/time-off/requests/{requestId}/cancel:
+    put:
+      summary: Cancel a time off request
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Time off request cancelled successfully
+  /api/time-off/requests/{requestId}/approve:
+    put:
+      summary: Approve or decline a time off request
+      parameters:
+        - in: path
+          name: requestId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApproveTimeOffRequest'
+      responses:
+        '200':
+          description: Time off request processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeOffSummary'
   /api/positions:
     get:
       summary: Get positions for a company
@@ -1916,3 +2006,84 @@ components:
         password: { type: string }
         permissions:
           $ref: '#/components/schemas/ManagerPermissionsDto'
+    TimeOffRequestSummary:
+      type: object
+      properties:
+        requestId:
+          type: integer
+        employeeId:
+          type: integer
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        startTime:
+          type: string
+          nullable: true
+        endTime:
+          type: string
+          nullable: true
+        endDateTimes:
+          type: string
+        requestedAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+        comments:
+          type: string
+          nullable: true
+        repeatSummary:
+          type: string
+          nullable: true
+        canCancel:
+          type: boolean
+    TimeOffRequestsResponse:
+      type: object
+      properties:
+        timeOffRequests:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeOffSummary'
+    CreateTimeOffRequest:
+      type: object
+      required:
+        - employeeId
+        - startDate
+        - endDate
+        - fullDay
+      properties:
+        employeeId:
+          type: integer
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        fullDay:
+          type: boolean
+        startTime:
+          type: string
+          example: 8:00AM
+        endTime:
+          type: string
+          example: 5:00PM
+        repeatCount:
+          type: integer
+          minimum: 1
+          default: 1
+        comments:
+          type: string
+    ApproveTimeOffRequest:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [APPROVE, DECLINE]
+        managerComments:
+          type: string

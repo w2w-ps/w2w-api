@@ -14,7 +14,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers(disabledWithoutDocker = true)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-abstract class PostgresIntegrationTestBase {
+public abstract class PostgresIntegrationTestBase {
     protected static final int TEST_COMPANY_MIN = 7000;
     protected static final int TEST_COMPANY_MAX = 7999;
 
@@ -75,6 +75,7 @@ abstract class PostgresIntegrationTestBase {
                 )
                 """, TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM schedule WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
+        jdbcTemplate.update("DELETE FROM time_off_request WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM employee WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM category WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);
         jdbcTemplate.update("DELETE FROM position WHERE company_id BETWEEN ? AND ?", TEST_COMPANY_MIN, TEST_COMPANY_MAX);

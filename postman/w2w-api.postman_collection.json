@@ -1274,6 +1274,142 @@
           }
         }
       ]
+    },
+    {
+      "name": "Time Off",
+      "item": [
+        {
+          "name": "Create Time Off Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": {{employeeId}},\n  \"startDate\": \"2026-04-22\",\n  \"endDate\": \"2026-04-23\",\n  \"fullDay\": true,\n  \"comments\": \"Optional comment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Creates a pending full-day time off request using the form inputs from the New Time Off Request screen. Managers can create for any employee by setting employeeId.",
+            "url": "{{baseUrl}}/api/time-off/requests"
+          }
+        },
+        {
+          "name": "Manager Create Time Off Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": {{employeeId}},\n  \"startDate\": \"2026-04-22\",\n  \"endDate\": \"2026-04-23\",\n  \"fullDay\": true,\n  \"comments\": \"Manager applied time off for employee\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Creates a pending time off request on behalf of an employee. Use this for manager-driven time off application.",
+            "url": "{{baseUrl}}/api/time-off/requests"
+          }
+        },
+        {
+          "name": "Create Partial Or Repeating Time Off Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": {{employeeId}},\n  \"startDate\": \"2026-04-22\",\n  \"endDate\": \"2026-04-22\",\n  \"fullDay\": false,\n  \"startTime\": \"08:00:00\",\n  \"endTime\": \"17:00:00\",\n  \"repeatCount\": 2,\n  \"comments\": \"Optional comment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Creates a pending partial or repeating time off request using start/end times and a repeat count. Managers can create for any employee by setting employeeId.",
+            "url": "{{baseUrl}}/api/time-off/requests"
+          }
+        },
+        {
+          "name": "List Time Off Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Returns tenant-scoped time off requests with the display fields used by the time-off list, including end date/time text, requested timestamp, comments, and repeat summary.",
+            "url": "{{baseUrl}}/api/time-off/requests?status=all"
+          }
+        },
+        {
+          "name": "Approve Time Off Request",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"APPROVE\",\n  \"managerComments\": \"Approved as requested\"\n}"
+            },
+            "description": "Approves or declines a pending time off request. Managers can use this to process employee time off requests. Use action: APPROVE or action: DECLINE.",
+            "url": "{{baseUrl}}/api/time-off/requests/1001/approve"
+          }
+        },
+        {
+          "name": "Cancel Time Off Request",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "description": "Cancels a pending time off request. Employees can cancel their own requests, and managers can cancel any request in their tenant.",
+            "url": "{{baseUrl}}/api/time-off/requests/1001/cancel"
+          }
+        }
+      ]
     }
   ]
 }
