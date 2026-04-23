@@ -12,6 +12,7 @@ public record EmployeeResponse(
     Integer logonCount,
     String firstName,
     String lastName,
+    String username,
     String email,
     String employeeNumber,
     String phone,

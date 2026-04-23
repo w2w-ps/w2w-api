@@ -154,6 +154,13 @@ public class EmployeeService {
             employee.setFirstName(request.firstName());
         if (request.lastName() != null)
             employee.setLastName(request.lastName());
+
+        if (request.username() != null) {
+            employee.setUsername(request.username());
+        } else if (request.firstName() != null || request.lastName() != null) {
+            employee.setUsername((employee.getFirstName() + employee.getLastName()).toLowerCase());
+        }
+
         if (request.email() != null)
             employee.setEmail(request.email());
         if (request.employeeNumber() != null)
@@ -252,6 +259,12 @@ public class EmployeeService {
     private void mapRequestToEntity(EmployeeRequest request, Employee employee) {
         employee.setFirstName(request.firstName());
         employee.setLastName(request.lastName());
+
+        String username = (request.username() != null && !request.username().isBlank())
+                ? request.username()
+                : (request.firstName() + request.lastName()).toLowerCase();
+        employee.setUsername(username);
+
         employee.setEmail(request.email());
         employee.setEmployeeNumber(request.employeeNumber());
         employee.setPhones(Arrays.asList(request.phone(), request.phone2(), request.cell()));
@@ -334,6 +347,7 @@ public class EmployeeService {
                 employee.getLogonCount(),
                 employee.getFirstName(),
                 employee.getLastName(),
+                employee.getUsername(),
                 employee.getEmail(),
                 employee.getEmployeeNumber(),
                 getPhone(employee.getPhones(), 0),
@@ -392,6 +406,7 @@ public class EmployeeService {
                 employee.getLogonCount(),
                 employee.getFirstName(),
                 employee.getLastName(),
+                employee.getUsername(),
                 employee.getEmail(),
                 employee.getEmployeeNumber(),
                 getPhone(employee.getPhones(), 0),

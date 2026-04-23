@@ -1,8 +1,12 @@
 package com.w2w.api.login;
 
+import com.w2w.api.employee.model.Employee;
+import com.w2w.api.employee.repository.EmployeeRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -11,11 +15,13 @@ import java.util.Optional;
 public class LoginService {
 
     private final LoginRepository loginRepository;
+    private final EmployeeRepository employeeRepository;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
-    public LoginService(LoginRepository loginRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder) {
+    public LoginService(LoginRepository loginRepository, EmployeeRepository employeeRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder) {
         this.loginRepository = loginRepository;
+        this.employeeRepository = employeeRepository;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
     }
@@ -23,6 +29,7 @@ public class LoginService {
     /**
      * Authenticates the user and returns the User object if successful.
      */
+    @Transactional
     public Optional<User> authenticate(String username, String password) {
         if (username == null || password == null) {
             return Optional.empty();
@@ -35,6 +42,13 @@ public class LoginService {
 
         User user = userOpt.get();
         if (passwordEncoder.matches(password, user.getPassword())) {
+            if (user.getEmployee() != null) {
+                Employee employee = user.getEmployee();
+                employee.setLastLogon(LocalDateTime.now());
+                Integer currentCount = employee.getLogonCount();
+                employee.setLogonCount(currentCount == null ? 1 : currentCount + 1);
+                employeeRepository.save(employee);
+            }
             return Optional.of(user);
         }
     

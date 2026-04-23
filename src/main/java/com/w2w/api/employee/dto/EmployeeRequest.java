@@ -11,6 +11,7 @@ import java.util.List;
 public record EmployeeRequest(
     @NotBlank String firstName,
     @NotBlank String lastName,
+    String username,
     @Email String email,
     String employeeNumber,
     String phone,
