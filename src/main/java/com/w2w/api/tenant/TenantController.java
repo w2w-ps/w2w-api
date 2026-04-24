@@ -29,8 +29,14 @@ public class TenantController {
                 company.getTrialStart(),
                 company.getDropDead(),
                 company.getPriceTable(),
-                company.getTos()
+                company.getTos(),
+                company.getWeekStartDay()
         );
+    }
+
+    @PutMapping
+    public Company update(@RequestBody Company company) {
+        return tenantService.updateCompanySettings(company);
     }
 
     @GetMapping("/{id}")

@@ -5,21 +5,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.w2w.api.employee.repository.EmployeeRepository;
 import java.util.Optional;
 
 class PasswordValidationTest {
 
     private LoginService loginService;
     private LoginRepository loginRepository;
+    private EmployeeRepository employeeRepository;
     private JwtUtil jwtUtil;
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
         loginRepository = Mockito.mock(LoginRepository.class);
+        employeeRepository = Mockito.mock(EmployeeRepository.class);
         jwtUtil = Mockito.mock(JwtUtil.class);
         passwordEncoder = Mockito.mock(PasswordEncoder.class);
-        loginService = new LoginService(loginRepository, jwtUtil, passwordEncoder);
+        loginService = new LoginService(loginRepository, employeeRepository, jwtUtil, passwordEncoder);
     }
 
     @Test

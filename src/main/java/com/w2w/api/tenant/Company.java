@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 @Entity
 @Table(name = "company")
@@ -50,7 +52,13 @@ public class Company {
     @Column(name = "tos")
     private String tos;
 
-    public Company() {}
+    @Min(1)
+    @Max(7)
+    @Column(name = "week_start_day")
+    private Integer weekStartDay;
+
+    public Company() {
+    }
 
     public Integer getCompanyId() {
         return companyId;
@@ -154,5 +162,13 @@ public class Company {
 
     public void setTos(String tos) {
         this.tos = tos;
+    }
+
+    public Integer getWeekStartDay() {
+        return weekStartDay;
+    }
+
+    public void setWeekStartDay(Integer weekStartDay) {
+        this.weekStartDay = weekStartDay;
     }
 }
