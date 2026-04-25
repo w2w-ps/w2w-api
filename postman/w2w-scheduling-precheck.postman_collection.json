@@ -1,0 +1,519 @@
+{
+  "info": {
+    "name": "w2w-api scheduling pre-check scenarios",
+    "_postman_id": "7f7a6047-7cdb-4d07-9e37-41e0b2d0f6a5",
+    "description": "Focused Postman collection for exercising POST /api/scheduling/validation/precheck conflict scenarios. Populate bearerToken and IDs with data from the target tenant before running conflict-specific requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "bearerToken",
+      "value": "",
+      "description": "JWT token for a tenant user."
+    },
+    {
+      "key": "companyId",
+      "value": "1"
+    },
+    {
+      "key": "employeeId",
+      "value": "101"
+    },
+    {
+      "key": "shiftId",
+      "value": "9001"
+    },
+    {
+      "key": "positionId",
+      "value": "1"
+    },
+    {
+      "key": "categoryId",
+      "value": "1"
+    },
+    {
+      "key": "shiftDate",
+      "value": "2026-04-21"
+    },
+    {
+      "key": "nextShiftDate",
+      "value": "2026-04-22"
+    },
+    {
+      "key": "color",
+      "value": "amber"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Pre-check",
+      "item": [
+        {
+          "name": "No Shift Payload",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Baseline request shape with no shift. Expected response normally has `hasConflicts: false` and an empty `conflicts` array."
+          }
+        },
+        {
+          "name": "Create Shift - Expected No Conflicts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Pre-check no conflict shift\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"1:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"{{color}}\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Use an employee/date with no overlapping shifts, blocking time off, preference conflicts, or max-hour/max-shift limit violations."
+          }
+        },
+        {
+          "name": "Create Shift - Existing Shift Overlap",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps an existing scheduled shift\",\n    \"startTime\": \"10:00AM\",\n    \"endTime\": \"2:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"red\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Run against a date where the employee already has an active shift overlapping 10:00AM-2:00PM. Expected conflict field: `shift`."
+          }
+        },
+        {
+          "name": "Update Shift - Exclude Current Shift",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"UPDATE\",\n  \"shift\": {\n    \"shiftId\": {{shiftId}},\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Update current shift without self-conflict\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"{{color}}\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Validates update behavior where the supplied `shiftId` is excluded from existing-shift lookups."
+          }
+        },
+        {
+          "name": "Create Shift - Max Daily Hours",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds daily scheduled hours\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"orange\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Run with an employee whose `maxDailyHours` would be met or exceeded by this proposed shift plus existing shifts. Expected conflict field: `MAX_DAILY_HOURS`."
+          }
+        },
+        {
+          "name": "Create Shift - Max Daily Shifts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds daily shift count\",\n    \"startTime\": \"6:00PM\",\n    \"endTime\": \"10:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"purple\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Run with an employee whose `maxDailyShifts` would be exceeded by adding this shift. Expected conflict field: `MAX_DAILY_SHIFTS`."
+          }
+        },
+        {
+          "name": "Create Shift - Max Weekly Hours And Shifts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds weekly limits\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"blue\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Run with existing shifts in the same Monday-Sunday week such that weekly hour and/or weekly shift limits are exceeded. Expected conflict fields can include `MAX_WEEKLY_HOURS` and `MAX_WEEKLY_SHIFTS`."
+          }
+        },
+        {
+          "name": "Create Shift - Work Preference Conflict",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps cannot-work or dislike preference\",\n    \"startTime\": \"10:00AM\",\n    \"endTime\": \"10:30AM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"teal\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 0.5\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Run with resolved work preferences for the employee/date marking the proposed time as dislike or cannot-work. Expected conflict field: `WORK_PREFERENCES`."
+          }
+        },
+        {
+          "name": "Create Shift - Time Off Conflict",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps approved or pending time off\",\n    \"startTime\": \"12:00PM\",\n    \"endTime\": \"4:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"pink\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Run with approved or pending time off overlapping the proposed shift. Expected conflict field: `TIME_OFF`."
+          }
+        },
+        {
+          "name": "Create Shift - Overnight Conflict Coverage",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overnight shift spanning validation windows\",\n    \"startTime\": \"10:00PM\",\n    \"endTime\": \"2:00AM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"charcoal\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Exercises overnight validation across the shift date and next date, including existing shifts, daily hours, preferences, and time off."
+          }
+        },
+        {
+          "name": "Reassign Shift - Pre-check Target Employee",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"REASSIGN\",\n  \"shift\": {\n    \"shiftId\": {{shiftId}},\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Reassign pre-check for target employee\",\n    \"startTime\": \"2:00PM\",\n    \"endTime\": \"6:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"green\",\n    \"date\": \"{{nextShiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Uses `operationType: REASSIGN` with the target employee in `shift.employeeId`. Current validation rules use the nested shift values for conflict checks."
+          }
+        }
+      ]
+    }
+  ]
+}

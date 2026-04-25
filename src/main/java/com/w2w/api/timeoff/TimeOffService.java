@@ -18,10 +18,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @Service
 public class TimeOffService {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM d, uuuu", Locale.ENGLISH);
+    private static final Set<String> SCHEDULING_BLOCKING_STATUSES = Set.of("PENDING", "APPROVED");
 
     private final TimeOffRequestRepository timeOffRequestRepository;
 
@@ -50,6 +52,23 @@ public class TimeOffService {
                 .toList();
 
         return new TimeOffRequestsResponse(requests);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TimeOffRequest> findBlockingTimeOff(
+            Integer employeeId,
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        if (employeeId == null || startDate == null || endDate == null) {
+            return List.of();
+        }
+
+        Integer companyId = CurrentTenant.requireCurrentTenant();
+        return timeOffRequestRepository.findRequests(companyId, employeeId, null, startDate, endDate)
+                .stream()
+                .filter(this::isSchedulingBlocking)
+                .toList();
     }
 
     @Transactional
@@ -211,5 +230,13 @@ public class TimeOffService {
 
     private boolean canApprove(String status) {
         return status != null && "PENDING".equalsIgnoreCase(status);
+    }
+
+    private boolean isSchedulingBlocking(TimeOffRequest request) {
+        if (request.getStatus() == null) {
+            return false;
+        }
+
+        return SCHEDULING_BLOCKING_STATUSES.contains(request.getStatus().trim().toUpperCase(Locale.ENGLISH));
     }
 }

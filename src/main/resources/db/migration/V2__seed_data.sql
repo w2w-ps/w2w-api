@@ -231,256 +231,62 @@ SELECT setval('position_position_id_seq', (SELECT MAX(position_id) FROM position
 SELECT setval('category_id_seq', (SELECT MAX(category_id) FROM category));
 SELECT setval('category_group_id_seq', (SELECT MAX(group_id) FROM cat_group));
 
-INSERT INTO emp_type (emp_type_name)
-VALUES ('Full Time'), ('Part Time'), ('Per Diem');
-
-INSERT INTO user_roles (role_name)
-VALUES ('Manager'), ('Employee'), ('AddManager');
-
-INSERT INTO users (
-    user_login_id,
-    user_login_pw,
-    company_id,
-    emp_type_id,
-    role_id,
-    employee_id,
-    encryption_type,
-    login_failures
-)
-VALUES (
-    'admin',
-    '$2a$12$9B69QSXuEqf6bgZcWbJXMOc0RHlFkwHQ4iInRtrIwiC9nAJSTgdk.',
-    1,
-    1,
-    1,
-    1,
-    0,
-    0
-);
-
+-- ============================================================
+-- SECTION 2: Tenant/demo profile data
+-- ============================================================
 DO $$
 DECLARE
-    default_password_hash CONSTANT TEXT := '$2a$12$9B69QSXuEqf6bgZcWbJXMOc0RHlFkwHQ4iInRtrIwiC9nAJSTgdk.';
-    full_time_id INTEGER;
-    employee_role_id INTEGER;
-    manager_role_id INTEGER;
-    add_manager_role_id INTEGER;
+    emp_record RECORD;
+    cities TEXT[] := ARRAY['San Francisco', 'New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas'];
+    states TEXT[] := ARRAY['CA', 'NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'TX', 'CA', 'TX'];
+    street_names TEXT[] := ARRAY['Oak', 'Maple', 'Cedar', 'Pine', 'Elm', 'Washington', 'Lincoln', 'Main', 'Broadway', 'Market'];
+    random_idx INT;
 BEGIN
-    SELECT emp_type_id INTO full_time_id
-    FROM emp_type
-    WHERE emp_type_name = 'Full Time';
+    PERFORM set_config('app.internal_system_lookup', 'true', true);
 
-    SELECT role_id INTO employee_role_id
-    FROM user_roles
-    WHERE role_name = 'Employee';
+    FOR emp_record IN SELECT employee_id FROM employee LOOP
+        random_idx := floor(random() * array_length(cities, 1)) + 1;
 
-    SELECT role_id INTO manager_role_id
-    FROM user_roles
-    WHERE role_name = 'Manager';
+        INSERT INTO employee_address (employee_id, address, address2, city, state, zip)
+        VALUES (
+            emp_record.employee_id,
+            (floor(random() * 9000) + 100)::TEXT || ' ' || street_names[floor(random() * array_length(street_names, 1)) + 1] || ' St',
+            CASE WHEN random() < 0.3 THEN 'Suite ' || (floor(random() * 500) + 1)::TEXT ELSE NULL END,
+            cities[random_idx],
+            states[random_idx],
+            LPAD(floor(random() * 90000 + 10000)::TEXT, 5, '0')
+        )
+        ON CONFLICT (employee_id) DO UPDATE SET
+            address = EXCLUDED.address,
+            address2 = EXCLUDED.address2,
+            city = EXCLUDED.city,
+            state = EXCLUDED.state,
+            zip = EXCLUDED.zip;
 
-    SELECT role_id INTO add_manager_role_id
-    FROM user_roles
-    WHERE role_name = 'AddManager';
+        UPDATE employee
+        SET
+            max_weekly_days = COALESCE(max_weekly_days, floor(random() * 5 + 1)::INT),
+            max_daily_shifts = COALESCE(max_daily_shifts, floor(random() * 2 + 1)::INT),
+            google_cal_export = COALESCE(google_cal_export, (random() < 0.2)),
+            priority_group = COALESCE(priority_group, 'Group ' || CHR((65 + floor(random() * 3))::INT)),
+            pay_rate = COALESCE(pay_rate, (floor(random() * 50) + 15)::FLOAT)
+        WHERE employee_id = emp_record.employee_id;
+    END LOOP;
 
-    IF full_time_id IS NULL OR employee_role_id IS NULL OR manager_role_id IS NULL OR add_manager_role_id IS NULL THEN
-        RAISE EXCEPTION 'Required emp_type or user_roles rows are missing for employee login seed';
-    END IF;
+    UPDATE employee
+    SET is_deleted = TRUE
+    WHERE status = 'Deleted';
 
-    INSERT INTO users (
-        user_login_id,
-        user_login_pw,
-        company_id,
-        emp_type_id,
-        role_id,
-        employee_id,
-        encryption_type,
-        login_failures
-    )
-    SELECT
-        format('employee.%s', e.employee_id),
-        default_password_hash,
-        e.company_id,
-        full_time_id,
-        employee_role_id,
-        e.employee_id,
-        0,
-        0
-    FROM employee e
-    WHERE NOT EXISTS (
-        SELECT 1
-        FROM users u
-        WHERE u.employee_id = e.employee_id
-          AND u.role_id = employee_role_id
-    )
-      AND NOT EXISTS (
-        SELECT 1
-        FROM users u
-        WHERE u.user_login_id = format('employee.%s', e.employee_id)
-    );
+    UPDATE employee
+    SET username = LOWER(first_name || last_name)
+    WHERE username IS NULL;
 
-    INSERT INTO users (
-        user_login_id,
-        user_login_pw,
-        company_id,
-        emp_type_id,
-        role_id,
-        employee_id,
-        encryption_type,
-        login_failures
-    )
-    WITH chosen_managers AS (
-        SELECT DISTINCT ON (candidate.company_id)
-            candidate.company_id,
-            candidate.employee_id
-        FROM (
-            SELECT
-                u.company_id,
-                u.employee_id,
-                0 AS priority
-            FROM users u
-            WHERE u.role_id = manager_role_id
-              AND u.employee_id IS NOT NULL
-            UNION ALL
-            SELECT
-                e.company_id,
-                e.employee_id,
-                1 AS priority
-            FROM employee e
-        ) candidate
-        ORDER BY candidate.company_id, candidate.priority, candidate.employee_id
-    )
-    SELECT
-        format('manager.%s', cm.employee_id),
-        default_password_hash,
-        cm.company_id,
-        full_time_id,
-        manager_role_id,
-        cm.employee_id,
-        0,
-        0
-    FROM chosen_managers cm
-    WHERE NOT EXISTS (
-        SELECT 1
-        FROM users u
-        WHERE u.employee_id = cm.employee_id
-          AND u.role_id = manager_role_id
-    )
-      AND NOT EXISTS (
-        SELECT 1
-        FROM users u
-        WHERE u.user_login_id = format('manager.%s', cm.employee_id)
-    );
-
-    INSERT INTO users (
-        user_login_id,
-        user_login_pw,
-        company_id,
-        emp_type_id,
-        role_id,
-        employee_id,
-        encryption_type,
-        login_failures
-    )
-    WITH chosen_managers AS (
-        SELECT DISTINCT ON (candidate.company_id)
-            candidate.company_id,
-            candidate.employee_id
-        FROM (
-            SELECT
-                u.company_id,
-                u.employee_id,
-                0 AS priority
-            FROM users u
-            WHERE u.role_id = manager_role_id
-              AND u.employee_id IS NOT NULL
-            UNION ALL
-            SELECT
-                e.company_id,
-                e.employee_id,
-                1 AS priority
-            FROM employee e
-        ) candidate
-        ORDER BY candidate.company_id, candidate.priority, candidate.employee_id
-    ),
-    additional_candidates AS (
-        SELECT
-            ranked.company_id,
-            ranked.employee_id
-        FROM (
-            SELECT
-                candidate.company_id,
-                candidate.employee_id,
-                row_number() OVER (
-                    PARTITION BY candidate.company_id
-                    ORDER BY candidate.priority, candidate.employee_id
-                ) AS row_number
-            FROM (
-                SELECT DISTINCT
-                    u.company_id,
-                    u.employee_id,
-                    0 AS priority
-                FROM users u
-                WHERE u.role_id = add_manager_role_id
-                  AND u.employee_id IS NOT NULL
-                UNION ALL
-                SELECT
-                    e.company_id,
-                    e.employee_id,
-                    1 AS priority
-                FROM employee e
-            ) candidate
-            JOIN chosen_managers cm
-              ON cm.company_id = candidate.company_id
-            WHERE candidate.employee_id <> cm.employee_id
-        ) ranked
-        WHERE ranked.row_number <= 5
-    )
-    SELECT
-        format('addmanager.%s', ac.employee_id),
-        default_password_hash,
-        ac.company_id,
-        full_time_id,
-        add_manager_role_id,
-        ac.employee_id,
-        0,
-        0
-    FROM additional_candidates ac
-    WHERE NOT EXISTS (
-        SELECT 1
-        FROM users u
-        WHERE u.employee_id = ac.employee_id
-          AND u.role_id = add_manager_role_id
-    )
-      AND NOT EXISTS (
-        SELECT 1
-        FROM users u
-        WHERE u.user_login_id = format('addmanager.%s', ac.employee_id)
-    );
-
-    INSERT INTO manager_permissions (
-        user_id,
-        is_main_manager,
-        can_edit_shifts,
-        can_manage_positions,
-        can_manage_team_members,
-        can_receive_manager_notifications
-    )
-    SELECT
-        u.user_id,
-        u.role_id = manager_role_id,
-        u.role_id = manager_role_id,
-        u.role_id = manager_role_id,
-        u.role_id = manager_role_id,
-        TRUE
-    FROM users u
-    WHERE u.role_id IN (manager_role_id, add_manager_role_id)
-      AND NOT EXISTS (
-        SELECT 1
-        FROM manager_permissions mp
-        WHERE mp.user_id = u.user_id
-    );
+    PERFORM set_config('app.internal_system_lookup', 'false', true);
 END $$;
 
+-- ============================================================
+-- SECTION 3: Preference seed data
+-- ============================================================
 SELECT set_config('app.current_tenant', '1', false);
 INSERT INTO day_prefs (employee_id, date, prefs, compression, edited_by, is_day_prefs)
 SELECT 1, '2026-04-01'::DATE + i, 'DDDDDDDDDDDDDDDDDDDDPPPPPPPPDDDPPPPPPDDDDPPPPPPPPPPPPPPCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCNNNNN', 0, 1, FALSE

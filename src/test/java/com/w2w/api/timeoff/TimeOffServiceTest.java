@@ -18,9 +18,12 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class TimeOffServiceTest {
@@ -88,6 +91,98 @@ class TimeOffServiceTest {
         } finally {
             TenantContext.clear();
         }
+    }
+
+    @Test
+    void findBlockingTimeOff_returnsOnlyPendingAndApprovedStatuses() {
+        TimeOffRequest pending = timeOffRequest(11, LocalDate.of(2026, 4, 21), "PENDING");
+        TimeOffRequest approved = timeOffRequest(11, LocalDate.of(2026, 4, 22), "APPROVED");
+        TimeOffRequest declined = timeOffRequest(11, LocalDate.of(2026, 4, 23), "DECLINED");
+        TimeOffRequest cancelled = timeOffRequest(11, LocalDate.of(2026, 4, 24), "CANCELLED");
+
+        when(timeOffRequestRepository.findRequests(
+                1,
+                11,
+                null,
+                LocalDate.of(2026, 4, 21),
+                LocalDate.of(2026, 4, 24)
+        )).thenReturn(List.of(pending, approved, declined, cancelled));
+
+        TenantContext.setCurrentTenant(1);
+        try {
+            List<TimeOffRequest> results = timeOffService.findBlockingTimeOff(
+                    11,
+                    LocalDate.of(2026, 4, 21),
+                    LocalDate.of(2026, 4, 24)
+            );
+
+            assertEquals(List.of(pending, approved), results);
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    @Test
+    void findBlockingTimeOff_filtersByEmployeeAndDateRangeAndPreservesFullDayAndTimedRows() {
+        TimeOffRequest fullDay = timeOffRequest(11, LocalDate.of(2026, 4, 21), "APPROVED");
+        fullDay.setFullDay(true);
+        fullDay.setEndDate(LocalDate.of(2026, 4, 22));
+
+        TimeOffRequest timed = timeOffRequest(11, LocalDate.of(2026, 4, 23), "PENDING");
+        timed.setFullDay(false);
+        timed.setStartTime(LocalTime.of(9, 0));
+        timed.setEndTime(LocalTime.of(12, 0));
+        timed.setRepeatCount(3);
+
+        when(timeOffRequestRepository.findRequests(
+                1,
+                11,
+                null,
+                LocalDate.of(2026, 4, 21),
+                LocalDate.of(2026, 4, 23)
+        )).thenReturn(List.of(fullDay, timed));
+
+        TenantContext.setCurrentTenant(1);
+        try {
+            List<TimeOffRequest> results = timeOffService.findBlockingTimeOff(
+                    11,
+                    LocalDate.of(2026, 4, 21),
+                    LocalDate.of(2026, 4, 23)
+            );
+
+            assertEquals(2, results.size());
+            assertSame(fullDay, results.get(0));
+            assertSame(timed, results.get(1));
+            assertTrue(Boolean.TRUE.equals(results.get(0).getFullDay()));
+            assertEquals(LocalDate.of(2026, 4, 22), results.get(0).getEndDate());
+            assertEquals(LocalTime.of(9, 0), results.get(1).getStartTime());
+            assertEquals(LocalTime.of(12, 0), results.get(1).getEndTime());
+            assertEquals(3, results.get(1).getRepeatCount());
+        } finally {
+            TenantContext.clear();
+        }
+
+        verify(timeOffRequestRepository).findRequests(
+                1,
+                11,
+                null,
+                LocalDate.of(2026, 4, 21),
+                LocalDate.of(2026, 4, 23)
+        );
+    }
+
+    @Test
+    void findBlockingTimeOff_missingRequiredArgumentsReturnsEmpty() {
+        TenantContext.setCurrentTenant(1);
+        try {
+            assertTrue(timeOffService.findBlockingTimeOff(null, LocalDate.of(2026, 4, 21), LocalDate.of(2026, 4, 21)).isEmpty());
+            assertTrue(timeOffService.findBlockingTimeOff(11, null, LocalDate.of(2026, 4, 21)).isEmpty());
+            assertTrue(timeOffService.findBlockingTimeOff(11, LocalDate.of(2026, 4, 21), null).isEmpty());
+        } finally {
+            TenantContext.clear();
+        }
+
+        verifyNoInteractions(timeOffRequestRepository);
     }
 
     @Test
@@ -310,5 +405,14 @@ class TimeOffServiceTest {
         } finally {
             TenantContext.clear();
         }
+    }
+
+    private TimeOffRequest timeOffRequest(Integer employeeId, LocalDate startDate, String status) {
+        TimeOffRequest request = new TimeOffRequest();
+        request.setEmployeeId(employeeId);
+        request.setStartDate(startDate);
+        request.setEndDate(startDate);
+        request.setStatus(status);
+        return request;
     }
 }

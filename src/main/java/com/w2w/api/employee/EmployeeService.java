@@ -74,6 +74,14 @@ public class EmployeeService {
                 .map(this::mapToDetailResponse);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<Employee> findActiveEmployeeForCurrentTenant(Integer employeeId) {
+        return employeeRepository.findByEmployeeIdAndCompanyIdAndIsDeletedFalse(
+                employeeId,
+                CurrentTenant.requireCurrentTenant()
+        );
+    }
+
     @Transactional
     public EmployeeResponse saveEmployee(EmployeeRequest request) {
         enforceMainManagerCheck();

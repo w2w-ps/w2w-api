@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -40,12 +39,17 @@ class SchedulingServiceTest {
         scheduleRepository = Mockito.mock(ScheduleRepository.class);
         positionService = Mockito.mock(PositionService.class);
         categoryService = Mockito.mock(CategoryService.class);
-        schedulingService = new SchedulingService();
-        ReflectionTestUtils.setField(schedulingService, "schedulingQueryRepository", schedulingQueryRepository);
-        ReflectionTestUtils.setField(schedulingService, "shiftRepository", shiftRepository);
-        ReflectionTestUtils.setField(schedulingService, "scheduleRepository", scheduleRepository);
-        ReflectionTestUtils.setField(schedulingService, "positionService", positionService);
-        ReflectionTestUtils.setField(schedulingService, "categoryService", categoryService);
+        ShiftCommandService shiftCommandService = new ShiftCommandService(shiftRepository, scheduleRepository);
+        SchedulingGroupingService schedulingGroupingService = new SchedulingGroupingService(
+                schedulingQueryRepository,
+                positionService,
+                categoryService
+        );
+        schedulingService = new SchedulingService(
+                shiftCommandService,
+                schedulingGroupingService,
+                Mockito.mock(RuleEngineService.class)
+        );
         TenantContext.setCurrentTenant(1);
     }
 
