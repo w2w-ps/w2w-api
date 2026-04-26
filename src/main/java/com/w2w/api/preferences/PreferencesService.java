@@ -45,6 +45,22 @@ public class PreferencesService {
                 .map(this::mapToWeekResponse);
     }
 
+    public Optional<String> getResolvedPreference(Integer employeeId, LocalDate date) {
+        if (employeeId == null || date == null) {
+            return Optional.empty();
+        }
+
+        Optional<DayPreference> dayPreference = dayPreferenceRepository.findById(new DayPreferenceId(employeeId, date));
+        if (dayPreference.isPresent()) {
+            return Optional.ofNullable(dayPreference.get().getPrefs());
+        }
+
+        WeekPreference weekPreference = weekPreferenceRepository
+                .findFirstByEmployeeIdAndStartDateLessThanEqualOrderByStartDateDesc(employeeId, date)
+                .orElse(null);
+        return Optional.ofNullable(resolveWeekPreferenceForDate(weekPreference, date));
+    }
+
     public void saveDayPreference(DayPreferenceRequest request) {
         DayPreference entity = mapToDayEntity(request);
         dayPreferenceRepository.save(entity);
@@ -164,16 +180,12 @@ public class PreferencesService {
                     .orElse(null);
 
             DayPreference dayPref = dayPrefsMap.get(currentDate);
-            String prefs = null;
+            String prefs = resolvePreference(currentDate, dayPref, weekPref);
             String type = "NONE";
 
             if (dayPref != null) {
-                prefs = dayPref.getPrefs();
                 type = Boolean.TRUE.equals(dayPref.getIsDayPrefs()) ? "DAY" : "HOUR";
-            } else if (weekPref != null && weekPref.getPrefs() != null && weekPref.getPrefs().length() >= 672) {
-                int dayIndex = currentDate.getDayOfWeek().getValue() - 1; // 0 for Monday, 6 for Sunday
-                int startIdx = dayIndex * 96;
-                prefs = weekPref.getPrefs().substring(startIdx, Math.min(startIdx + 96, weekPref.getPrefs().length()));
+            } else if (prefs != null) {
                 type = "WEEK";
             }
 
@@ -183,5 +195,22 @@ public class PreferencesService {
         }
 
         return result;
+    }
+
+    private String resolvePreference(LocalDate date, DayPreference dayPreference, WeekPreference weekPreference) {
+        if (dayPreference != null) {
+            return dayPreference.getPrefs();
+        }
+        return resolveWeekPreferenceForDate(weekPreference, date);
+    }
+
+    private String resolveWeekPreferenceForDate(WeekPreference weekPreference, LocalDate date) {
+        if (weekPreference == null || weekPreference.getPrefs() == null || weekPreference.getPrefs().length() < 672) {
+            return null;
+        }
+
+        int dayIndex = date.getDayOfWeek().getValue() - 1;
+        int startIndex = dayIndex * 96;
+        return weekPreference.getPrefs().substring(startIndex, Math.min(startIndex + 96, weekPreference.getPrefs().length()));
     }
 }
