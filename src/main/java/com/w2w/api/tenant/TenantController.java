@@ -1,14 +1,16 @@
 package com.w2w.api.tenant;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/tenants")
 public class TenantController {
-    @Autowired
-    private TenantService tenantService;
+    private final TenantService tenantService;
+
+    public TenantController(TenantService tenantService) {
+        this.tenantService = tenantService;
+    }
 
     @GetMapping
     public List<Company> getAll() {

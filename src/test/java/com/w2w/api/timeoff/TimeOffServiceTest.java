@@ -153,7 +153,7 @@ class TimeOffServiceTest {
             assertEquals(2, results.size());
             assertSame(fullDay, results.get(0));
             assertSame(timed, results.get(1));
-            assertTrue(Boolean.TRUE.equals(results.get(0).getFullDay()));
+            assertEquals(Boolean.TRUE, results.get(0).getFullDay());
             assertEquals(LocalDate.of(2026, 4, 22), results.get(0).getEndDate());
             assertEquals(LocalTime.of(9, 0), results.get(1).getStartTime());
             assertEquals(LocalTime.of(12, 0), results.get(1).getEndTime());

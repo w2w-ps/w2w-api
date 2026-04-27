@@ -16,6 +16,8 @@ import java.time.temporal.ChronoUnit;
 
 @Service
 public class ShiftCommandService {
+    private static final String SHIFT_NOT_FOUND_WITH_ID = "Shift not found with id: ";
+
     private final ShiftRepository shiftRepository;
     private final ScheduleRepository scheduleRepository;
 
@@ -29,7 +31,7 @@ public class ShiftCommandService {
                         shiftId,
                         TenantContext.getCurrentTenant()
                 )
-                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + shiftId));
+                .orElseThrow(() -> new IllegalArgumentException(SHIFT_NOT_FOUND_WITH_ID + shiftId));
 
         return new ShiftResponse(
                 shift.getShiftId(),
@@ -47,41 +49,31 @@ public class ShiftCommandService {
         );
     }
 
-    public Shift saveShift(
-            Integer employeeId,
-            String description,
-            LocalDate date,
-            LocalTime startTime,
-            LocalTime endTime,
-            Float duration,
-            Integer position,
-            Integer category,
-            String color
-    ) {
+    public Shift saveShift(CreateShiftCommand command) {
         Shift shift = new Shift();
-        shift.setEmployeeId(employeeId);
+        shift.setEmployeeId(command.employeeId());
         shift.setCompanyId(CurrentTenant.requireCurrentTenant());
-        shift.setDescription(description);
-        shift.setStartTime(startTime);
-        shift.setEndTime(endTime);
-        shift.setRequiredPositionId(position);
-        shift.setCategoryId(category);
-        shift.setColor(color);
+        shift.setDescription(command.description());
+        shift.setStartTime(command.startTime());
+        shift.setEndTime(command.endTime());
+        shift.setRequiredPositionId(command.position());
+        shift.setCategoryId(command.category());
+        shift.setColor(command.color());
         shift.setIsDeleted(false);
 
-        if (date != null) {
-            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), date);
+        if (command.date() != null) {
+            Schedule schedule = getOrCreateSchedule(shift.getCompanyId(), command.date());
             shift.setScheduleId(schedule.getScheduleId());
         }
 
-        applyDerivedShiftFields(shift, duration);
+        applyDerivedShiftFields(shift, command.duration());
         shift.setChangedBy(shift.getEmployeeId());
         return shiftRepository.save(shift);
     }
 
     public ShiftResponse updateShift(Integer shiftId, UpdateShiftRequest request) {
         Shift shift = shiftRepository.findByShiftIdAndCompanyId(shiftId, CurrentTenant.requireCurrentTenant())
-                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + shiftId));
+                .orElseThrow(() -> new IllegalArgumentException(SHIFT_NOT_FOUND_WITH_ID + shiftId));
 
         if (request.employeeId() != null) shift.setEmployeeId(request.employeeId());
         if (request.description() != null) shift.setDescription(request.description());
@@ -104,7 +96,7 @@ public class ShiftCommandService {
 
     public void softDeleteShift(Integer shiftId) {
         Shift shift = shiftRepository.findByShiftIdAndCompanyId(shiftId, CurrentTenant.requireCurrentTenant())
-                .orElseThrow(() -> new IllegalArgumentException("Shift not found with id: " + shiftId));
+                .orElseThrow(() -> new IllegalArgumentException(SHIFT_NOT_FOUND_WITH_ID + shiftId));
         shift.setIsDeleted(true);
         shiftRepository.save(shift);
     }
@@ -138,4 +130,17 @@ public class ShiftCommandService {
         }
         return minutes / 60.0f;
     }
+}
+
+record CreateShiftCommand(
+        Integer employeeId,
+        String description,
+        LocalDate date,
+        LocalTime startTime,
+        LocalTime endTime,
+        Float duration,
+        Integer position,
+        Integer category,
+        String color
+) {
 }

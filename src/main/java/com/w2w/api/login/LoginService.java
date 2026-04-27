@@ -14,7 +14,7 @@ import java.util.Optional;
 @Service
 public class LoginService {
     private static final String USER_NOT_FOUND_MESSAGE = "User not found.";
-    private static final String SPECIAL_PASSWORD_CHARACTERS = "!@#$%^&*()_+-=[]{};':\"\\|,.<>/?";
+    private static final String SPECIAL_CHARACTERS = "!@#$%^&*()_+-=[]{};':\"\\|,.<>/?";
 
     private final LoginRepository loginRepository;
     private final EmployeeRepository employeeRepository;
@@ -105,7 +105,7 @@ public class LoginService {
             hasUppercase = hasUppercase || Character.isUpperCase(current);
             hasLowercase = hasLowercase || Character.isLowerCase(current);
             hasDigit = hasDigit || Character.isDigit(current);
-            hasSpecial = hasSpecial || SPECIAL_PASSWORD_CHARACTERS.indexOf(current) >= 0;
+            hasSpecial = hasSpecial || SPECIAL_CHARACTERS.indexOf(current) >= 0;
         }
 
         return new PasswordCharacterSummary(hasUppercase, hasLowercase, hasDigit, hasSpecial);

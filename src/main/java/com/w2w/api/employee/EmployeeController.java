@@ -5,7 +5,6 @@ import com.w2w.api.employee.dto.EmployeeListConfigResponse;
 import com.w2w.api.employee.dto.EmployeeRequest;
 import com.w2w.api.employee.dto.EmployeeResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,11 +14,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/employees")
 public class EmployeeController {
-    @Autowired
-    private EmployeeService employeeService;
+    private final EmployeeService employeeService;
+    private final EmployeeListConfigService configService;
 
-    @Autowired
-    private EmployeeListConfigService configService;
+    public EmployeeController(EmployeeService employeeService, EmployeeListConfigService configService) {
+        this.employeeService = employeeService;
+        this.configService = configService;
+    }
 
     @GetMapping
     public List<EmployeeResponse> getByCompany() {

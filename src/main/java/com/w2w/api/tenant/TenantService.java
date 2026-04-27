@@ -2,7 +2,6 @@ package com.w2w.api.tenant;
 
 import com.w2w.api.config.CurrentTenant;
 import com.w2w.api.config.TenantContext;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -12,8 +11,11 @@ import java.util.Optional;
 
 @Service
 public class TenantService {
-    @Autowired
-    private CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
+
+    public TenantService(CompanyRepository companyRepository) {
+        this.companyRepository = companyRepository;
+    }
 
     public List<Company> getAllCompanies() {
         Integer currentTenant = TenantContext.getCurrentTenant();

@@ -57,58 +57,11 @@ final class SchedulingValidationContext {
         this.coveredWindows = memoize(() -> hasTimedShift()
                 ? splitShiftDateWindows(shiftDate(), startTime(), endTime())
                 : List.of());
-        this.employee = memoize(() -> {
-            if (employeeId() == null) {
-                return null;
-            }
-            return employeeService.findActiveEmployeeForCurrentTenant(employeeId())
-                    .orElse(null);
-        });
-        this.nearbyShifts = memoize(() -> {
-            if (employeeId() == null || shiftDate() == null) {
-                return List.of();
-            }
-            return emptyIfNull(shiftLookupService.findActiveDailyHoursShifts(
-                    companyId(),
-                    employeeId(),
-                    shiftDate().minusDays(1),
-                    shiftDate().plusDays(1),
-                    shiftId()
-            ));
-        });
-        this.weeklyShifts = memoize(() -> {
-            if (employeeId() == null || shiftDate() == null) {
-                return List.of();
-            }
-            return emptyIfNull(shiftLookupService.findActiveDailyHoursShifts(
-                    companyId(),
-                    employeeId(),
-                    startOfWeek(shiftDate()),
-                    endOfWeek(shiftDate()),
-                    shiftId()
-            ));
-        });
-        this.sameDayShifts = memoize(() -> {
-            if (employeeId() == null || shiftDate() == null) {
-                return List.of();
-            }
-            return emptyIfNull(shiftLookupService.findActiveSameDayShifts(
-                    companyId(),
-                    employeeId(),
-                    shiftDate(),
-                    shiftId()
-            ));
-        });
-        this.blockingTimeOff = memoize(() -> {
-            if (employeeId() == null || coveredWindows().isEmpty()) {
-                return List.of();
-            }
-            return emptyIfNull(timeOffService.findBlockingTimeOff(
-                    employeeId(),
-                    coveredStartDate(),
-                    coveredEndDate()
-            ));
-        });
+        this.employee = memoizeEmployee(employeeService);
+        this.nearbyShifts = memoizeDailyHoursShifts(shiftLookupService, ShiftLookupRange.NEARBY);
+        this.weeklyShifts = memoizeDailyHoursShifts(shiftLookupService, ShiftLookupRange.WEEKLY);
+        this.sameDayShifts = memoizeSameDayShifts(shiftLookupService);
+        this.blockingTimeOff = memoizeBlockingTimeOff(timeOffService);
     }
 
     boolean hasShift() {
@@ -180,21 +133,21 @@ final class SchedulingValidationContext {
     }
 
     String resolvedPreference(LocalDate date) {
-        return resolvedPreferences.computeIfAbsent(date, key -> {
-            Optional<String> preference = preferencesService.getResolvedPreference(employeeId(), key);
-            return preference == null ? Optional.empty() : preference;
-        }).orElse(null);
+        return resolvedPreferences.computeIfAbsent(
+                date,
+                key -> preferencesService.getResolvedPreference(employeeId(), key)
+        ).orElse(null);
     }
 
     Map<LocalDate, Float> hoursByDate(List<DailyHoursShiftProjection> shifts) {
         Map<LocalDate, Float> hoursByDate = new LinkedHashMap<>();
-        for (DailyHoursShiftProjection shift : shifts) {
+        for (DailyHoursShiftProjection existingShift : shifts) {
             addHoursByDate(
                     hoursByDate,
-                    shift.getDate(),
-                    shift.getStartTime(),
-                    shift.getEndTime(),
-                    shift.getDuration()
+                    existingShift.getDate(),
+                    existingShift.getStartTime(),
+                    existingShift.getEndTime(),
+                    existingShift.getDuration()
             );
         }
         return hoursByDate;
@@ -245,6 +198,60 @@ final class SchedulingValidationContext {
         return companyId.get();
     }
 
+    private Supplier<Employee> memoizeEmployee(EmployeeService employeeService) {
+        return memoize(() -> {
+            if (employeeId() == null) {
+                return null;
+            }
+            return employeeService.findActiveEmployeeForCurrentTenant(employeeId()).orElse(null);
+        });
+    }
+
+    private Supplier<List<DailyHoursShiftProjection>> memoizeDailyHoursShifts(
+            SchedulingShiftLookupService shiftLookupService,
+            ShiftLookupRange range
+    ) {
+        return memoize(() -> {
+            if (employeeId() == null || shiftDate() == null) {
+                return List.of();
+            }
+            return emptyIfNull(shiftLookupService.findActiveDailyHoursShifts(
+                    companyId(),
+                    employeeId(),
+                    range.startDate(shiftDate()),
+                    range.endDate(shiftDate()),
+                    shiftId()
+            ));
+        });
+    }
+
+    private Supplier<List<Shift>> memoizeSameDayShifts(SchedulingShiftLookupService shiftLookupService) {
+        return memoize(() -> {
+            if (employeeId() == null || shiftDate() == null) {
+                return List.of();
+            }
+            return emptyIfNull(shiftLookupService.findActiveSameDayShifts(
+                    companyId(),
+                    employeeId(),
+                    shiftDate(),
+                    shiftId()
+            ));
+        });
+    }
+
+    private Supplier<List<TimeOffRequest>> memoizeBlockingTimeOff(TimeOffService timeOffService) {
+        return memoize(() -> {
+            if (employeeId() == null || coveredWindows().isEmpty()) {
+                return List.of();
+            }
+            return emptyIfNull(timeOffService.findBlockingTimeOff(
+                    employeeId(),
+                    coveredStartDate(),
+                    coveredEndDate()
+            ));
+        });
+    }
+
     private LocalDate coveredStartDate() {
         List<ShiftDateWindow> windows = coveredWindows();
         return windows.isEmpty() ? null : windows.get(0).date();
@@ -255,17 +262,17 @@ final class SchedulingValidationContext {
         return windows.isEmpty() ? null : windows.get(windows.size() - 1).date();
     }
 
-    private Float resolveDuration(UpdateShiftRequest shift) {
-        if (shift == null) {
+    private Float resolveDuration(UpdateShiftRequest request) {
+        if (request == null) {
             return null;
         }
-        if (shift.duration() != null) {
-            return shift.duration();
+        if (request.duration() != null) {
+            return request.duration();
         }
-        if (shift.startTime() == null || shift.endTime() == null) {
+        if (request.startTime() == null || request.endTime() == null) {
             return null;
         }
-        return calculateDurationHours(shift.startTime(), shift.endTime());
+        return calculateDurationHours(request.startTime(), request.endTime());
     }
 
     private void addHoursByDate(
@@ -312,14 +319,6 @@ final class SchedulingValidationContext {
 
     private void addHours(Map<LocalDate, Float> hoursByDate, LocalDate date, float hours) {
         hoursByDate.merge(date, hours, Float::sum);
-    }
-
-    private LocalDate startOfWeek(LocalDate date) {
-        return date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-    }
-
-    private LocalDate endOfWeek(LocalDate date) {
-        return startOfWeek(date).plusDays(6);
     }
 
     private float calculateDurationHours(LocalTime startTime, LocalTime endTime) {
@@ -419,6 +418,35 @@ final class SchedulingValidationContext {
     private <T> List<T> emptyIfNull(List<T> values) {
         return values == null ? List.of() : values;
     }
+}
+
+enum ShiftLookupRange {
+    NEARBY {
+        @Override
+        LocalDate startDate(LocalDate shiftDate) {
+            return shiftDate.minusDays(1);
+        }
+
+        @Override
+        LocalDate endDate(LocalDate shiftDate) {
+            return shiftDate.plusDays(1);
+        }
+    },
+    WEEKLY {
+        @Override
+        LocalDate startDate(LocalDate shiftDate) {
+            return shiftDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        }
+
+        @Override
+        LocalDate endDate(LocalDate shiftDate) {
+            return startDate(shiftDate).plusDays(6);
+        }
+    };
+
+    abstract LocalDate startDate(LocalDate shiftDate);
+
+    abstract LocalDate endDate(LocalDate shiftDate);
 }
 
 record ShiftInterval(LocalDateTime start, LocalDateTime end) {

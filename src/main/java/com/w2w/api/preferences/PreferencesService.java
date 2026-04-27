@@ -37,7 +37,7 @@ public class PreferencesService {
         return dayPreferenceRepository.findByEmployeeIdAndDateBetween(employeeId, startDate, endDate)
                 .stream()
                 .map(this::mapToDayResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Optional<WeekPreferenceResponse> getWeekPreference(Integer employeeId, LocalDate date) {
@@ -92,7 +92,7 @@ public class PreferencesService {
     public void saveDayPreferenceList(DayPreferenceListRequest request) {
         List<DayPreference> entities = request.preferences().stream()
                 .map(this::mapToDayEntity)
-                .collect(Collectors.toList());
+                .toList();
         dayPreferenceRepository.saveAll(entities);
     }
 

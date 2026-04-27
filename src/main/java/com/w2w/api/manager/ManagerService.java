@@ -23,7 +23,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import com.w2w.api.manager.dto.ManagerResponse;
 
 @Service
@@ -235,7 +234,7 @@ public class ManagerService {
 
         return addManagers.stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private ManagerResponse mapToResponse(User user) {
