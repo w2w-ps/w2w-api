@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @Service
 public class LoginService {
+    private static final String USER_NOT_FOUND_MESSAGE = "User not found.";
 
     private final LoginRepository loginRepository;
     private final EmployeeRepository employeeRepository;
@@ -111,8 +112,8 @@ public class LoginService {
         // 2. User existence or authentication check
         Optional<User> userOpt = loginRepository.findByLoginId(username);
         if (userOpt.isEmpty()) {
-            errors.add("User not found.");
-            return new PasswordValidationResponse(false, errors, "User not found.");
+            errors.add(USER_NOT_FOUND_MESSAGE);
+            return new PasswordValidationResponse(false, errors, USER_NOT_FOUND_MESSAGE);
         }
 
         User user = userOpt.get();
@@ -154,8 +155,8 @@ public class LoginService {
         // Locate user
         Optional<User> userOpt = loginRepository.findByLoginId(currentUsername);
         if (userOpt.isEmpty()) {
-            errors.add("User not found.");
-            return new PasswordValidationResponse(false, errors, "User not found.");
+            errors.add(USER_NOT_FOUND_MESSAGE);
+            return new PasswordValidationResponse(false, errors, USER_NOT_FOUND_MESSAGE);
         }
 
         User user = userOpt.get();

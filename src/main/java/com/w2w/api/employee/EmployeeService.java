@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
+    private static final String EMPLOYEE_NOT_FOUND_MESSAGE = "Employee not found";
+
     private final EmployeeRepository employeeRepository;
     private final EmpTypeRepository empTypeRepository;
     private final PositionRepository positionRepository;
@@ -130,7 +132,7 @@ public class EmployeeService {
     public EmployeeResponse updateEmployee(Integer id, EmployeeRequest request) {
         Employee employee = employeeRepository
                 .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE));
 
         if (request.email() != null && !request.email().isBlank()) {
             validateUniqueEmail(TenantContext.getCurrentTenant(), request.email(), id);
@@ -147,7 +149,7 @@ public class EmployeeService {
         enforceMainManagerCheck();
         Employee employee = employeeRepository
                 .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE));
 
         if (request.email() != null) {
             validateUniqueEmail(TenantContext.getCurrentTenant(), request.email(), id);
@@ -325,7 +327,7 @@ public class EmployeeService {
     public void deleteEmployee(Integer id) {
         Employee employee = employeeRepository
                 .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE));
 
         employee.setIsDeleted(true);
         employeeRepository.save(employee);
