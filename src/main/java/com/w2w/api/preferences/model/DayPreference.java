@@ -27,7 +27,9 @@ public class DayPreference {
     @Column(name = "is_day_prefs")
     private Boolean isDayPrefs;
 
-    public DayPreference() {}
+    public DayPreference() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getEmployeeId() {
         return employeeId;

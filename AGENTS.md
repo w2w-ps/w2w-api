@@ -100,6 +100,9 @@
 - Name reusable nested API DTOs by business role rather than `*Dto`; prefer semantic suffixes such as `*Summary`, `*Detail`, `*Reference`, `*Bucket`, or `*Item`.
 - Keep repository and query-mapping types on `*Projection`.
 - Prefer Java `record`s for DTOs whenever possible. Use a class only when mutability, framework binding, or helper methods make a record a poor fit.
+- Keep required public no-argument JPA constructors. If Sonar flags an empty constructor, keep the constructor body and add the comment `// Required by JPA for entity instantiation.` instead of throwing an exception or changing visibility.
+- Do not introduce hard-coded default passwords. Initial account passwords must be generated through `InitialAccountPasswordGenerator`, encoded with `PasswordEncoder`, and covered by tests that assert legacy literals such as `password` or `Welcome123!` are not used.
+- When Sonar flags duplicated literals or high-complexity methods, prefer small private constants and helper methods that preserve the existing service contract. Add focused unit coverage for the behavior being preserved, especially password creation, partial employee patch semantics, and preference validation.
 - Add new database changes as incremental Flyway migrations; do not edit already-applied migrations in a shared environment.
 - When request or response contracts change, update `openapi.yaml`.
 - When request or response contracts change, update request examples in `postman/w2w-api.postman_collection.json`.

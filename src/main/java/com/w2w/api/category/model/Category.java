@@ -35,7 +35,9 @@ public class Category {
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
-    public Category() {}
+    public Category() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getCategoryId() {
         return categoryId;

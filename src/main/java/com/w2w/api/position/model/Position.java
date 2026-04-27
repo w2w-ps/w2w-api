@@ -23,7 +23,9 @@ public class Position {
     @Column(name = "timestamp")
     private LocalDateTime timestamp;
 
-    public Position() {}
+    public Position() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getPositionId() {
         return positionId;

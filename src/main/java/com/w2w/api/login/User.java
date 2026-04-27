@@ -48,7 +48,9 @@ public class User {
     @JoinColumn(name = "employee_id")
     private Employee employee;
 
-    public User() {}
+    public User() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }

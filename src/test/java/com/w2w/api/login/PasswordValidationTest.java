@@ -32,6 +32,54 @@ class PasswordValidationTest {
     }
 
     @Test
+    void validatePassword_rejectsNullPassword() {
+        PasswordValidationResponse response = loginService.validatePassword(null);
+
+        assertFalse(response.isValid());
+        assertTrue(response.errors().contains("Password must be at least 8 characters long."));
+    }
+
+    @Test
+    void validatePassword_rejectsMissingUppercase() {
+        PasswordValidationResponse response = loginService.validatePassword("password123!");
+
+        assertFalse(response.isValid());
+        assertTrue(response.errors().contains("Password must contain at least one uppercase letter."));
+    }
+
+    @Test
+    void validatePassword_rejectsMissingLowercase() {
+        PasswordValidationResponse response = loginService.validatePassword("PASSWORD123!");
+
+        assertFalse(response.isValid());
+        assertTrue(response.errors().contains("Password must contain at least one lowercase letter."));
+    }
+
+    @Test
+    void validatePassword_rejectsMissingDigit() {
+        PasswordValidationResponse response = loginService.validatePassword("Password!");
+
+        assertFalse(response.isValid());
+        assertTrue(response.errors().contains("Password must contain at least one number."));
+    }
+
+    @Test
+    void validatePassword_rejectsMissingSpecialCharacter() {
+        PasswordValidationResponse response = loginService.validatePassword("Password123");
+
+        assertFalse(response.isValid());
+        assertTrue(response.errors().contains("Password must contain at least one special character."));
+    }
+
+    @Test
+    void validatePassword_handlesLongInputWithoutRegexBacktracking() {
+        PasswordValidationResponse response = loginService.validatePassword("a".repeat(10000) + "1!");
+
+        assertFalse(response.isValid());
+        assertTrue(response.errors().contains("Password must contain at least one uppercase letter."));
+    }
+
+    @Test
     void testUpdatePassword_Success() {
         User user = new User();
         user.setLoginId("testuser");

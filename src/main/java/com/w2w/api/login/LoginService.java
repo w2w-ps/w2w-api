@@ -14,6 +14,7 @@ import java.util.Optional;
 @Service
 public class LoginService {
     private static final String USER_NOT_FOUND_MESSAGE = "User not found.";
+    private static final String SPECIAL_PASSWORD_CHARACTERS = "!@#$%^&*()_+-=[]{};':\"\\|,.<>/?";
 
     private final LoginRepository loginRepository;
     private final EmployeeRepository employeeRepository;
@@ -70,25 +71,47 @@ public class LoginService {
         }
 
         if (password != null) {
-            if (!password.matches(".*[A-Z].*")) {
+            PasswordCharacterSummary characterSummary = summarizePasswordCharacters(password);
+
+            if (!characterSummary.hasUppercase()) {
                 errors.add("Password must contain at least one uppercase letter.");
                 isValid = false;
             }
-            if (!password.matches(".*[a-z].*")) {
+            if (!characterSummary.hasLowercase()) {
                 errors.add("Password must contain at least one lowercase letter.");
                 isValid = false;
             }
-            if (!password.matches(".*[0-9].*")) {
+            if (!characterSummary.hasDigit()) {
                 errors.add("Password must contain at least one number.");
                 isValid = false;
             }
-            if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+            if (!characterSummary.hasSpecial()) {
                 errors.add("Password must contain at least one special character.");
                 isValid = false;
             }
         }
 
         return new PasswordValidationResponse(isValid, errors, null);
+    }
+
+    private PasswordCharacterSummary summarizePasswordCharacters(String password) {
+        boolean hasUppercase = false;
+        boolean hasLowercase = false;
+        boolean hasDigit = false;
+        boolean hasSpecial = false;
+
+        for (int i = 0; i < password.length(); i++) {
+            char current = password.charAt(i);
+            hasUppercase = hasUppercase || Character.isUpperCase(current);
+            hasLowercase = hasLowercase || Character.isLowerCase(current);
+            hasDigit = hasDigit || Character.isDigit(current);
+            hasSpecial = hasSpecial || SPECIAL_PASSWORD_CHARACTERS.indexOf(current) >= 0;
+        }
+
+        return new PasswordCharacterSummary(hasUppercase, hasLowercase, hasDigit, hasSpecial);
+    }
+
+    private record PasswordCharacterSummary(boolean hasUppercase, boolean hasLowercase, boolean hasDigit, boolean hasSpecial) {
     }
 
     public PasswordValidationResponse updatePassword(String username, String oldPassword, String newPassword, String confirmPassword) {

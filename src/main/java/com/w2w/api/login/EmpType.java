@@ -19,7 +19,9 @@ public class EmpType {
     @Column(name = "emp_type_name", unique = true, nullable = false)
     private String name;
 
-    public EmpType() {}
+    public EmpType() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }

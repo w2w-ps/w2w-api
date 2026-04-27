@@ -36,7 +36,9 @@ public class Schedule {
     @Column(name = "archived")
     private String archived;
 
-    public Schedule() {}
+    public Schedule() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getScheduleId() {
         return scheduleId;

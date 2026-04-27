@@ -19,7 +19,9 @@ public class UserRole {
     @Column(name = "role_name", unique = true, nullable = false)
     private String name;
 
-    public UserRole() {}
+    public UserRole() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }

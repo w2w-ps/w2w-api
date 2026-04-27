@@ -53,7 +53,9 @@ public class Shift {
     @Column(name = "changed_by")
     private Integer changedBy;
 
-    public Shift() {}
+    public Shift() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getShiftId() {
         return shiftId;
