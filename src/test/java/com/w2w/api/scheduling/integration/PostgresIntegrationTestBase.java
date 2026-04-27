@@ -5,15 +5,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers(disabledWithoutDocker = true)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class PostgresIntegrationTestBase {
     protected static final int TEST_COMPANY_MIN = 7000;
     protected static final int TEST_COMPANY_MAX = 7999;
@@ -21,7 +18,6 @@ public abstract class PostgresIntegrationTestBase {
     private static final String APP_USER = "w2w_app_test";
     private static final String APP_PASSWORD = "w2w_app_test";
 
-    @Container
     private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine")
             .withDatabaseName("w2w_test")
             .withUsername("w2w_test")
@@ -32,6 +28,8 @@ public abstract class PostgresIntegrationTestBase {
 
     @DynamicPropertySource
     static void registerDataSourceProperties(DynamicPropertyRegistry registry) {
+        POSTGRES.start();
+
         // App datasource: non-superuser, subject to RLS.
         // V3 migration provisions this role when it differs from the Flyway user.
         registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
