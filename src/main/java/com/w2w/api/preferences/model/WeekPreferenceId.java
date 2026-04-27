@@ -8,7 +8,9 @@ public class WeekPreferenceId implements Serializable {
     private Integer employeeId;
     private LocalDate startDate;
 
-    public WeekPreferenceId() {}
+    public WeekPreferenceId() {
+        // Required by JPA for entity instantiation.
+    }
 
     public WeekPreferenceId(Integer employeeId, LocalDate startDate) {
         this.employeeId = employeeId;

@@ -145,11 +145,12 @@ class PositionServiceTest {
 
     @Test
     void update_notFound_throwsNotFound() {
+        UpdatePositionRequest request = new UpdatePositionRequest("Lead Server");
         when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> positionService.update(101, new UpdatePositionRequest("Lead Server"))
+                () -> positionService.update(101, request)
         );
 
         assertEquals("Position not found", exception.getMessage());
@@ -171,12 +172,13 @@ class PositionServiceTest {
 
     @Test
     void updatePosition_deleted_throwsNotFound() {
+        UpdatePositionRequest request = new UpdatePositionRequest("Lead Server");
         position.setIsDeleted(true);
         when(positionRepository.findByPositionIdAndCompanyId(101, 1)).thenReturn(Optional.of(position));
 
         ResourceNotFoundException exception = assertThrows(
                 ResourceNotFoundException.class,
-                () -> positionService.update(101, new UpdatePositionRequest("Lead Server"))
+                () -> positionService.update(101, request)
         );
 
         assertEquals("Position not found", exception.getMessage());

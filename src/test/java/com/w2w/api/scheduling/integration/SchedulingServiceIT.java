@@ -114,12 +114,14 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
 
         TenantContext.setCurrentTenant(COMPANY_B_ID);
 
-        assertTrue(shiftRepository.findByShiftIdAndCompanyId(savedShift.getShiftId(), COMPANY_B_ID).isEmpty());
+        Integer shiftId = savedShift.getShiftId();
+
+        assertTrue(shiftRepository.findByShiftIdAndCompanyId(shiftId, COMPANY_B_ID).isEmpty());
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> schedulingService.getShift(savedShift.getShiftId())
+                () -> schedulingService.getShift(shiftId)
         );
-        assertEquals("Shift not found with id: " + savedShift.getShiftId(), exception.getMessage());
+        assertEquals("Shift not found with id: " + shiftId, exception.getMessage());
     }
 
     @Test
@@ -227,26 +229,26 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
 
         TenantContext.setCurrentTenant(COMPANY_B_ID);
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> schedulingService.updateShift(
-                        savedShift.getShiftId(),
-                        new UpdateShiftRequest(
-                                savedShift.getShiftId(),
-                                EMPLOYEE_B_ID,
-                                "Cross-tenant update",
-                                LocalTime.of(11, 0),
-                                LocalTime.of(19, 0),
-                                null,
-                                null,
-                                "red",
-                                UPDATED_SHIFT_DATE,
-                                8.0f
-                        )
-                )
+        Integer shiftId = savedShift.getShiftId();
+        UpdateShiftRequest request = new UpdateShiftRequest(
+                shiftId,
+                EMPLOYEE_B_ID,
+                "Cross-tenant update",
+                LocalTime.of(11, 0),
+                LocalTime.of(19, 0),
+                null,
+                null,
+                "red",
+                UPDATED_SHIFT_DATE,
+                8.0f
         );
 
-        assertEquals("Shift not found with id: " + savedShift.getShiftId(), exception.getMessage());
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> schedulingService.updateShift(shiftId, request)
+        );
+
+        assertEquals("Shift not found with id: " + shiftId, exception.getMessage());
 
         TenantContext.setCurrentTenant(COMPANY_A_ID);
         ShiftResponse originalShift = schedulingService.getShift(savedShift.getShiftId());
@@ -276,15 +278,16 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
 
         schedulingService.softDeleteShift(savedShift.getShiftId());
 
-        Shift deletedShift = shiftRepository.findByShiftIdAndCompanyId(savedShift.getShiftId(), COMPANY_A_ID)
+        Integer shiftId = savedShift.getShiftId();
+        Shift deletedShift = shiftRepository.findByShiftIdAndCompanyId(shiftId, COMPANY_A_ID)
                 .orElseThrow();
         assertTrue(deletedShift.getIsDeleted());
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> schedulingService.getShift(savedShift.getShiftId())
+                () -> schedulingService.getShift(shiftId)
         );
-        assertEquals("Shift not found with id: " + savedShift.getShiftId(), exception.getMessage());
+        assertEquals("Shift not found with id: " + shiftId, exception.getMessage());
 
         List<EmployeeSchedule> groupedSchedules = schedulingService.getEmployeeShiftsGroupedInRange(SHIFT_DATE, SHIFT_DATE, null, null);
         assertEquals(1, groupedSchedules.size());

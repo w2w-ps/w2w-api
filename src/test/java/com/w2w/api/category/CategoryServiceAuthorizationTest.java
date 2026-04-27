@@ -115,8 +115,10 @@ class CategoryServiceAuthorizationTest {
     }
 
     private void assertDeniedForAllMutations() {
+        UpdateCategoryRequest updateRequest = new UpdateCategoryRequest("Lead", "Description", "09:00", "17:00", 10, (short) 2);
+
         assertThrows(AccessDeniedException.class, () -> categoryService.create("Host", "Description", "09:00", "17:00", 10, (short) 1));
-        assertThrows(AccessDeniedException.class, () -> categoryService.update(101, new UpdateCategoryRequest("Lead", "Description", "09:00", "17:00", 10, (short) 2)));
+        assertThrows(AccessDeniedException.class, () -> categoryService.update(101, updateRequest));
         assertThrows(AccessDeniedException.class, () -> categoryService.delete(101));
 
         verify(categoryRepository, never()).save(any(Category.class));

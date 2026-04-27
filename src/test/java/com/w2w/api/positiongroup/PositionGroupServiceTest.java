@@ -108,11 +108,12 @@ class PositionGroupServiceTest {
 
     @Test
     void createPositionGroup_missingPosition_throwsBadRequest() {
+        List<Integer> positionIds = List.of(101, 999);
         when(positionRepository.findByPositionIdInAndCompanyId(any(), eq(1))).thenReturn(List.of(position));
 
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> positionGroupService.createPositionGroup("Front of House", List.of(101, 999))
+                () -> positionGroupService.createPositionGroup("Front of House", positionIds)
         );
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
@@ -157,11 +158,12 @@ class PositionGroupServiceTest {
 
     @Test
     void createPositionGroup_withoutTenant_throwsUnauthorized() {
+        List<Integer> positionIds = List.of(101);
         TenantContext.clear();
 
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> positionGroupService.createPositionGroup("Front of House", List.of(101))
+                () -> positionGroupService.createPositionGroup("Front of House", positionIds)
         );
 
         assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());

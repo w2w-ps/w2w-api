@@ -156,13 +156,15 @@ class CategoryGroupServiceTest {
 
     @Test
     void createCategoryGroup_throwsWhenAnyCategoryIsMissing() {
+        List<Integer> requestedCategoryIds = List.of(4, 999);
         when(categoryRepository.findByCategoryIdInAndCompanyIdAndIsDeletedFalse(
                 argThat(categoryIds -> categoryIds.size() == 2 && categoryIds.containsAll(List.of(4, 999))),
                 eq(1)
         ))
                 .thenReturn(List.of(floor));
 
-        assertThrows(ResponseStatusException.class, () -> categoryGroupService.createCategoryGroup("Standard Shifts", List.of(4, 999)));
+        assertThrows(ResponseStatusException.class,
+                () -> categoryGroupService.createCategoryGroup("Standard Shifts", requestedCategoryIds));
 
         verify(categoryGroupRepository, never()).save(any(CategoryGroup.class));
     }
@@ -206,10 +208,11 @@ class CategoryGroupServiceTest {
 
     @Test
     void createCategoryGroup_throwsWhenTenantMissing() {
+        List<Integer> categoryIds = List.of(4, 5);
         TenantContext.clear();
 
         assertThrows(ResponseStatusException.class,
-                () -> categoryGroupService.createCategoryGroup("Standard Shifts", List.of(4, 5)));
+                () -> categoryGroupService.createCategoryGroup("Standard Shifts", categoryIds));
         verify(categoryGroupRepository, never()).save(any(CategoryGroup.class));
     }
 }
