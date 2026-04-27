@@ -82,7 +82,9 @@ public class ManagerPermissions {
     @Column(name = "can_receive_manager_notifications")
     private boolean canReceiveManagerNotifications;
 
-    public ManagerPermissions() {}
+    public ManagerPermissions() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }

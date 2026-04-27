@@ -20,7 +20,9 @@ public class EmployeeListConfig {
     @Column(name = "is_visible")
     private Boolean isVisible;
 
-    public EmployeeListConfig() {}
+    public EmployeeListConfig() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getConfigId() {
         return configId;

@@ -125,23 +125,35 @@ public class PreferencesService {
         if (prefs == null) {
             throw new IllegalArgumentException("Preference string cannot be null.");
         }
+
         if (Boolean.TRUE.equals(isDayPrefs)) {
-            if (prefs.length() != 1 && prefs.length() != 96) {
-                throw new IllegalArgumentException("When isDayPrefs is true, preference must be either 1 or 96 characters.");
-            }
-            if (prefs.length() == 96) {
-                char firstChar = prefs.charAt(0);
-                for (int i = 1; i < prefs.length(); i++) {
-                    if (prefs.charAt(i) != firstChar) {
-                        throw new IllegalArgumentException("When isDayPrefs is true, all 96 characters must be the same.");
-                    }
-                }
-            }
-        } else { // Handles false or null
-            if (prefs.length() != 96) {
-                throw new IllegalArgumentException("When isDayPrefs is false or null, exactly 96 characters are required.");
+            validateFullDayPrefs(prefs);
+            return;
+        }
+
+        if (prefs.length() != 96) {
+            throw new IllegalArgumentException("When isDayPrefs is false or null, exactly 96 characters are required.");
+        }
+    }
+
+    private void validateFullDayPrefs(String prefs) {
+        if (prefs.length() != 1 && prefs.length() != 96) {
+            throw new IllegalArgumentException("When isDayPrefs is true, preference must be either 1 or 96 characters.");
+        }
+
+        if (prefs.length() == 96 && !hasSameCharacterForEverySlot(prefs)) {
+            throw new IllegalArgumentException("When isDayPrefs is true, all 96 characters must be the same.");
+        }
+    }
+
+    private boolean hasSameCharacterForEverySlot(String prefs) {
+        char firstChar = prefs.charAt(0);
+        for (int i = 1; i < prefs.length(); i++) {
+            if (prefs.charAt(i) != firstChar) {
+                return false;
             }
         }
+        return true;
     }
 
     private String getEffectivePrefs(Boolean isDayPrefs, String prefs) {

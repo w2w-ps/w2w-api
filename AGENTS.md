@@ -105,3 +105,10 @@
 - When request or response contracts change, update request examples in `postman/w2w-api.postman_collection.json`.
 - Any new or changed APIs must be documented in the `API Surface` section of this file and added/updated in the `postman/w2w-api.postman_collection.json` file.
 - Keep the database schema and seed data in `src/main/resources/db/migration` in sync with any model changes.
+
+## Sonar Guidelines
+- Keep required public JPA no-arg constructors; add `// Required by JPA for entity instantiation.` when Sonar flags an empty body.
+- Do not hard-code default passwords; generate initial passwords with `InitialAccountPasswordGenerator` and encode with `PasswordEncoder`.
+- Avoid dynamic SQL string building; use bind parameters, including PostgreSQL `set_config(..., ?, false)` for session settings.
+- Avoid regexes with backtracking risk on user input; prefer simple linear scans for password complexity checks.
+- For duplicated literals or complex methods, use small constants/helpers and add focused tests for preserved behavior.

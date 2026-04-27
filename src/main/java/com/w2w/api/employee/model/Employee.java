@@ -107,6 +107,7 @@ public class Employee {
     private List<Position> positions = new ArrayList<>();
 
     public Employee() {
+        // Required by JPA for entity instantiation.
     }
 
     public Integer getEmployeeId() {

@@ -31,7 +31,9 @@ public class CategoryGroup {
     )
     private List<Category> categories = new ArrayList<>();
 
-    public CategoryGroup() {}
+    public CategoryGroup() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getGroupId() {
         return groupId;

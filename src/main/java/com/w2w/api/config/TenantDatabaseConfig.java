@@ -12,8 +12,8 @@ import org.flywaydb.core.Flyway;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Map;
 
 @Configuration
@@ -73,9 +73,13 @@ public class TenantDatabaseConfig {
             int tenantId = resolveDatabaseTenantId();
             boolean isSystemLookup = isInternalSystemLookup(tenantId);
 
-            try (Statement sql = connection.createStatement()) {
-                sql.execute("SET app.current_tenant = '" + tenantId + "'");
-                sql.execute("SET app.internal_system_lookup = '" + isSystemLookup + "'");
+            try (PreparedStatement sql = connection.prepareStatement("SELECT set_config('app.current_tenant', ?, false)")) {
+                sql.setString(1, String.valueOf(tenantId));
+                sql.execute();
+            }
+            try (PreparedStatement sql = connection.prepareStatement("SELECT set_config('app.internal_system_lookup', ?, false)")) {
+                sql.setString(1, String.valueOf(isSystemLookup));
+                sql.execute();
             }
             return connection;
         }

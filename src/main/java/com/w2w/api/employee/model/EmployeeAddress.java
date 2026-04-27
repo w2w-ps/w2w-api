@@ -32,7 +32,9 @@ public class EmployeeAddress {
     @Column(name = "zip")
     private String zip;
 
-    public EmployeeAddress() {}
+    public EmployeeAddress() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getEmployeeId() {
         return employeeId;

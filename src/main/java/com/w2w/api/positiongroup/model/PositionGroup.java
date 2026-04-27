@@ -32,7 +32,9 @@ public class PositionGroup {
     )
     private List<Position> positions = new ArrayList<>();
 
-    public PositionGroup() {}
+    public PositionGroup() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getGroupId() {
         return groupId;

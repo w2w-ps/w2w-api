@@ -1,5 +1,6 @@
 package com.w2w.api.preferences;
 
+import com.w2w.api.preferences.dto.DayPreferenceRequest;
 import com.w2w.api.preferences.model.DayPreference;
 import com.w2w.api.preferences.model.DayPreferenceId;
 import com.w2w.api.preferences.model.WeekPreference;
@@ -7,12 +8,15 @@ import com.w2w.api.preferences.repository.DayPreferenceRepository;
 import com.w2w.api.preferences.repository.WeekPreferenceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -86,5 +90,73 @@ class PreferencesServiceTest {
         Optional<String> resolvedPreference = preferencesService.getResolvedPreference(101, date);
 
         assertTrue(resolvedPreference.isEmpty());
+    }
+
+    @Test
+    void saveDayPreference_expandsSingleCharacterDayPreference() {
+        preferencesService.saveDayPreference(new DayPreferenceRequest(
+                101,
+                1,
+                LocalDate.of(2026, 4, 21),
+                "P",
+                null,
+                null,
+                true
+        ));
+
+        ArgumentCaptor<DayPreference> captor = ArgumentCaptor.forClass(DayPreference.class);
+        verify(dayPreferenceRepository).save(captor.capture());
+        assertEquals("P".repeat(96), captor.getValue().getPrefs());
+    }
+
+    @Test
+    void saveDayPreference_acceptsUniformNinetySixCharacterDayPreference() {
+        preferencesService.saveDayPreference(new DayPreferenceRequest(
+                101,
+                1,
+                LocalDate.of(2026, 4, 21),
+                "P".repeat(96),
+                null,
+                null,
+                true
+        ));
+
+        verify(dayPreferenceRepository).save(any(DayPreference.class));
+    }
+
+    @Test
+    void saveDayPreference_rejectsMixedNinetySixCharacterDayPreferenceWhenDayPrefsTrue() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> preferencesService.saveDayPreference(new DayPreferenceRequest(
+                        101,
+                        1,
+                        LocalDate.of(2026, 4, 21),
+                        "P".repeat(95) + "D",
+                        null,
+                        null,
+                        true
+                ))
+        );
+
+        assertEquals("When isDayPrefs is true, all 96 characters must be the same.", exception.getMessage());
+    }
+
+    @Test
+    void saveDayPreference_rejectsNonNinetySixCharacterPreferenceWhenDayPrefsFalse() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> preferencesService.saveDayPreference(new DayPreferenceRequest(
+                        101,
+                        1,
+                        LocalDate.of(2026, 4, 21),
+                        "P",
+                        null,
+                        null,
+                        false
+                ))
+        );
+
+        assertEquals("When isDayPrefs is false or null, exactly 96 characters are required.", exception.getMessage());
     }
 }

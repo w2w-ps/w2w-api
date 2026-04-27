@@ -24,7 +24,9 @@ public class WeekPreference {
     @Column(name = "edited_by")
     private Integer editedBy;
 
-    public WeekPreference() {}
+    public WeekPreference() {
+        // Required by JPA for entity instantiation.
+    }
 
     public Integer getEmployeeId() {
         return employeeId;
