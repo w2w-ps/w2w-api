@@ -6,7 +6,7 @@ import java.security.SecureRandom;
 
 @Component
 public class InitialAccountPasswordGenerator {
-    private static final int RANDOM_CHARACTER_COUNT = 28;
+    private static final int PASSWORD_LENGTH = 12;
     private static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
     private static final String DIGITS = "0123456789";
@@ -16,13 +16,13 @@ public class InitialAccountPasswordGenerator {
     private final SecureRandom secureRandom = new SecureRandom();
 
     public String generate() {
-        StringBuilder password = new StringBuilder(RANDOM_CHARACTER_COUNT + 4);
+        StringBuilder password = new StringBuilder(PASSWORD_LENGTH);
         password.append(randomFrom(UPPERCASE));
         password.append(randomFrom(LOWERCASE));
         password.append(randomFrom(DIGITS));
         password.append(randomFrom(SPECIAL));
 
-        for (int i = 0; i < RANDOM_CHARACTER_COUNT; i++) {
+        while (password.length() < PASSWORD_LENGTH) {
             password.append(randomFrom(ALL_ALLOWED));
         }
 
