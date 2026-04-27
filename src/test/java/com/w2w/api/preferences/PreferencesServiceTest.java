@@ -15,7 +15,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -89,7 +88,7 @@ class PreferencesServiceTest {
 
         Optional<String> resolvedPreference = preferencesService.getResolvedPreference(101, date);
 
-        assertTrue(resolvedPreference.isEmpty());
+        assertEquals(Optional.empty(), resolvedPreference);
     }
 
     @Test
@@ -126,17 +125,19 @@ class PreferencesServiceTest {
 
     @Test
     void saveDayPreference_rejectsMixedNinetySixCharacterDayPreferenceWhenDayPrefsTrue() {
+        DayPreferenceRequest request = new DayPreferenceRequest(
+                101,
+                1,
+                LocalDate.of(2026, 4, 21),
+                "P".repeat(95) + "D",
+                null,
+                null,
+                true
+        );
+
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> preferencesService.saveDayPreference(new DayPreferenceRequest(
-                        101,
-                        1,
-                        LocalDate.of(2026, 4, 21),
-                        "P".repeat(95) + "D",
-                        null,
-                        null,
-                        true
-                ))
+                () -> preferencesService.saveDayPreference(request)
         );
 
         assertEquals("When isDayPrefs is true, all 96 characters must be the same.", exception.getMessage());
@@ -144,17 +145,19 @@ class PreferencesServiceTest {
 
     @Test
     void saveDayPreference_rejectsNonNinetySixCharacterPreferenceWhenDayPrefsFalse() {
+        DayPreferenceRequest request = new DayPreferenceRequest(
+                101,
+                1,
+                LocalDate.of(2026, 4, 21),
+                "P",
+                null,
+                null,
+                false
+        );
+
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> preferencesService.saveDayPreference(new DayPreferenceRequest(
-                        101,
-                        1,
-                        LocalDate.of(2026, 4, 21),
-                        "P",
-                        null,
-                        null,
-                        false
-                ))
+                () -> preferencesService.saveDayPreference(request)
         );
 
         assertEquals("When isDayPrefs is false or null, exactly 96 characters are required.", exception.getMessage());

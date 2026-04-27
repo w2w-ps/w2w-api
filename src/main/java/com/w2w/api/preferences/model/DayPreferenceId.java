@@ -8,7 +8,9 @@ public class DayPreferenceId implements Serializable {
     private Integer employeeId;
     private LocalDate date;
 
-    public DayPreferenceId() {}
+    public DayPreferenceId() {
+        // Required by JPA for entity instantiation.
+    }
 
     public DayPreferenceId(Integer employeeId, LocalDate date) {
         this.employeeId = employeeId;

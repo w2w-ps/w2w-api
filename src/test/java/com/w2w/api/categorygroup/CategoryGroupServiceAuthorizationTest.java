@@ -121,8 +121,11 @@ class CategoryGroupServiceAuthorizationTest {
     }
 
     private void assertDeniedForAllMutations() {
-        assertThrows(AccessDeniedException.class, () -> categoryGroupService.createCategoryGroup("Standard Shifts", List.of(101)));
-        assertThrows(AccessDeniedException.class, () -> categoryGroupService.updateCategoryGroup(201, new UpdateCategoryGroupRequest("Updated Group", List.of(101))));
+        List<Integer> categoryIds = List.of(101);
+        UpdateCategoryGroupRequest updateRequest = new UpdateCategoryGroupRequest("Updated Group", categoryIds);
+
+        assertThrows(AccessDeniedException.class, () -> categoryGroupService.createCategoryGroup("Standard Shifts", categoryIds));
+        assertThrows(AccessDeniedException.class, () -> categoryGroupService.updateCategoryGroup(201, updateRequest));
         assertThrows(AccessDeniedException.class, () -> categoryGroupService.deleteCategoryGroup(201));
 
         verify(categoryGroupRepository, never()).save(any(CategoryGroup.class));

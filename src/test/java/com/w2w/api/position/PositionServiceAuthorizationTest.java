@@ -117,8 +117,10 @@ class PositionServiceAuthorizationTest {
     }
 
     private void assertDeniedForAllMutations() {
+        UpdatePositionRequest updateRequest = new UpdatePositionRequest("Lead Server");
+
         assertThrows(AccessDeniedException.class, () -> positionService.create("Host"));
-        assertThrows(AccessDeniedException.class, () -> positionService.update(101, new UpdatePositionRequest("Lead Server")));
+        assertThrows(AccessDeniedException.class, () -> positionService.update(101, updateRequest));
         assertThrows(AccessDeniedException.class, () -> positionService.delete(101));
         assertThrows(AccessDeniedException.class, () -> positionService.restore(101));
 

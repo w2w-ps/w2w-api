@@ -121,8 +121,11 @@ class PositionGroupServiceAuthorizationTest {
     }
 
     private void assertDeniedForAllMutations() {
-        assertThrows(AccessDeniedException.class, () -> positionGroupService.createPositionGroup("Front of House", List.of(101)));
-        assertThrows(AccessDeniedException.class, () -> positionGroupService.updatePositionGroup(201, new UpdatePositionGroupRequest("Updated Group", List.of(101))));
+        List<Integer> positionIds = List.of(101);
+        UpdatePositionGroupRequest updateRequest = new UpdatePositionGroupRequest("Updated Group", positionIds);
+
+        assertThrows(AccessDeniedException.class, () -> positionGroupService.createPositionGroup("Front of House", positionIds));
+        assertThrows(AccessDeniedException.class, () -> positionGroupService.updatePositionGroup(201, updateRequest));
         assertThrows(AccessDeniedException.class, () -> positionGroupService.deletePositionGroup(201));
 
         verify(positionGroupRepository, never()).save(any(PositionGroup.class));

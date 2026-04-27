@@ -23,7 +23,10 @@ import java.util.Set;
 @Service
 public class TimeOffService {
     private static final String APPROVED = "APPROVED";
+    private static final String CANCELLED = "CANCELLED";
+    private static final String DECLINED = "DECLINED";
     private static final String PENDING = "PENDING";
+    private static final String TIME_OFF_REQUEST_NOT_FOUND = "Time off request not found";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM d, uuuu", Locale.ENGLISH);
     private static final Set<String> SCHEDULING_BLOCKING_STATUSES = Set.of(PENDING, APPROVED);
 
@@ -114,7 +117,7 @@ public class TimeOffService {
         Integer companyId = CurrentTenant.requireCurrentTenant();
 
         TimeOffRequest timeOffRequest = timeOffRequestRepository.findByRequestIdAndCompanyId(requestId, companyId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Time off request not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, TIME_OFF_REQUEST_NOT_FOUND));
 
         if (!canApprove(timeOffRequest.getStatus())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending time off requests can be approved or declined");
@@ -122,7 +125,7 @@ public class TimeOffService {
 
         String newStatus = switch (request.action()) {
             case APPROVE -> APPROVED;
-            case DECLINE -> "DECLINED";
+            case DECLINE -> DECLINED;
         };
 
         timeOffRequest.setStatus(newStatus);
@@ -140,15 +143,15 @@ public class TimeOffService {
     public void cancelTimeOffRequest(Integer requestId) {
         Integer companyId = CurrentTenant.requireCurrentTenant();
 
-        TimeOffRequest request = timeOffRequestRepository.findByRequestIdAndCompanyId(requestId, companyId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Time off request not found"));
+        TimeOffRequest timeOffRequest = timeOffRequestRepository.findByRequestIdAndCompanyId(requestId, companyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, TIME_OFF_REQUEST_NOT_FOUND));
 
-        if (!canCancel(request.getStatus())) {
+        if (!canCancel(timeOffRequest.getStatus())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending time off requests can be cancelled");
         }
 
-        request.setStatus("CANCELLED");
-        timeOffRequestRepository.save(request);
+        timeOffRequest.setStatus(CANCELLED);
+        timeOffRequestRepository.save(timeOffRequest);
     }
 
     private TimeOffSummary toSummary(TimeOffRequest request) {
@@ -192,7 +195,7 @@ public class TimeOffService {
 
         String normalized = status.trim().toUpperCase(Locale.ENGLISH);
         return switch (normalized) {
-            case PENDING, APPROVED, "DECLINED", "CANCELLED" -> normalized;
+            case PENDING, APPROVED, DECLINED, CANCELLED -> normalized;
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported time off status filter");
         };
     }

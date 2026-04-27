@@ -178,18 +178,19 @@ class CategoryServiceTest {
 
     @Test
     void updateCategory_notFound_throwsNotFound() {
+        UpdateCategoryRequest request = new UpdateCategoryRequest(
+                "NewShortName",
+                "New Description",
+                "10:00",
+                "18:00",
+                13,
+                (short) 2
+        );
         when(categoryRepository.findByCategoryIdAndCompanyIdAndIsDeletedFalse(1, 1)).thenReturn(Optional.empty());
 
         assertThrows(
                 ResourceNotFoundException.class,
-                () -> categoryService.update(1, new UpdateCategoryRequest(
-                        "NewShortName",
-                        "New Description",
-                        "10:00",
-                        "18:00",
-                        13,
-                        (short) 2
-                ))
+                () -> categoryService.update(1, request)
         );
 
         verify(categoryRepository, never()).save(any(Category.class));
