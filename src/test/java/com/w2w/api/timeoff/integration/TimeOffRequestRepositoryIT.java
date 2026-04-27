@@ -25,29 +25,30 @@ class TimeOffRequestRepositoryIT extends com.w2w.api.scheduling.integration.Post
 
     private static final int COMPANY_A_ID = 7041;
     private static final int COMPANY_B_ID = 7042;
-    private static final int EMPLOYEE_A_ID = 704101;
-    private static final int EMPLOYEE_B_ID = 704201;
 
     @Autowired
     private TimeOffRequestRepository timeOffRequestRepository;
 
-        @Autowired
-        private CompanyRepository companyRepository;
+    @Autowired
+    private CompanyRepository companyRepository;
 
-        @Autowired
-        private EmployeeRepository employeeRepository;
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     @Test
     void findRequests_filtersByTenantEmployeeStatusAndDateRange() {
-        createCompanyEmployeeAndRequest(COMPANY_A_ID, EMPLOYEE_A_ID, LocalDate.of(2024, 11, 15), "PENDING", 1, 2, "Vacation Time");
-        createCompanyEmployeeAndRequest(COMPANY_A_ID, EMPLOYEE_A_ID, LocalDate.of(2023, 6, 5), "APPROVED", 1, 1, "Personal Day");
-        createCompanyEmployeeAndRequest(COMPANY_B_ID, EMPLOYEE_B_ID, LocalDate.of(2024, 11, 15), "PENDING", 1, 1, "Other tenant");
+        Integer employeeAId = createCompanyAndEmployee(COMPANY_A_ID).getEmployeeId();
+        Integer employeeBId = createCompanyAndEmployee(COMPANY_B_ID).getEmployeeId();
+
+        createRequest(COMPANY_A_ID, employeeAId, LocalDate.of(2024, 11, 15), "PENDING", 1, 2, "Vacation Time");
+        createRequest(COMPANY_A_ID, employeeAId, LocalDate.of(2023, 6, 5), "APPROVED", 1, 1, "Personal Day");
+        createRequest(COMPANY_B_ID, employeeBId, LocalDate.of(2024, 11, 15), "PENDING", 1, 1, "Other tenant");
 
         TenantContext.setCurrentTenant(COMPANY_A_ID);
 
         List<TimeOffRequest> requests = timeOffRequestRepository.findRequests(
                 COMPANY_A_ID,
-                EMPLOYEE_A_ID,
+                employeeAId,
                 "PENDING",
                 LocalDate.of(2024, 11, 1),
                 LocalDate.of(2024, 11, 30)
@@ -55,13 +56,33 @@ class TimeOffRequestRepositoryIT extends com.w2w.api.scheduling.integration.Post
 
         assertEquals(1, requests.size());
         assertEquals(COMPANY_A_ID, requests.getFirst().getCompanyId());
-        assertEquals(EMPLOYEE_A_ID, requests.getFirst().getEmployeeId());
+        assertEquals(employeeAId, requests.getFirst().getEmployeeId());
         assertEquals(LocalTime.of(8, 0), requests.getFirst().getStartTime());
         assertEquals(LocalTime.of(23, 59), requests.getFirst().getEndTime());
         assertEquals(2, requests.getFirst().getRepeatCount());
     }
 
-    private void createCompanyEmployeeAndRequest(
+    private Employee createCompanyAndEmployee(int companyId) {
+        TenantContext.setCurrentTenant(companyId);
+
+        Company company = new Company();
+        company.setCompanyId(companyId);
+        company.setCompanyName("Time Off Company " + companyId);
+        company.setDepartmentName("Operations");
+        company.setStatus("active");
+        companyRepository.save(company);
+
+        Employee employee = new Employee();
+        employee.setCompanyId(companyId);
+        employee.setStatus("active");
+        employee.setFirstName("Employee");
+        employee.setLastName(String.valueOf(companyId));
+        employee.setEmail("employee" + companyId + "@example.com");
+        employee.setHireDate(LocalDateTime.of(2026, 1, 1, 0, 0));
+        return employeeRepository.save(employee);
+    }
+
+    private void createRequest(
             int companyId,
             int employeeId,
             LocalDate startDate,
@@ -70,25 +91,6 @@ class TimeOffRequestRepositoryIT extends com.w2w.api.scheduling.integration.Post
             int repeatCount,
             String comments
     ) {
-        TenantContext.setCurrentTenant(companyId);
-        Company company = new Company();
-        company.setCompanyId(companyId);
-        company.setCompanyName("Time Off Company " + companyId);
-        company.setDepartmentName("Operations");
-        company.setStatus("active");
-        companyRepository.save(company);
-
-        TenantContext.setCurrentTenant(companyId);
-        Employee employee = new Employee();
-        employee.setEmployeeId(employeeId);
-        employee.setCompanyId(companyId);
-        employee.setStatus("active");
-        employee.setFirstName("Employee");
-        employee.setLastName(String.valueOf(companyId));
-        employee.setEmail("employee" + companyId + "@example.com");
-        employee.setHireDate(LocalDateTime.of(2026, 1, 1, 0, 0));
-        employeeRepository.save(employee);
-
         TenantContext.setCurrentTenant(companyId);
         TimeOffRequest request = new TimeOffRequest();
         request.setCompanyId(companyId);

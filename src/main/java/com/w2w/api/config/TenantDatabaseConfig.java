@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.flywaydb.core.Flyway;
 
@@ -29,6 +30,7 @@ public class TenantDatabaseConfig {
 
     @Bean
     @Primary
+    @DependsOn("flyway")
     @ConfigurationProperties("spring.datasource")
     public DataSource dataSource() {
         return DataSourceBuilder.create()
