@@ -37,7 +37,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
@@ -70,7 +69,7 @@ public class EmployeeService {
         return employeeRepository.findByCompanyIdAndIsDeletedFalse(TenantContext.getCurrentTenant())
                 .stream()
                 .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -420,7 +419,7 @@ public class EmployeeService {
                 .map(p -> new PositionSummary(p.getPositionId(), p.getDescription()))
                 .sorted(Comparator.comparing(PositionSummary::description,
                         Comparator.nullsLast(Comparator.naturalOrder())))
-                .collect(Collectors.toList());
+                .toList();
 
         return new EmployeeDetailResponse(
                 employee.getEmployeeId(),

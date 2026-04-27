@@ -14,7 +14,6 @@ import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +31,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/scheduling")
 public class SchedulingController {
-    @Autowired
-    private SchedulingService schedulingService;
+    private final SchedulingService schedulingService;
+
+    public SchedulingController(SchedulingService schedulingService) {
+        this.schedulingService = schedulingService;
+    }
 
     @GetMapping("/shifts/{shiftId}")
     public ShiftResponse getShift(@PathVariable Integer shiftId) {

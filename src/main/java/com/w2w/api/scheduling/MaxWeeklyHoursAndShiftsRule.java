@@ -33,29 +33,47 @@ class MaxWeeklyHoursAndShiftsRule implements SchedulingValidationRule {
         }
 
         List<ConflictItem> conflicts = new ArrayList<>(2);
-
-        if (employee.getMaxScheduledHours() != null) {
-            Float proposedDuration = context.proposedDuration();
-            if (proposedDuration != null) {
-                float existingWeeklyHours = 0.0f;
-                for (DailyHoursShiftProjection existingShift : context.weeklyShifts()) {
-                    existingWeeklyHours += context.resolveDuration(existingShift);
-                }
-
-                float totalWeeklyHours = existingWeeklyHours + proposedDuration;
-                if (totalWeeklyHours > employee.getMaxScheduledHours()) {
-                    conflicts.add(new ConflictItem(MAX_WEEKLY_HOURS_FIELD, MAX_WEEKLY_HOURS_MESSAGE));
-                }
-            }
-        }
-
-        if (employee.getMaxWeeklyDays() != null) {
-            int totalWeeklyShifts = context.weeklyShifts().size() + 1;
-            if (totalWeeklyShifts > employee.getMaxWeeklyDays()) {
-                conflicts.add(new ConflictItem(MAX_WEEKLY_SHIFTS_FIELD, MAX_WEEKLY_SHIFTS_MESSAGE));
-            }
-        }
+        addWeeklyHoursConflict(context, employee, conflicts);
+        addWeeklyShiftsConflict(context, employee, conflicts);
 
         return conflicts;
+    }
+
+    private void addWeeklyHoursConflict(
+            SchedulingValidationContext context,
+            Employee employee,
+            List<ConflictItem> conflicts
+    ) {
+        if (employee.getMaxScheduledHours() == null || context.proposedDuration() == null) {
+            return;
+        }
+
+        float totalWeeklyHours = existingWeeklyHours(context) + context.proposedDuration();
+        if (totalWeeklyHours > employee.getMaxScheduledHours()) {
+            conflicts.add(new ConflictItem(MAX_WEEKLY_HOURS_FIELD, MAX_WEEKLY_HOURS_MESSAGE));
+        }
+    }
+
+    private float existingWeeklyHours(SchedulingValidationContext context) {
+        float existingWeeklyHours = 0.0f;
+        for (DailyHoursShiftProjection existingShift : context.weeklyShifts()) {
+            existingWeeklyHours += context.resolveDuration(existingShift);
+        }
+        return existingWeeklyHours;
+    }
+
+    private void addWeeklyShiftsConflict(
+            SchedulingValidationContext context,
+            Employee employee,
+            List<ConflictItem> conflicts
+    ) {
+        if (employee.getMaxWeeklyDays() == null) {
+            return;
+        }
+
+        int totalWeeklyShifts = context.weeklyShifts().size() + 1;
+        if (totalWeeklyShifts > employee.getMaxWeeklyDays()) {
+            conflicts.add(new ConflictItem(MAX_WEEKLY_SHIFTS_FIELD, MAX_WEEKLY_SHIFTS_MESSAGE));
+        }
     }
 }

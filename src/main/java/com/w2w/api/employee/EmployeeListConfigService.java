@@ -4,7 +4,6 @@ import com.w2w.api.config.CurrentTenant;
 import com.w2w.api.employee.dto.EmployeeListConfigResponse;
 import com.w2w.api.employee.model.EmployeeListConfig;
 import com.w2w.api.employee.repository.EmployeeListConfigRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,11 +15,13 @@ import java.util.stream.Collectors;
 @Service
 public class EmployeeListConfigService {
 
-    @Autowired
-    private EmployeeListConfigRepository configRepository;
+    private final EmployeeListConfigRepository configRepository;
+    private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    public EmployeeListConfigService(EmployeeListConfigRepository configRepository, JdbcTemplate jdbcTemplate) {
+        this.configRepository = configRepository;
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     private List<String> getAvailableColumns() {
         // Dynamically discover columns from the tables you specified
@@ -48,7 +49,7 @@ public class EmployeeListConfigService {
                 config.setIsVisible(true); // Default to true if never set
             }
             return mapToResponse(config);
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     @Transactional

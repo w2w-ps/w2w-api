@@ -58,6 +58,7 @@ public class Company {
     private Integer weekStartDay;
 
     public Company() {
+        // Required by JPA for entity instantiation.
     }
 
     public Integer getCompanyId() {

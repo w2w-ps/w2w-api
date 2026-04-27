@@ -39,7 +39,7 @@ public class SchedulingService {
             Integer category,
             String color
     ) {
-        return shiftCommandService.saveShift(
+        return shiftCommandService.saveShift(new CreateShiftCommand(
                 employeeId,
                 description,
                 date,
@@ -49,7 +49,7 @@ public class SchedulingService {
                 position,
                 category,
                 color
-        );
+        ));
     }
 
     public ShiftResponse updateShift(Integer shiftId, UpdateShiftRequest request) {

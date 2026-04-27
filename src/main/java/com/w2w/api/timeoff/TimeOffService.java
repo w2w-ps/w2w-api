@@ -22,8 +22,10 @@ import java.util.Set;
 
 @Service
 public class TimeOffService {
+    private static final String APPROVED = "APPROVED";
+    private static final String PENDING = "PENDING";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MMM d, uuuu", Locale.ENGLISH);
-    private static final Set<String> SCHEDULING_BLOCKING_STATUSES = Set.of("PENDING", "APPROVED");
+    private static final Set<String> SCHEDULING_BLOCKING_STATUSES = Set.of(PENDING, APPROVED);
 
     private final TimeOffRequestRepository timeOffRequestRepository;
 
@@ -100,7 +102,7 @@ public class TimeOffService {
             entity.setRepeatCount(request.repeatCount());
         }
         entity.setRequestedAt(LocalDateTime.now());
-        entity.setStatus("PENDING");
+        entity.setStatus(PENDING);
         entity.setComments(request.comments());
 
         return toSummary(timeOffRequestRepository.save(entity));
@@ -119,7 +121,7 @@ public class TimeOffService {
         }
 
         String newStatus = switch (request.action()) {
-            case APPROVE -> "APPROVED";
+            case APPROVE -> APPROVED;
             case DECLINE -> "DECLINED";
         };
 
@@ -190,7 +192,7 @@ public class TimeOffService {
 
         String normalized = status.trim().toUpperCase(Locale.ENGLISH);
         return switch (normalized) {
-            case "PENDING", "APPROVED", "DECLINED", "CANCELLED" -> normalized;
+            case PENDING, APPROVED, "DECLINED", "CANCELLED" -> normalized;
             default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported time off status filter");
         };
     }
@@ -225,11 +227,11 @@ public class TimeOffService {
     }
 
     private boolean canCancel(String status) {
-        return status != null && "PENDING".equalsIgnoreCase(status);
+        return status != null && PENDING.equalsIgnoreCase(status);
     }
 
     private boolean canApprove(String status) {
-        return status != null && "PENDING".equalsIgnoreCase(status);
+        return status != null && PENDING.equalsIgnoreCase(status);
     }
 
     private boolean isSchedulingBlocking(TimeOffRequest request) {

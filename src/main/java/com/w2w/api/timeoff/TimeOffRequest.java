@@ -56,6 +56,7 @@ public class TimeOffRequest {
     private Integer repeatCount;
 
     public TimeOffRequest() {
+        // Required by JPA for entity instantiation.
     }
 
     public Integer getRequestId() {
