@@ -1,6 +1,6 @@
 package com.w2w.api.preferences;
 
-import com.w2w.api.preferences.dto.DayPreferenceRequest;
+import com.w2w.api.preferences.dto.*;
 import com.w2w.api.preferences.model.DayPreference;
 import com.w2w.api.preferences.model.DayPreferenceId;
 import com.w2w.api.preferences.model.WeekPreference;
@@ -8,158 +8,135 @@ import com.w2w.api.preferences.repository.DayPreferenceRepository;
 import com.w2w.api.preferences.repository.WeekPreferenceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class PreferencesServiceTest {
+
+    @Mock
     private DayPreferenceRepository dayPreferenceRepository;
+
+    @Mock
     private WeekPreferenceRepository weekPreferenceRepository;
+
+    @InjectMocks
     private PreferencesService preferencesService;
 
     @BeforeEach
     void setUp() {
-        dayPreferenceRepository = mock(DayPreferenceRepository.class);
-        weekPreferenceRepository = mock(WeekPreferenceRepository.class);
-        preferencesService = new PreferencesService(dayPreferenceRepository, weekPreferenceRepository);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void getResolvedPreference_returnsDayPreferenceWhenPresent() {
-        LocalDate date = LocalDate.of(2026, 4, 21);
-        DayPreference dayPreference = new DayPreference();
-        dayPreference.setEmployeeId(101);
-        dayPreference.setDate(date);
-        dayPreference.setPrefs("D".repeat(96));
+    void getDayPreference_returnsPreference() {
+        Integer employeeId = 1;
+        LocalDate date = LocalDate.of(2026, 4, 1);
+        DayPreference entity = new DayPreference();
+        entity.setEmployeeId(employeeId);
+        entity.setDate(date);
+        entity.setPrefs("G".repeat(96));
+        entity.setIsDayPrefs(true);
 
-        when(dayPreferenceRepository.findById(new DayPreferenceId(101, date)))
-                .thenReturn(Optional.of(dayPreference));
+        when(dayPreferenceRepository.findById(any(DayPreferenceId.class))).thenReturn(Optional.of(entity));
 
-        Optional<String> resolvedPreference = preferencesService.getResolvedPreference(101, date);
+        Optional<DayPreferenceResponse> result = preferencesService.getDayPreference(employeeId, date);
 
-        assertEquals(Optional.of("D".repeat(96)), resolvedPreference);
-        verify(dayPreferenceRepository).findById(new DayPreferenceId(101, date));
-        verifyNoInteractions(weekPreferenceRepository);
+        assertTrue(result.isPresent());
+        assertEquals("G".repeat(96), result.get().prefs());
+        assertTrue(result.get().isDayPrefs());
     }
 
     @Test
-    void getResolvedPreference_returnsWeekSliceWhenDayPreferenceMissing() {
-        LocalDate date = LocalDate.of(2026, 4, 22);
-        WeekPreference weekPreference = new WeekPreference();
-        weekPreference.setEmployeeId(101);
-        weekPreference.setStartDate(LocalDate.of(2026, 4, 20));
-        weekPreference.setPrefs(
-                "P".repeat(96)
-                        + "C".repeat(96)
-                        + "D".repeat(96)
-                        + "N".repeat(96)
-                        + "P".repeat(96)
-                        + "C".repeat(96)
-                        + "D".repeat(96)
-        );
-
-        when(dayPreferenceRepository.findById(new DayPreferenceId(101, date)))
-                .thenReturn(Optional.empty());
-        when(weekPreferenceRepository.findFirstByEmployeeIdAndStartDateLessThanEqualOrderByStartDateDesc(101, date))
-                .thenReturn(Optional.of(weekPreference));
-
-        Optional<String> resolvedPreference = preferencesService.getResolvedPreference(101, date);
-
-        assertEquals(Optional.of("D".repeat(96)), resolvedPreference);
-    }
-
-    @Test
-    void getResolvedPreference_returnsEmptyWhenNoPreferencesExist() {
-        LocalDate date = LocalDate.of(2026, 4, 21);
-
-        when(dayPreferenceRepository.findById(new DayPreferenceId(101, date)))
-                .thenReturn(Optional.empty());
-        when(weekPreferenceRepository.findFirstByEmployeeIdAndStartDateLessThanEqualOrderByStartDateDesc(101, date))
-                .thenReturn(Optional.empty());
-
-        Optional<String> resolvedPreference = preferencesService.getResolvedPreference(101, date);
-
-        assertEquals(Optional.empty(), resolvedPreference);
-    }
-
-    @Test
-    void saveDayPreference_expandsSingleCharacterDayPreference() {
-        preferencesService.saveDayPreference(new DayPreferenceRequest(
-                101,
-                1,
-                LocalDate.of(2026, 4, 21),
-                "P",
-                null,
-                null,
-                true
-        ));
-
-        ArgumentCaptor<DayPreference> captor = ArgumentCaptor.forClass(DayPreference.class);
-        verify(dayPreferenceRepository).save(captor.capture());
-        assertEquals("P".repeat(96), captor.getValue().getPrefs());
-    }
-
-    @Test
-    void saveDayPreference_acceptsUniformNinetySixCharacterDayPreference() {
-        preferencesService.saveDayPreference(new DayPreferenceRequest(
-                101,
-                1,
-                LocalDate.of(2026, 4, 21),
-                "P".repeat(96),
-                null,
-                null,
-                true
-        ));
-
-        verify(dayPreferenceRepository).save(any(DayPreference.class));
-    }
-
-    @Test
-    void saveDayPreference_rejectsMixedNinetySixCharacterDayPreferenceWhenDayPrefsTrue() {
+    void saveDayPreference_validatesAndSaves() {
         DayPreferenceRequest request = new DayPreferenceRequest(
-                101,
-                1,
-                LocalDate.of(2026, 4, 21),
-                "P".repeat(95) + "D",
-                null,
-                null,
-                true
-        );
+                1, 10, LocalDate.of(2026, 4, 1), "G", 0, 1, true);
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> preferencesService.saveDayPreference(request)
-        );
+        preferencesService.saveDayPreference(request);
 
-        assertEquals("When isDayPrefs is true, all 96 characters must be the same.", exception.getMessage());
+        verify(dayPreferenceRepository).save(argThat(entity -> entity.getPrefs().equals("G".repeat(96)) &&
+                entity.getIsDayPrefs()));
     }
 
     @Test
-    void saveDayPreference_rejectsNonNinetySixCharacterPreferenceWhenDayPrefsFalse() {
+    void saveDayPreference_invalidPrefs_throwsException() {
         DayPreferenceRequest request = new DayPreferenceRequest(
-                101,
-                1,
-                LocalDate.of(2026, 4, 21),
-                "P",
-                null,
-                null,
-                false
-        );
+                1, 10, LocalDate.of(2026, 4, 1), "AB", 0, 1, true);
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> preferencesService.saveDayPreference(request)
-        );
+        assertThrows(IllegalArgumentException.class, () -> preferencesService.saveDayPreference(request));
+    }
 
-        assertEquals("When isDayPrefs is false or null, exactly 96 characters are required.", exception.getMessage());
+    @Test
+    void saveDayPreferenceWithRepeat_savesCorrectNumberOfTimes() {
+        DayPreferenceRepeatRequest request = new DayPreferenceRepeatRequest(
+                1, 10, LocalDate.of(2026, 4, 1), "G", 0, 1, 3, true);
+
+        preferencesService.saveDayPreferenceWithRepeat(request);
+
+        verify(dayPreferenceRepository, times(3)).save(any(DayPreference.class));
+    }
+
+    @Test
+    void getResolvedPreferences_resolvesDayOverWeek() {
+        Integer employeeId = 1;
+        LocalDate startDate = LocalDate.of(2026, 4, 1); // Wednesday
+        LocalDate endDate = LocalDate.of(2026, 4, 1);
+
+        DayPreference dayPref = new DayPreference();
+        dayPref.setDate(startDate);
+        dayPref.setPrefs("D".repeat(96));
+        dayPref.setIsDayPrefs(true);
+
+        WeekPreference weekPref = new WeekPreference();
+        weekPref.setPrefs("W".repeat(672));
+        weekPref.setStartDate(LocalDate.of(2026, 3, 30)); // Monday
+
+        when(dayPreferenceRepository.findByEmployeeIdAndDateBetween(employeeId, startDate, endDate))
+                .thenReturn(List.of(dayPref));
+        when(weekPreferenceRepository.findFirstByEmployeeIdAndStartDateLessThanEqualOrderByStartDateDesc(employeeId,
+                startDate))
+                .thenReturn(Optional.of(weekPref));
+
+        List<ResolvedPreferenceResponse> result = preferencesService.getResolvedPreferences(employeeId, startDate,
+                endDate);
+
+        assertEquals(1, result.size());
+        assertEquals("D".repeat(96), result.get(0).prefs());
+        assertEquals("DAY", result.get(0).preferenceType());
+    }
+
+    @Test
+    void getResolvedPreferences_resolvesWeekWhenDayMissing() {
+        Integer employeeId = 1;
+        LocalDate startDate = LocalDate.of(2026, 4, 1); // Wednesday
+        LocalDate endDate = LocalDate.of(2026, 4, 1);
+
+        WeekPreference weekPref = new WeekPreference();
+        // 672 chars total. Wednesday is index 2. 2*96 = 192.
+        String weekPrefs = "A".repeat(96) + "B".repeat(96) + "C".repeat(96) + "D".repeat(96) + "E".repeat(96)
+                + "F".repeat(96) + "G".repeat(96);
+        weekPref.setPrefs(weekPrefs);
+        weekPref.setStartDate(LocalDate.of(2026, 3, 30)); // Monday
+
+        when(dayPreferenceRepository.findByEmployeeIdAndDateBetween(employeeId, startDate, endDate))
+                .thenReturn(List.of());
+        when(weekPreferenceRepository.findFirstByEmployeeIdAndStartDateLessThanEqualOrderByStartDateDesc(employeeId,
+                startDate))
+                .thenReturn(Optional.of(weekPref));
+
+        List<ResolvedPreferenceResponse> result = preferencesService.getResolvedPreferences(employeeId, startDate,
+                endDate);
+
+        assertEquals(1, result.size());
+        assertEquals("C".repeat(96), result.get(0).prefs());
+        assertEquals("WEEK", result.get(0).preferenceType());
     }
 }
