@@ -5,6 +5,7 @@ import com.w2w.api.employee.model.Employee;
 import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.login.EmpType;
 import com.w2w.api.login.EmpTypeRepository;
+import com.w2w.api.login.InitialAccountPasswordGenerator;
 import com.w2w.api.login.LoginRepository;
 import com.w2w.api.login.User;
 import com.w2w.api.login.UserRole;
@@ -34,19 +35,22 @@ public class ManagerService {
     private final UserRoleRepository roleRepository;
     private final EmpTypeRepository empTypeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final InitialAccountPasswordGenerator initialAccountPasswordGenerator;
 
     public ManagerService(EmployeeRepository employeeRepository,
             LoginRepository loginRepository,
             ManagerPermissionsRepository permissionsRepository,
             UserRoleRepository roleRepository,
             EmpTypeRepository empTypeRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            InitialAccountPasswordGenerator initialAccountPasswordGenerator) {
         this.employeeRepository = employeeRepository;
         this.loginRepository = loginRepository;
         this.permissionsRepository = permissionsRepository;
         this.roleRepository = roleRepository;
         this.empTypeRepository = empTypeRepository;
         this.passwordEncoder = passwordEncoder;
+        this.initialAccountPasswordGenerator = initialAccountPasswordGenerator;
     }
 
     private void enforceMainManagerCheck() {
@@ -89,7 +93,7 @@ public class ManagerService {
         // 2. Create User
         User user = new User();
         user.setLoginId(request.email());
-        user.setPassword(passwordEncoder.encode("Welcome123!")); // In real usage, this might be temporary
+        user.setPassword(passwordEncoder.encode(initialAccountPasswordGenerator.generate()));
         user.setCompanyId(request.companyId());
         user.setEmployee(employee);
 

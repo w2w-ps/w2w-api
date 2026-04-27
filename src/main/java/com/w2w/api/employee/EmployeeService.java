@@ -11,6 +11,7 @@ import com.w2w.api.employee.model.EmployeeAddress;
 import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.login.EmpType;
 import com.w2w.api.login.EmpTypeRepository;
+import com.w2w.api.login.InitialAccountPasswordGenerator;
 import com.w2w.api.login.LoginRepository;
 import com.w2w.api.login.User;
 import com.w2w.api.login.UserRole;
@@ -46,11 +47,12 @@ public class EmployeeService {
     private final ManagerPermissionsRepository permissionsRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final InitialAccountPasswordGenerator initialAccountPasswordGenerator;
 
     public EmployeeService(EmployeeRepository employeeRepository, EmpTypeRepository empTypeRepository,
             PositionRepository positionRepository, LoginRepository loginRepository,
             ManagerPermissionsRepository permissionsRepository, UserRoleRepository userRoleRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder, InitialAccountPasswordGenerator initialAccountPasswordGenerator) {
         this.employeeRepository = employeeRepository;
         this.empTypeRepository = empTypeRepository;
         this.positionRepository = positionRepository;
@@ -58,6 +60,7 @@ public class EmployeeService {
         this.permissionsRepository = permissionsRepository;
         this.userRoleRepository = userRoleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.initialAccountPasswordGenerator = initialAccountPasswordGenerator;
     }
 
     public List<EmployeeResponse> getEmployeesByCompany() {
@@ -108,8 +111,7 @@ public class EmployeeService {
                 : "employee." + saved.getEmployeeId();
         user.setLoginId(loginId);
 
-        // Default password "password" hashed
-        user.setPassword(passwordEncoder.encode("password"));
+        user.setPassword(passwordEncoder.encode(initialAccountPasswordGenerator.generate()));
 
         // Assign "Employee" role
         UserRole employeeRole = userRoleRepository.findByName("Employee")
