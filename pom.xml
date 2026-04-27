@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.0.5</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.w2w</groupId>
 	<artifactId>w2w-api</artifactId>
@@ -102,9 +102,9 @@
 			</plugin>
 			<!-- Sonar plugin configuration -->
 			<plugin>
-				 <groupId>org.sonarsource.scanner.maven</groupId>
-  				<artifactId>sonar-maven-plugin</artifactId>
-  				<version>3.10.0.2594</version>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>3.10.0.2594</version>
 			</plugin>
 			<plugin>
 				<groupId>org.jacoco</groupId>
