@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
@@ -162,22 +163,38 @@ public class EmployeeService {
     }
 
     private void applyPatchToEntity(EmployeeRequest request, Employee employee) {
-        if (request.firstName() != null)
-            employee.setFirstName(request.firstName());
-        if (request.lastName() != null)
-            employee.setLastName(request.lastName());
+        applyNamePatch(request, employee);
+        applyContactPatch(request, employee);
+        applyPhonePatch(request, employee);
+        applySchedulingPatch(request, employee);
+        applyProfilePatch(request, employee);
+        applyRelationshipPatch(request, employee);
+
+        if (request.address() != null) {
+            updateAddressPartially(request.address(), employee);
+        }
+    }
+
+    private void applyNamePatch(EmployeeRequest request, Employee employee) {
+        applyIfPresent(request.firstName(), employee::setFirstName);
+        applyIfPresent(request.lastName(), employee::setLastName);
 
         if (request.username() != null) {
             employee.setUsername(request.username());
-        } else if (request.firstName() != null || request.lastName() != null) {
-            employee.setUsername((employee.getFirstName() + employee.getLastName()).toLowerCase());
+            return;
         }
 
-        if (request.email() != null)
-            employee.setEmail(request.email());
-        if (request.employeeNumber() != null)
-            employee.setEmployeeNumber(request.employeeNumber());
+        if (request.firstName() != null || request.lastName() != null) {
+            employee.setUsername((employee.getFirstName() + employee.getLastName()).toLowerCase());
+        }
+    }
 
+    private void applyContactPatch(EmployeeRequest request, Employee employee) {
+        applyIfPresent(request.email(), employee::setEmail);
+        applyIfPresent(request.employeeNumber(), employee::setEmployeeNumber);
+    }
+
+    private void applyPhonePatch(EmployeeRequest request, Employee employee) {
         if (request.phone() != null || request.phone2() != null || request.cell() != null) {
             List<String> currentPhones = new ArrayList<>(employee.getPhones());
             while (currentPhones.size() < 3)
@@ -192,36 +209,29 @@ public class EmployeeService {
 
             employee.setPhones(currentPhones);
         }
+    }
 
-        if (request.hireDate() != null)
-            employee.setHireDate(request.hireDate());
-        if (request.maxScheduledHours() != null)
-            employee.setMaxScheduledHours(request.maxScheduledHours());
-        if (request.maxDailyHours() != null)
-            employee.setMaxDailyHours(request.maxDailyHours());
-        if (request.payRate() != null)
-            employee.setPayRate(request.payRate());
-        if (request.maxWeeklyDays() != null)
-            employee.setMaxWeeklyDays(request.maxWeeklyDays());
-        if (request.maxDailyShifts() != null)
-            employee.setMaxDailyShifts(request.maxDailyShifts());
-        if (request.comments() != null)
-            employee.setComments(request.comments());
-        if (request.priorityGroup() != null)
-            employee.setPriorityGroup(request.priorityGroup());
-        if (request.googleCalExport() != null)
-            employee.setGoogleCalExport(request.googleCalExport());
-        if (request.nextAlertDate() != null)
-            employee.setNextAlertDate(request.nextAlertDate());
-        if (request.customField1() != null)
-            employee.setCustomField1(request.customField1());
-        if (request.customField2() != null)
-            employee.setCustomField2(request.customField2());
-        if (request.employeePhoto() != null)
-            employee.setEmployeePhoto(request.employeePhoto());
-        if (request.accessibilityMode() != null)
-            employee.setAccessibilityMode(request.accessibilityMode());
+    private void applySchedulingPatch(EmployeeRequest request, Employee employee) {
+        applyIfPresent(request.hireDate(), employee::setHireDate);
+        applyIfPresent(request.maxScheduledHours(), employee::setMaxScheduledHours);
+        applyIfPresent(request.maxDailyHours(), employee::setMaxDailyHours);
+        applyIfPresent(request.payRate(), employee::setPayRate);
+        applyIfPresent(request.maxWeeklyDays(), employee::setMaxWeeklyDays);
+        applyIfPresent(request.maxDailyShifts(), employee::setMaxDailyShifts);
+        applyIfPresent(request.nextAlertDate(), employee::setNextAlertDate);
+    }
 
+    private void applyProfilePatch(EmployeeRequest request, Employee employee) {
+        applyIfPresent(request.comments(), employee::setComments);
+        applyIfPresent(request.priorityGroup(), employee::setPriorityGroup);
+        applyIfPresent(request.googleCalExport(), employee::setGoogleCalExport);
+        applyIfPresent(request.customField1(), employee::setCustomField1);
+        applyIfPresent(request.customField2(), employee::setCustomField2);
+        applyIfPresent(request.employeePhoto(), employee::setEmployeePhoto);
+        applyIfPresent(request.accessibilityMode(), employee::setAccessibilityMode);
+    }
+
+    private void applyRelationshipPatch(EmployeeRequest request, Employee employee) {
         if (request.positionIds() != null) {
             List<Position> positions = positionRepository.findByPositionIdInAndCompanyId(
                     request.positionIds(), CurrentTenant.requireCurrentTenant());
@@ -233,9 +243,11 @@ public class EmployeeService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid EmpType ID"));
             employee.setEmpType(empType);
         }
+    }
 
-        if (request.address() != null) {
-            updateAddressPartially(request.address(), employee);
+    private <T> void applyIfPresent(T value, Consumer<T> setter) {
+        if (value != null) {
+            setter.accept(value);
         }
     }
 
