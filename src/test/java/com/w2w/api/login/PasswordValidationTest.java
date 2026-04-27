@@ -3,10 +3,14 @@ package com.w2w.api.login;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.w2w.api.employee.repository.EmployeeRepository;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 class PasswordValidationTest {
 
@@ -31,44 +35,23 @@ class PasswordValidationTest {
         assertTrue(response.isValid());
     }
 
-    @Test
-    void validatePassword_rejectsNullPassword() {
-        PasswordValidationResponse response = loginService.validatePassword(null);
+    @ParameterizedTest
+    @MethodSource("invalidPasswordCases")
+    void validatePassword_rejectsInvalidPassword(String password, String expectedError) {
+        PasswordValidationResponse response = loginService.validatePassword(password);
 
         assertFalse(response.isValid());
-        assertTrue(response.errors().contains("Password must be at least 8 characters long."));
+        assertTrue(response.errors().contains(expectedError));
     }
 
-    @Test
-    void validatePassword_rejectsMissingUppercase() {
-        PasswordValidationResponse response = loginService.validatePassword("password123!");
-
-        assertFalse(response.isValid());
-        assertTrue(response.errors().contains("Password must contain at least one uppercase letter."));
-    }
-
-    @Test
-    void validatePassword_rejectsMissingLowercase() {
-        PasswordValidationResponse response = loginService.validatePassword("PASSWORD123!");
-
-        assertFalse(response.isValid());
-        assertTrue(response.errors().contains("Password must contain at least one lowercase letter."));
-    }
-
-    @Test
-    void validatePassword_rejectsMissingDigit() {
-        PasswordValidationResponse response = loginService.validatePassword("Password!");
-
-        assertFalse(response.isValid());
-        assertTrue(response.errors().contains("Password must contain at least one number."));
-    }
-
-    @Test
-    void validatePassword_rejectsMissingSpecialCharacter() {
-        PasswordValidationResponse response = loginService.validatePassword("Password123");
-
-        assertFalse(response.isValid());
-        assertTrue(response.errors().contains("Password must contain at least one special character."));
+    private static Stream<Arguments> invalidPasswordCases() {
+        return Stream.of(
+                Arguments.of(null, "Password must be at least 8 characters long."),
+                Arguments.of("password123!", "Password must contain at least one uppercase letter."),
+                Arguments.of("PASSWORD123!", "Password must contain at least one lowercase letter."),
+                Arguments.of("Password!", "Password must contain at least one number."),
+                Arguments.of("Password123", "Password must contain at least one special character.")
+        );
     }
 
     @Test
