@@ -60,6 +60,7 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(authenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(publicApiRequestMatcher).permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/login/reset-user-account").hasAnyAuthority("Manager")
                         .anyRequest().authenticated())
                 .addFilterBefore(publicTenantBypassFilter, UsernamePasswordAuthenticationFilter.class)

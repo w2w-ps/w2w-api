@@ -9,6 +9,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,8 +39,22 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler({ForbiddenOperationException.class, AccessDeniedException.class})
+    @ExceptionHandler({ ForbiddenOperationException.class, AccessDeniedException.class })
     public ResponseEntity<String> handleForbidden(RuntimeException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
+        return new ResponseEntity<>(ex.getReason(), ex.getStatusCode());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrity(DataIntegrityViolationException ex) {
+        String message = ex.getMostSpecificCause().getMessage();
+        if (message != null && message.contains("idx_employee_company_email")) {
+            return new ResponseEntity<>("Email address already in use for this company", HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>("A data conflict occurred. Please verify your input.", HttpStatus.CONFLICT);
     }
 }
