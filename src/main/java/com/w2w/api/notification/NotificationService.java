@@ -4,6 +4,8 @@ import com.w2w.api.employee.model.Employee;
 import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.scheduling.ScheduleRepository;
 import com.w2w.api.scheduling.model.Schedule;
+import com.w2w.api.timeoff.TimeOffRequest;
+import com.w2w.api.timeoff.TimeOffRequestRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -19,13 +21,16 @@ public class NotificationService {
     private final EmailService emailService;
     private final EmployeeRepository employeeRepository;
     private final ScheduleRepository scheduleRepository;
+    private final TimeOffRequestRepository timeOffRequestRepository;
 
     public NotificationService(EmailService emailService,
             EmployeeRepository employeeRepository,
-            ScheduleRepository scheduleRepository) {
+            ScheduleRepository scheduleRepository,
+            TimeOffRequestRepository timeOffRequestRepository) {
         this.emailService = emailService;
         this.employeeRepository = employeeRepository;
         this.scheduleRepository = scheduleRepository;
+        this.timeOffRequestRepository = timeOffRequestRepository;
     }
 
     public void processNotification(NotificationRequest request) {
@@ -41,13 +46,45 @@ public class NotificationService {
     }
 
     private void handleLeaveNotification(NotificationRequest request) {
-        // TODO: Get employee details from leave request id
-        // Placeholder values for now
-        String employeeName = "Employee";
-        String intendedEmail = "actual_employee@example.com";
-        String leaveDate = "2026-11-11";
+        if (request.leaveRequestId() == null || request.companyId() == null) {
+            System.out.println("DEBUG: Notification failed - leaveRequestId or companyId is null");
+            return;
+        }
 
-        String action = request.task().replace("leave_", "");
+        TimeOffRequest timeOffRequest = timeOffRequestRepository.findByRequestIdAndCompanyId(request.leaveRequestId(), request.companyId()).orElse(null);
+        if (timeOffRequest == null) {
+            System.out.println("DEBUG: Notification failed - TimeOffRequest not found for id: " + request.leaveRequestId());
+            return;
+        }
+
+        Employee employee = employeeRepository.findById(timeOffRequest.getEmployeeId()).orElse(null);
+        if (employee == null) {
+            System.out.println("DEBUG: Notification failed - Employee not found for id: " + timeOffRequest.getEmployeeId());
+            return;
+        }
+
+        String employeeName = employee.getFirstName();
+        String intendedEmail = employee.getEmail();
+        
+        String leaveDate = timeOffRequest.getStartDate() != null ? timeOffRequest.getStartDate().toString() : "TBD";
+        if (timeOffRequest.getEndDate() != null && !timeOffRequest.getStartDate().equals(timeOffRequest.getEndDate())) {
+            leaveDate += " to " + timeOffRequest.getEndDate().toString();
+        }
+
+        String actionRaw = request.task().replace("leave_", "");
+        String action;
+        if ("create".equals(actionRaw)) {
+            action = "created";
+        } else if ("approve".equals(actionRaw)) {
+            action = "approved";
+        } else if ("decline".equals(actionRaw)) {
+            action = "declined";
+        } else if ("cancel".equals(actionRaw)) {
+            action = "cancelled";
+        } else {
+            action = actionRaw;
+        }
+
         String subject = "When2Work: Leave Request " + action.substring(0, 1).toUpperCase() + action.substring(1);
 
         String heading = "Leave Request Update";
