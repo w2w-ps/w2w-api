@@ -51,10 +51,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrity(DataIntegrityViolationException ex) {
-        String message = ex.getMostSpecificCause().getMessage();
-        if (message != null && message.contains("idx_employee_company_email")) {
-            return new ResponseEntity<>("Email address already in use for this company", HttpStatus.CONFLICT);
-        }
         return new ResponseEntity<>("A data conflict occurred. Please verify your input.", HttpStatus.CONFLICT);
     }
 }

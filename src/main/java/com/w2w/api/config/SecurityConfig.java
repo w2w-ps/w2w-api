@@ -51,16 +51,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   AuthenticationEntryPoint authenticationEntryPoint,
-                                                   RequestMatcher publicApiRequestMatcher,
-                                                   PublicTenantBypassFilter publicTenantBypassFilter) throws Exception {
+            AuthenticationEntryPoint authenticationEntryPoint,
+            RequestMatcher publicApiRequestMatcher,
+            PublicTenantBypassFilter publicTenantBypassFilter) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(authenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(publicApiRequestMatcher).permitAll()
-                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/login/reset-user-account").hasAnyAuthority("Manager")
                         .anyRequest().authenticated())
                 .addFilterBefore(publicTenantBypassFilter, UsernamePasswordAuthenticationFilter.class)
