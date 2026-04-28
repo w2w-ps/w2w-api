@@ -83,15 +83,16 @@ public class EmployeeService {
     public Optional<Employee> findActiveEmployeeForCurrentTenant(Integer employeeId) {
         return employeeRepository.findByEmployeeIdAndCompanyIdAndIsDeletedFalse(
                 employeeId,
-                CurrentTenant.requireCurrentTenant()
-        );
+                CurrentTenant.requireCurrentTenant());
     }
 
     @Transactional
     public EmployeeResponse saveEmployee(EmployeeRequest request) {
         enforceMainManagerCheck();
-        if (request.email() != null && !request.email().isBlank()) {
-            validateUniqueEmail(TenantContext.getCurrentTenant(), request.email(), null);
+        String normalizedEmail = (request.email() != null && !request.email().isBlank()) ? request.email().trim()
+                : null;
+        if (normalizedEmail != null) {
+            validateUniqueEmail(TenantContext.getCurrentTenant(), normalizedEmail, null);
         }
 
         Employee employee = new Employee();
@@ -108,7 +109,7 @@ public class EmployeeService {
         user.setEmpType(saved.getEmpType());
 
         // Use email as loginId if available, otherwise employee.id
-        String loginId = (saved.getEmail() != null && !saved.getEmail().isBlank())
+        String loginId = (saved.getEmail() != null)
                 ? saved.getEmail()
                 : "employee." + saved.getEmployeeId();
         user.setLoginId(loginId);
@@ -134,12 +135,12 @@ public class EmployeeService {
                 .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, CurrentTenant.requireCurrentTenant())
                 .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE));
 
-        if (request.email() != null && !request.email().isBlank()) {
-            validateUniqueEmail(TenantContext.getCurrentTenant(), request.email(), id);
+        String normalizedEmail = (request.email() != null && !request.email().isBlank()) ? request.email().trim()
+                : null;
+        if (normalizedEmail != null) {
+            validateUniqueEmail(TenantContext.getCurrentTenant(), normalizedEmail, id);
         }
-
         mapRequestToEntity(request, employee);
-
         Employee saved = employeeRepository.save(employee);
         return mapToResponse(saved);
     }
@@ -152,11 +153,14 @@ public class EmployeeService {
                 .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE_NOT_FOUND_MESSAGE));
 
         if (request.email() != null) {
-            validateUniqueEmail(TenantContext.getCurrentTenant(), request.email(), id);
+            String normalizedEmail = request.email().isBlank() ? null : request.email().trim();
+            if (normalizedEmail != null) {
+                validateUniqueEmail(TenantContext.getCurrentTenant(), normalizedEmail, id);
+            }
+            employee.setEmail(normalizedEmail);
         }
 
         applyPatchToEntity(request, employee);
-
         Employee saved = employeeRepository.save(employee);
         return mapToResponse(saved);
     }
@@ -189,7 +193,6 @@ public class EmployeeService {
     }
 
     private void applyContactPatch(EmployeeRequest request, Employee employee) {
-        applyIfPresent(request.email(), employee::setEmail);
         applyIfPresent(request.employeeNumber(), employee::setEmployeeNumber);
     }
 
@@ -270,6 +273,21 @@ public class EmployeeService {
     }
 
     private void validateUniqueEmail(Integer companyId, String email, Integer employeeId) {
+        if (email == null || email.isBlank()) {
+            return;
+        }
+
+        // Check globally since email is used as a global loginId in the users table
+        loginRepository.findByLoginId(email).ifPresent(user -> {
+            // If the user belongs to a different employee or company, it's a conflict
+            if (employeeId == null || user.getEmployee() == null
+                    || !user.getEmployee().getEmployeeId().equals(employeeId)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Email address is already in use by another account.");
+            }
+        });
+
+        // Check within company specifically for active employees
         employeeRepository.findByCompanyIdAndEmailAndIsDeletedFalse(companyId, email)
                 .ifPresent(existing -> {
                     if (employeeId == null || !existing.getEmployeeId().equals(employeeId)) {
@@ -288,7 +306,7 @@ public class EmployeeService {
                 : (request.firstName() + request.lastName()).toLowerCase();
         employee.setUsername(username);
 
-        employee.setEmail(request.email());
+        employee.setEmail((request.email() != null && !request.email().isBlank()) ? request.email().trim() : null);
         employee.setEmployeeNumber(request.employeeNumber());
         employee.setPhones(Arrays.asList(request.phone(), request.phone2(), request.cell()));
         employee.setHireDate(request.hireDate());

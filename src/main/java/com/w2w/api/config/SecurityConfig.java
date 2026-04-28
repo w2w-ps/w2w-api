@@ -51,9 +51,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   AuthenticationEntryPoint authenticationEntryPoint,
-                                                   RequestMatcher publicApiRequestMatcher,
-                                                   PublicTenantBypassFilter publicTenantBypassFilter) throws Exception {
+            AuthenticationEntryPoint authenticationEntryPoint,
+            RequestMatcher publicApiRequestMatcher,
+            PublicTenantBypassFilter publicTenantBypassFilter) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
