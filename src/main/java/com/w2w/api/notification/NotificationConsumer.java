@@ -16,7 +16,7 @@ public class NotificationConsumer {
 
     @KafkaListener(topics = "${app.kafka.notification-topic}", groupId = "${spring.kafka.consumer.group-id}")
     public void consumeNotification(NotificationRequest request) {
-        System.out.println("Kafka Consumer received request: " + request);
+        log.info("Kafka Consumer received request: {}", request);
 
         try {
             // Transfer the tenant context from the message payload

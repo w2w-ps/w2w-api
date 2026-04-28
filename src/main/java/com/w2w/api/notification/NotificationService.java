@@ -47,19 +47,19 @@ public class NotificationService {
 
     private void handleLeaveNotification(NotificationRequest request) {
         if (request.leaveRequestId() == null || request.companyId() == null) {
-            System.out.println("DEBUG: Notification failed - leaveRequestId or companyId is null");
+            log.warn("Notification failed - leaveRequestId or companyId is null");
             return;
         }
 
         TimeOffRequest timeOffRequest = timeOffRequestRepository.findByRequestIdAndCompanyId(request.leaveRequestId(), request.companyId()).orElse(null);
         if (timeOffRequest == null) {
-            System.out.println("DEBUG: Notification failed - TimeOffRequest not found for id: " + request.leaveRequestId());
+            log.warn("Notification failed - TimeOffRequest not found for id: {}", request.leaveRequestId());
             return;
         }
 
         Employee employee = employeeRepository.findById(timeOffRequest.getEmployeeId()).orElse(null);
         if (employee == null) {
-            System.out.println("DEBUG: Notification failed - Employee not found for id: " + timeOffRequest.getEmployeeId());
+            log.warn("Notification failed - Employee not found for id: {}", timeOffRequest.getEmployeeId());
             return;
         }
 
@@ -96,7 +96,7 @@ public class NotificationService {
 
         try {
             // Print intended recipient to console
-            System.out.println("DEBUG: Intended recipient: " + intendedEmail + " [" + employeeName + "]");
+            log.debug("Intended recipient: {} [{}]", intendedEmail, employeeName);
 
             // Redirect to debug email
             String debugEmail = "96mbsb@gmail.com";
@@ -112,37 +112,36 @@ public class NotificationService {
 
     private void handleScheduleNotification(NotificationRequest request) {
         if (request.scheduleId() == null) {
-            System.out.println("DEBUG: Notification failed - scheduleId is null");
+            log.warn("Notification failed - scheduleId is null");
             return;
         }
 
         Schedule schedule = scheduleRepository.findById(request.scheduleId()).orElse(null);
         if (schedule == null) {
-            System.out.println("DEBUG: Notification failed - Schedule not found for id: " + request.scheduleId());
+            log.warn("Notification failed - Schedule not found for id: {}", request.scheduleId());
             return;
         }
 
         String startDate = schedule.getStartDate() != null ? schedule.getStartDate().toString() : "TBD";
         String endDate = schedule.getStartDate() != null ? schedule.getStartDate().plusDays(6).toString() : "TBD";
         Integer companyId = schedule.getCompanyId();
-        System.out.println(
-                "DEBUG: Processing notification for scheduleId: " + request.scheduleId() + ", companyId: " + companyId);
+        log.debug("Processing notification for scheduleId: {}, companyId: {}", request.scheduleId(), companyId);
 
         List<Employee> targets;
         if (request.positionIds() != null && !request.positionIds().isEmpty()) {
             // Partial publish: Notify only employees with matching positions
-            System.out.println("DEBUG: Searching for employees with positionIds: " + request.positionIds());
+            log.debug("Searching for employees with positionIds: {}", request.positionIds());
             targets = employeeRepository.findByPositionIdsAndCompanyId(request.positionIds(), companyId);
         } else {
             // Full publish/unpublish: Notify all employees of the company
-            System.out.println("DEBUG: Searching for all employees in companyId: " + companyId);
+            log.debug("Searching for all employees in companyId: {}", companyId);
             targets = employeeRepository.findByCompanyId(companyId);
         }
 
-        System.out.println("DEBUG: Found " + (targets != null ? targets.size() : 0) + " target employees.");
+        log.debug("Found {} target employees.", targets != null ? targets.size() : 0);
 
         if (targets == null || targets.isEmpty()) {
-            System.out.println("DEBUG: No emails sent - empty target list.");
+            log.debug("No emails sent - empty target list.");
             return;
         }
 
@@ -153,8 +152,7 @@ public class NotificationService {
 
         // Log and process each intended recipient
         for (Employee employee : targets) {
-            System.out.println("DEBUG: Sending notification for intended recipient: " + employee.getEmail() + " ["
-                    + employee.getFirstName() + "]");
+            log.debug("Sending notification for intended recipient: {} [{}]", employee.getEmail(), employee.getFirstName());
 
             String message = String.format(
                     "Dear %s,<br/><br/>The schedule from <strong>%s</strong> to <strong>%s</strong> has been <strong>%s</strong>.<br/>Please log in to the portal to view the details.<br/><br/>Best regards,<br/>When2Work Team",
