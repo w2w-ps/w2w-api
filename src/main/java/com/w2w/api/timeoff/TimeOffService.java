@@ -113,7 +113,7 @@ public class TimeOffService {
         entity.setComments(request.comments());
 
         TimeOffRequest saved = timeOffRequestRepository.save(entity);
-        notificationProducer.sendNotification(new NotificationRequest("leave_create", saved.getRequestId(), null, null, companyId));
+        notificationProducer.sendNotification(new NotificationRequest("leave_create", saved.getRequestId(), null, null, null, companyId));
         return toSummary(saved);
     }
 
@@ -143,7 +143,7 @@ public class TimeOffService {
 
         TimeOffRequest saved = timeOffRequestRepository.save(timeOffRequest);
         String task = request.action() == ApproveTimeOffRequest.Action.APPROVE ? "leave_approve" : "leave_decline";
-        notificationProducer.sendNotification(new NotificationRequest(task, saved.getRequestId(), null, null, companyId));
+        notificationProducer.sendNotification(new NotificationRequest(task, saved.getRequestId(), null, null, null, companyId));
         return toSummary(saved);
     }
 
@@ -161,7 +161,7 @@ public class TimeOffService {
 
         timeOffRequest.setStatus(CANCELLED);
         timeOffRequestRepository.save(timeOffRequest);
-        notificationProducer.sendNotification(new NotificationRequest("leave_cancel", requestId, null, null, companyId));
+        notificationProducer.sendNotification(new NotificationRequest("leave_cancel", requestId, null, null, null, companyId));
     }
 
     private TimeOffSummary toSummary(TimeOffRequest request) {

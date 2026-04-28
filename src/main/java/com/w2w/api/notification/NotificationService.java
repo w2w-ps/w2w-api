@@ -4,6 +4,8 @@ import com.w2w.api.employee.model.Employee;
 import com.w2w.api.employee.repository.EmployeeRepository;
 import com.w2w.api.scheduling.ScheduleRepository;
 import com.w2w.api.scheduling.model.Schedule;
+import com.w2w.api.scheduling.ShiftRepository;
+import com.w2w.api.scheduling.dto.ShiftDetailsProjection;
 import com.w2w.api.timeoff.TimeOffRequest;
 import com.w2w.api.timeoff.TimeOffRequestRepository;
 import org.slf4j.Logger;
@@ -22,15 +24,18 @@ public class NotificationService {
     private final EmployeeRepository employeeRepository;
     private final ScheduleRepository scheduleRepository;
     private final TimeOffRequestRepository timeOffRequestRepository;
+    private final ShiftRepository shiftRepository;
 
     public NotificationService(EmailService emailService,
             EmployeeRepository employeeRepository,
             ScheduleRepository scheduleRepository,
-            TimeOffRequestRepository timeOffRequestRepository) {
+            TimeOffRequestRepository timeOffRequestRepository,
+            ShiftRepository shiftRepository) {
         this.emailService = emailService;
         this.employeeRepository = employeeRepository;
         this.scheduleRepository = scheduleRepository;
         this.timeOffRequestRepository = timeOffRequestRepository;
+        this.shiftRepository = shiftRepository;
     }
 
     public void processNotification(NotificationRequest request) {
@@ -42,6 +47,52 @@ public class NotificationService {
             handleLeaveNotification(request);
         } else if (task.equals("publish") || task.equals("unpublish")) {
             handleScheduleNotification(request);
+        } else if (task.equals("shift_create")) {
+            handleShiftNotification(request);
+        }
+    }
+
+    private void handleShiftNotification(NotificationRequest request) {
+        if (request.shiftId() == null || request.companyId() == null) {
+            log.warn("Notification failed - shiftId or companyId is null");
+            return;
+        }
+
+        ShiftDetailsProjection shift = shiftRepository.findShiftDetailsByShiftIdAndCompanyId(request.shiftId(), request.companyId()).orElse(null);
+        if (shift == null) {
+            log.warn("Notification failed - Shift not found for id: {}", request.shiftId());
+            return;
+        }
+
+        Employee employee = employeeRepository.findById(shift.getEmployeeId()).orElse(null);
+        if (employee == null) {
+            log.warn("Notification failed - Employee not found for id: {}", shift.getEmployeeId());
+            return;
+        }
+
+        String employeeName = employee.getFirstName();
+        String intendedEmail = employee.getEmail();
+        
+        String shiftDate = shift.getDate() != null ? shift.getDate().toString() : "TBD";
+        String startTime = shift.getStartTime() != null ? shift.getStartTime().toString() : "TBD";
+        String endTime = shift.getEndTime() != null ? shift.getEndTime().toString() : "TBD";
+
+        String subject = "When2Work: New Shift Assigned";
+        String heading = "Shift Update";
+        String message = String.format(
+                "Dear %s,<br/><br/>You have been assigned a new shift on <strong>%s</strong> from <strong>%s</strong> to <strong>%s</strong>.<br/>Please log in to the portal to view the details.<br/><br/>Best regards,<br/>When2Work Team",
+                employeeName, shiftDate, startTime, endTime);
+
+        String htmlBody = buildHtmlTemplate(heading, message);
+
+        try {
+            log.debug("Intended recipient: {} [{}]", intendedEmail, employeeName);
+            String debugEmail = "96mbsb@gmail.com";
+            emailService.sendEmail(debugEmail, subject, htmlBody);
+            // emailService.sendEmail(intendedEmail, subject, htmlBody);
+            log.info("Shift notification sent for shiftId: {}", request.shiftId());
+        } catch (Exception e) {
+            log.error("Failed to send shift notification: {}", e.getMessage());
         }
     }
 

@@ -69,7 +69,7 @@ public class SchedulingService {
             Integer category,
             String color
     ) {
-        return shiftCommandService.saveShift(new CreateShiftCommand(
+        Shift shift = shiftCommandService.saveShift(new CreateShiftCommand(
                 employeeId,
                 description,
                 date,
@@ -80,6 +80,10 @@ public class SchedulingService {
                 category,
                 color
         ));
+
+        notificationProducer.sendNotification(new NotificationRequest("shift_create", null, null, shift.getShiftId(), null, shift.getCompanyId()));
+
+        return shift;
     }
 
     public ShiftResponse updateShift(Integer shiftId, UpdateShiftRequest request) {
@@ -162,7 +166,7 @@ public class SchedulingService {
         partialPubRepository.deleteByScheduleId(scheduleId);
 
         // Notify all employees
-        notificationProducer.sendNotification(new NotificationRequest("publish", null, scheduleId, null, companyId));
+        notificationProducer.sendNotification(new NotificationRequest("publish", null, scheduleId, null, null, companyId));
     }
 
     @Transactional
@@ -179,7 +183,7 @@ public class SchedulingService {
         partialPubRepository.deleteByScheduleId(scheduleId);
 
         // Notify all employees
-        notificationProducer.sendNotification(new NotificationRequest("unpublish", null, scheduleId, null, companyId));
+        notificationProducer.sendNotification(new NotificationRequest("unpublish", null, scheduleId, null, null, companyId));
     }
 
     @Transactional
@@ -219,7 +223,7 @@ public class SchedulingService {
             scheduleRepository.save(schedule);
 
             notificationProducer
-                    .sendNotification(new NotificationRequest("publish", null, scheduleId, positionIds, companyId));
+                    .sendNotification(new NotificationRequest("publish", null, scheduleId, null, positionIds, companyId));
         }
     }
 }

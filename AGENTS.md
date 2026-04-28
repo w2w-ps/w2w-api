@@ -74,8 +74,6 @@
   `POST /api/preferences/day/repeat`
   `GET /api/preferences/week?employeeId=...&startDate=...&companyId=...`
   `POST /api/preferences/week`
-- `notification`
-  `POST /api/notifications/trigger` triggers a notification task (structured JSON: task, leaveRequestId, scheduleId)
 
 ## Tenanting Rules
 - Reads and writes are tenant-scoped by setting `TenantContext` before repository access.

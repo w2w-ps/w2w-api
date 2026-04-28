@@ -6,6 +6,7 @@ public record NotificationRequest(
     String task,
     Integer leaveRequestId,
     Integer scheduleId,
+    Integer shiftId,
     List<Integer> positionIds,
     Integer companyId
 ) {}
