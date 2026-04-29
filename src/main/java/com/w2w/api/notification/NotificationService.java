@@ -20,6 +20,11 @@ public class NotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
 
+    public static final String TASK_LEAVE_PREFIX = "LEAVE_";
+    public static final String TASK_PUBLISH = "PUBLISH";
+    public static final String TASK_UNPUBLISH = "UNPUBLISH";
+    public static final String TASK_SHIFT_CREATE = "SHIFT_CREATE";
+
     private final EmailService emailService;
     private final EmployeeRepository employeeRepository;
     private final ScheduleRepository scheduleRepository;
@@ -43,11 +48,11 @@ public class NotificationService {
         if (task == null)
             return;
 
-        if (task.startsWith("leave_")) {
+        if (task.startsWith(TASK_LEAVE_PREFIX)) {
             handleLeaveNotification(request);
-        } else if (task.equals("publish") || task.equals("unpublish")) {
+        } else if (task.equals(TASK_PUBLISH) || task.equals(TASK_UNPUBLISH)) {
             handleScheduleNotification(request);
-        } else if (task.equals("shift_create")) {
+        } else if (task.equals(TASK_SHIFT_CREATE)) {
             handleShiftNotification(request);
         }
     }
@@ -122,18 +127,18 @@ public class NotificationService {
             leaveDate += " to " + timeOffRequest.getEndDate().toString();
         }
 
-        String actionRaw = request.task().replace("leave_", "");
+        String actionRaw = request.task().replace(TASK_LEAVE_PREFIX, "");
         String action;
-        if ("create".equals(actionRaw)) {
+        if ("CREATE".equals(actionRaw)) {
             action = "created";
-        } else if ("approve".equals(actionRaw)) {
+        } else if ("APPROVE".equals(actionRaw)) {
             action = "approved";
-        } else if ("decline".equals(actionRaw)) {
+        } else if ("DECLINE".equals(actionRaw)) {
             action = "declined";
-        } else if ("cancel".equals(actionRaw)) {
+        } else if ("CANCEL".equals(actionRaw)) {
             action = "cancelled";
         } else {
-            action = actionRaw;
+            action = actionRaw.toLowerCase();
         }
 
         String subject = "When2Work: Leave Request " + action.substring(0, 1).toUpperCase() + action.substring(1);
@@ -196,8 +201,8 @@ public class NotificationService {
             return;
         }
 
-        String action = request.task().equals("publish") ? "published" : "unpublished";
-        String subject = "When2Work: Schedule " + (request.task().equals("publish") ? "Published" : "Unpublished");
+        String action = request.task().equals(TASK_PUBLISH) ? "published" : "unpublished";
+        String subject = "When2Work: Schedule " + (request.task().equals(TASK_PUBLISH) ? "Published" : "Unpublished");
 
         String heading = "Schedule Update";
 

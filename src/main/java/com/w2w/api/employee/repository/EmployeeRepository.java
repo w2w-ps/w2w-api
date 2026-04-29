@@ -3,6 +3,7 @@ package com.w2w.api.employee.repository;
 import com.w2w.api.employee.model.Employee;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
     Optional<Employee> findByCompanyIdAndEmailAndIsDeletedFalse(Integer companyId, String email);
 
-    @org.springframework.data.jpa.repository.Query(value = """
+    @Query(value = """
                 SELECT DISTINCT e.* FROM employee e
                 JOIN employee_position ep ON e.employee_id = ep.employee_id
                 WHERE ep.position_id IN :positionIds AND e.company_id = :companyId

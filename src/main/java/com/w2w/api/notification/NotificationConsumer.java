@@ -1,6 +1,7 @@
 package com.w2w.api.notification;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import com.w2w.api.config.TenantContext;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -21,13 +22,13 @@ public class NotificationConsumer {
         try {
             // Transfer the tenant context from the message payload
             if (request.companyId() != null) {
-                com.w2w.api.config.TenantContext.setCurrentTenant(request.companyId());
+                TenantContext.setCurrentTenant(request.companyId());
             }
             notificationService.processNotification(request);
         } catch (Exception e) {
             log.error("Error consuming notification: {}", e.getMessage());
         } finally {
-            com.w2w.api.config.TenantContext.clear();
+            TenantContext.clear();
         }
     }
 }

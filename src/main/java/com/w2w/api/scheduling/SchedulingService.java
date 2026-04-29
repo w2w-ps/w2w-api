@@ -81,7 +81,7 @@ public class SchedulingService {
                 color
         ));
 
-        notificationProducer.sendNotification(new NotificationRequest("shift_create", null, null, shift.getShiftId(), null, shift.getCompanyId()));
+        notificationProducer.sendNotification(new NotificationRequest("SHIFT_CREATE", null, null, shift.getShiftId(), null, shift.getCompanyId()));
 
         return shift;
     }
@@ -166,7 +166,7 @@ public class SchedulingService {
         partialPubRepository.deleteByScheduleId(scheduleId);
 
         // Notify all employees
-        notificationProducer.sendNotification(new NotificationRequest("publish", null, scheduleId, null, null, companyId));
+        notificationProducer.sendNotification(new NotificationRequest("PUBLISH", null, scheduleId, null, null, companyId));
     }
 
     @Transactional
@@ -183,7 +183,7 @@ public class SchedulingService {
         partialPubRepository.deleteByScheduleId(scheduleId);
 
         // Notify all employees
-        notificationProducer.sendNotification(new NotificationRequest("unpublish", null, scheduleId, null, null, companyId));
+        notificationProducer.sendNotification(new NotificationRequest("UNPUBLISH", null, scheduleId, null, null, companyId));
     }
 
     @Transactional
@@ -223,7 +223,7 @@ public class SchedulingService {
             scheduleRepository.save(schedule);
 
             notificationProducer
-                    .sendNotification(new NotificationRequest("publish", null, scheduleId, null, positionIds, companyId));
+                    .sendNotification(new NotificationRequest("PUBLISH", null, scheduleId, null, positionIds, companyId));
         }
     }
 }
