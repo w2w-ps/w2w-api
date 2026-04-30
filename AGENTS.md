@@ -57,6 +57,7 @@
 - `scheduling`
   `POST /api/scheduling/shifts`
   `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` includes nullable `employmentType`, `alertDate`, and `publishedStage`
+  `GET /api/scheduling/shifts/grouped?companyId=...&grouping=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` grouped calendar response with optional position/category filtering
   `GET /api/scheduling/shifts/date-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` wrapped response with `title`, `totalShifts`, `totalHours`, and `dates[{ weekday, date, ... }]`; shift items include nullable `employmentType`
   `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` deprecated
 - `timeoff`
