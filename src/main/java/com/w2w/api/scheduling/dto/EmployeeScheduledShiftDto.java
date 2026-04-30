@@ -13,6 +13,7 @@ public record EmployeeScheduledShiftDto(
         List<String> phones,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma") LocalTime startTime,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma") LocalTime endTime,
+        String position,
         String category,
         String description,
         Float duration,

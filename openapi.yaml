@@ -212,6 +212,20 @@ paths:
               - category_shift_timings
               - cat_shift_timings
         - in: query
+          name: positionIds
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+        - in: query
+          name: categoryIds
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+        - in: query
           name: startDate
           required: true
           schema:

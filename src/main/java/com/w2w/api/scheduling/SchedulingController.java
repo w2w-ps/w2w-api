@@ -93,10 +93,12 @@ public class SchedulingController {
     public GroupedShiftsResponse getGroupedShifts(
             @RequestParam Integer companyId,
             @RequestParam ShiftGrouping grouping,
+            @RequestParam(required = false) List<Integer> positionIds,
+            @RequestParam(required = false) List<Integer> categoryIds,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
-        return schedulingService.getShiftsGrouped(startDate, endDate, grouping);
+        return schedulingService.getShiftsGrouped(startDate, endDate, grouping, positionIds, categoryIds);
     }
 
     @GetMapping("/shifts/date-position")

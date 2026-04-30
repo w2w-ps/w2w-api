@@ -19,7 +19,6 @@ import java.util.*;
 
 @Service
 public class SchedulingGroupingService {
-    private static final DateTimeFormatter SHIFT_TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mma");
     private static final DateTimeFormatter SHORT_SHIFT_TIME_FORMATTER = DateTimeFormatter.ofPattern("ha", Locale.ENGLISH);
     private static final DateTimeFormatter LONG_SHIFT_TIME_FORMATTER = DateTimeFormatter.ofPattern("h:mma", Locale.ENGLISH);
     private static final DateTimeFormatter DAY_BUCKET_WEEKDAY_FORMATTER = DateTimeFormatter.ofPattern("EEEE", Locale.ENGLISH);
@@ -46,9 +45,15 @@ public class SchedulingGroupingService {
             List<Integer> positionIds,
             List<Integer> categoryIds
     ) {
-        List<EmployeeShiftProjection> flatResults = findEmployeeShiftRows(TenantContext.getCurrentTenant(), startDate, endDate);
         Set<Integer> positionFilter = toFilterSet(positionIds);
         Set<Integer> categoryFilter = toFilterSet(categoryIds);
+        List<EmployeeShiftProjection> flatResults = findEmployeeShiftRows(
+                TenantContext.getCurrentTenant(),
+                startDate,
+                endDate,
+                positionFilter,
+                categoryFilter
+        );
         boolean hasFilters = !positionFilter.isEmpty() || !categoryFilter.isEmpty();
         Map<Integer, EmployeeSchedule> grouped = new LinkedHashMap<>();
 
@@ -83,18 +88,28 @@ public class SchedulingGroupingService {
             LocalDate endDate,
             ShiftGrouping grouping
     ) {
+        return getShiftsGrouped(startDate, endDate, grouping, null, null);
+    }
+
+    public GroupedShiftsResponse getShiftsGrouped(
+            LocalDate startDate,
+            LocalDate endDate,
+            ShiftGrouping grouping,
+            List<Integer> positionIds,
+            List<Integer> categoryIds
+    ) {
         return switch (grouping) {
             case POSITION_SHIFT_TIMINGS -> new GroupedShiftsResponse(toGroupedDatesFromPositionTimingBuckets(
-                    getShiftsGroupedByDayPositionAndTiming(startDate, endDate)
+                    getShiftsGroupedByDayPositionAndTiming(startDate, endDate, positionIds, categoryIds)
             ));
             case SHIFT_TIMINGS -> new GroupedShiftsResponse(toGroupedDatesFromDayTimingBuckets(
-                    getShiftsGroupedByDayAndTiming(startDate, endDate)
+                    getShiftsGroupedByDayAndTiming(startDate, endDate, positionIds, categoryIds)
             ));
             case CATEGORY_SHIFT_TIMINGS -> new GroupedShiftsResponse(toGroupedDatesFromCategoryTimingBuckets(
-                    getShiftsGroupedByDayCategoryAndTiming(startDate, endDate)
+                    getShiftsGroupedByDayCategoryAndTiming(startDate, endDate, positionIds, categoryIds)
             ));
             case CAT_SHIFT_TIMINGS -> new GroupedShiftsResponse(toGroupedDatesFromCategoryTimingBuckets(
-                    getShiftsGroupedByDayCategoryShortNameAndTiming(startDate, endDate)
+                    getShiftsGroupedByDayCategoryShortNameAndTiming(startDate, endDate, positionIds, categoryIds)
             ));
         };
     }
@@ -162,13 +177,24 @@ public class SchedulingGroupingService {
             LocalDate startDate,
             LocalDate endDate
     ) {
+        return getShiftsGroupedByDayPositionAndTiming(startDate, endDate, null, null);
+    }
+
+    public List<DayPositionTimingBucketDto> getShiftsGroupedByDayPositionAndTiming(
+            LocalDate startDate,
+            LocalDate endDate,
+            List<Integer> positionIds,
+            List<Integer> categoryIds
+    ) {
         Integer companyId = TenantContext.getCurrentTenant();
+        Set<Integer> positionFilter = toFilterSet(positionIds);
+        Set<Integer> categoryFilter = toFilterSet(categoryIds);
         Map<LocalDate, DayPositionTimingBucketDto> grouped = initializeDayPositionTimingBuckets(
                 startDate,
                 endDate,
-                getCompanyPositionNames(companyId)
+                getCompanyPositionNames(companyId, positionFilter)
         );
-        List<ShiftSegment> segments = findGroupedShiftSegments(companyId, startDate, endDate, Set.of(), Set.of());
+        List<ShiftSegment> segments = findGroupedShiftSegments(companyId, startDate, endDate, positionFilter, categoryFilter);
 
         for (ShiftSegment segment : segments) {
             DayPositionTimingBucketDto dayBucket = grouped.get(segment.date());
@@ -186,6 +212,7 @@ public class SchedulingGroupingService {
                     segment.phones(),
                     segment.startTime(),
                     segment.endTime(),
+                    segment.position(),
                     segment.category(),
                     segment.description(),
                     segment.durationHours(),
@@ -211,11 +238,24 @@ public class SchedulingGroupingService {
             LocalDate startDate,
             LocalDate endDate
     ) {
+        return getShiftsGroupedByDayCategoryAndTiming(startDate, endDate, null, null);
+    }
+
+    public List<DayCategoryTimingBucketDto> getShiftsGroupedByDayCategoryAndTiming(
+            LocalDate startDate,
+            LocalDate endDate,
+            List<Integer> positionIds,
+            List<Integer> categoryIds
+    ) {
+        Integer companyId = TenantContext.getCurrentTenant();
+        Set<Integer> categoryFilter = toFilterSet(categoryIds);
         return getShiftsGroupedByDayCategoryAndTiming(
                 startDate,
                 endDate,
-                TenantContext.getCurrentTenant(),
-                buildCategoryLabelByName(TenantContext.getCurrentTenant(), false)
+                companyId,
+                buildCategoryLabelByName(companyId, false, categoryFilter),
+                toFilterSet(positionIds),
+                categoryFilter
         );
     }
 
@@ -223,11 +263,24 @@ public class SchedulingGroupingService {
             LocalDate startDate,
             LocalDate endDate
     ) {
+        return getShiftsGroupedByDayCategoryShortNameAndTiming(startDate, endDate, null, null);
+    }
+
+    public List<DayCategoryTimingBucketDto> getShiftsGroupedByDayCategoryShortNameAndTiming(
+            LocalDate startDate,
+            LocalDate endDate,
+            List<Integer> positionIds,
+            List<Integer> categoryIds
+    ) {
+        Integer companyId = TenantContext.getCurrentTenant();
+        Set<Integer> categoryFilter = toFilterSet(categoryIds);
         return getShiftsGroupedByDayCategoryAndTiming(
                 startDate,
                 endDate,
-                TenantContext.getCurrentTenant(),
-                buildCategoryLabelByName(TenantContext.getCurrentTenant(), true)
+                companyId,
+                buildCategoryLabelByName(companyId, true, categoryFilter),
+                toFilterSet(positionIds),
+                categoryFilter
         );
     }
 
@@ -235,7 +288,9 @@ public class SchedulingGroupingService {
             LocalDate startDate,
             LocalDate endDate,
             Integer companyId,
-            Map<String, String> categoryLabelByName
+            Map<String, String> categoryLabelByName,
+            Set<Integer> positionIds,
+            Set<Integer> categoryIds
     ) {
         Map<LocalDate, DayCategoryTimingBucketDto> grouped = initializeDayCategoryTimingBuckets(
                 startDate,
@@ -246,7 +301,7 @@ public class SchedulingGroupingService {
                         .sorted()
                         .toList()
         );
-        List<ShiftSegment> segments = findGroupedShiftSegments(companyId, startDate, endDate, Set.of(), Set.of());
+        List<ShiftSegment> segments = findGroupedShiftSegments(companyId, startDate, endDate, positionIds, categoryIds);
 
         for (ShiftSegment segment : segments) {
             DayCategoryTimingBucketDto dayBucket = grouped.get(segment.date());
@@ -267,6 +322,7 @@ public class SchedulingGroupingService {
                     segment.phones(),
                     segment.startTime(),
                     segment.endTime(),
+                    segment.position(),
                     segment.category(),
                     segment.description(),
                     segment.durationHours(),
@@ -281,9 +337,24 @@ public class SchedulingGroupingService {
             LocalDate startDate,
             LocalDate endDate
     ) {
+        return getShiftsGroupedByDayAndTiming(startDate, endDate, null, null);
+    }
+
+    public List<DayShiftTimingBucketDto> getShiftsGroupedByDayAndTiming(
+            LocalDate startDate,
+            LocalDate endDate,
+            List<Integer> positionIds,
+            List<Integer> categoryIds
+    ) {
         Integer companyId = TenantContext.getCurrentTenant();
         Map<LocalDate, DayShiftTimingBucketDto> grouped = initializeDayShiftTimingBuckets(startDate, endDate);
-        List<ShiftSegment> segments = findDayTimingShiftSegments(companyId, startDate, endDate);
+        List<ShiftSegment> segments = findDayTimingShiftSegments(
+                companyId,
+                startDate,
+                endDate,
+                toFilterSet(positionIds),
+                toFilterSet(categoryIds)
+        );
 
         for (ShiftSegment segment : segments) {
             DayShiftTimingBucketDto dayBucket = grouped.get(segment.date());
@@ -300,6 +371,7 @@ public class SchedulingGroupingService {
                     segment.phones(),
                     segment.startTime(),
                     segment.endTime(),
+                    segment.position(),
                     segment.category(),
                     segment.description(),
                     segment.durationHours(),
@@ -319,7 +391,7 @@ public class SchedulingGroupingService {
     ) {
         List<ShiftSegment> segments = new ArrayList<>();
 
-        for (EmployeeShiftProjection row : findEmployeeShiftRows(companyId, startDate, endDate)) {
+        for (EmployeeShiftProjection row : findEmployeeShiftRows(companyId, startDate, endDate, positionIds, categoryIds)) {
             for (ShiftSegment segment : buildShiftSegments(row, startDate, endDate)) {
                 if (matchesFilters(segment, positionIds, categoryIds)) {
                     segments.add(segment);
@@ -337,11 +409,21 @@ public class SchedulingGroupingService {
         return segments;
     }
 
-    private List<ShiftSegment> findDayTimingShiftSegments(Integer companyId, LocalDate startDate, LocalDate endDate) {
+    private List<ShiftSegment> findDayTimingShiftSegments(
+            Integer companyId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Set<Integer> positionIds,
+            Set<Integer> categoryIds
+    ) {
         List<ShiftSegment> segments = new ArrayList<>();
 
-        for (EmployeeShiftProjection row : findEmployeeShiftRows(companyId, startDate, endDate)) {
-            segments.addAll(buildShiftSegments(row, startDate, endDate));
+        for (EmployeeShiftProjection row : findEmployeeShiftRows(companyId, startDate, endDate, positionIds, categoryIds)) {
+            for (ShiftSegment segment : buildShiftSegments(row, startDate, endDate)) {
+                if (matchesFilters(segment, positionIds, categoryIds)) {
+                    segments.add(segment);
+                }
+            }
         }
 
         segments.sort(Comparator
@@ -428,8 +510,9 @@ public class SchedulingGroupingService {
                 dto.firstName(),
                 dto.lastName(),
                 dto.phones(),
-                dto.startTime(),
-                dto.endTime(),
+                formatTime(dto.startTime()),
+                formatTime(dto.endTime()),
+                dto.position(),
                 dto.category(),
                 dto.description(),
                 dto.duration(),
@@ -442,6 +525,25 @@ public class SchedulingGroupingService {
                 companyId,
                 startDate.minusDays(1),
                 endDate
+        );
+    }
+
+    private List<EmployeeShiftProjection> findEmployeeShiftRows(
+            Integer companyId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Set<Integer> positionIds,
+            Set<Integer> categoryIds
+    ) {
+        if (positionIds.isEmpty() && categoryIds.isEmpty()) {
+            return findEmployeeShiftRows(companyId, startDate, endDate);
+        }
+        return schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                companyId,
+                startDate.minusDays(1),
+                endDate,
+                new ArrayList<>(positionIds),
+                new ArrayList<>(categoryIds)
         );
     }
 
@@ -688,7 +790,7 @@ public class SchedulingGroupingService {
         return positionBucket;
     }
 
-    private Map<String, String> buildCategoryLabelByName(Integer companyId, boolean useShortName) {
+    private Map<String, String> buildCategoryLabelByName(Integer companyId, boolean useShortName, Set<Integer> categoryIds) {
         if (companyId == null || companyId == -1) {
             return Map.of();
         }
@@ -696,6 +798,9 @@ public class SchedulingGroupingService {
         Map<String, String> labels = new LinkedHashMap<>();
         for (CategorySummary category : categoryService.getCategoriesByCompanyId()) {
             if (category.description() == null) {
+                continue;
+            }
+            if (!categoryIds.isEmpty() && !categoryIds.contains(category.id())) {
                 continue;
             }
             labels.put(category.description(), useShortName ? preferredCategoryLabel(category) : category.description());
@@ -848,7 +953,7 @@ public class SchedulingGroupingService {
     }
 
     private String formatShiftTimingLabel(LocalTime startTime, LocalTime endTime) {
-        return startTime.format(SHIFT_TIME_FORMATTER) + "-" + endTime.format(SHIFT_TIME_FORMATTER);
+        return formatTime(startTime) + "-" + formatTime(endTime);
     }
 
     private Set<Integer> toFilterSet(List<Integer> ids) {
