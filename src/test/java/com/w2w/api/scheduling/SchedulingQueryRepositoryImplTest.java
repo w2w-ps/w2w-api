@@ -53,7 +53,7 @@ class SchedulingQueryRepositoryImplTest {
             when(resultSet.getInt("positionId")).thenReturn(12);
             when(resultSet.getString("position")).thenReturn("Bartender");
             when(resultSet.getInt("categoryId")).thenReturn(4);
-            when(resultSet.getString("category")).thenReturn("FRT");
+            when(resultSet.getString("category")).thenReturn("Front");
             when(resultSet.getString("categoryShortDescription")).thenReturn("FRT");
             when(resultSet.getString("description")).thenReturn("Opening shift");
             when(resultSet.getFloat("duration")).thenReturn(8.0f);
@@ -77,7 +77,7 @@ class SchedulingQueryRepositoryImplTest {
         assertEquals("Bartender", result.getFirst().getAvailablePositions().getFirst().description());
         assertEquals(12, result.getFirst().getPositionId());
         assertEquals(4, result.getFirst().getCategoryId());
-        assertEquals("FRT", result.getFirst().getCategory());
+        assertEquals("Front", result.getFirst().getCategory());
         assertEquals("FRT", result.getFirst().getCategoryShortDescription());
         assertEquals(true, result.getFirst().getSchedulePublished());
         assertEquals(List.of("111-222", "333-444"), result.getFirst().getPhones());

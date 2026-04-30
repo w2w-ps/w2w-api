@@ -1255,6 +1255,7 @@ class SchedulingServiceTest {
         assertEquals(1, positions.getFirst().shiftGroups().size());
         assertEquals(9001, positions.getFirst().shiftGroups().getFirst().shifts().getFirst().shiftId());
         assertEquals("Bartender", positions.getFirst().shiftGroups().getFirst().shifts().getFirst().position());
+        assertEquals("FRT", positions.getFirst().shiftGroups().getFirst().shifts().getFirst().category());
     }
 
     @Test
@@ -1287,6 +1288,7 @@ class SchedulingServiceTest {
         assertEquals("9am", timingGroups.getFirst().shifts().getFirst().startTime());
         assertEquals("5pm", timingGroups.getFirst().shifts().getFirst().endTime());
         assertEquals("Bartender", timingGroups.getFirst().shifts().getFirst().position());
+        assertEquals("FRT", timingGroups.getFirst().shifts().getFirst().category());
     }
 
     @Test
@@ -1322,6 +1324,55 @@ class SchedulingServiceTest {
         assertEquals(1, categories.getFirst().shiftGroups().size());
         assertEquals(9001, categories.getFirst().shiftGroups().getFirst().shifts().getFirst().shiftId());
         assertEquals("Bartender", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().position());
+        assertEquals("FRT", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().category());
+    }
+
+    @Test
+    void getShiftsGrouped_categoryShiftTimingsDoesNotCreateShortCategoryBucket() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(categoryService.getCategoriesByCompanyId())
+                .thenReturn(List.of(new CategorySummary(4, "Front", "FRT")));
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+                .thenReturn(List.of(new TestProjection(
+                        9001,
+                        101,
+                        "Ava",
+                        "Stone",
+                        List.of("111-222"),
+                        List.of(new PositionSummary(12, "Bartender")),
+                        startDate,
+                        LocalTime.of(9, 0),
+                        LocalTime.of(17, 0),
+                        false,
+                        12,
+                        "Bartender",
+                        4,
+                        "Front",
+                        "FRT",
+                        "Opening shift",
+                        8.0f,
+                        true,
+                        "amber"
+                )));
+
+        GroupedShiftsResponse result = schedulingService.getShiftsGrouped(
+                startDate,
+                endDate,
+                ShiftGrouping.CATEGORY_SHIFT_TIMINGS
+        );
+
+        List<String> labels = result.dates().getFirst().shiftGroups().stream()
+                .map(ShiftGroup::label)
+                .toList();
+        assertEquals(List.of("Front"), labels);
+        assertFalse(labels.contains("FRT"));
+        assertEquals(
+                "FRT",
+                result.dates().getFirst().shiftGroups().getFirst().shiftGroups().getFirst().shifts().getFirst().category()
+        );
     }
 
     @Test
@@ -1357,6 +1408,7 @@ class SchedulingServiceTest {
         assertEquals(1, categories.getFirst().shiftGroups().size());
         assertEquals(9001, categories.getFirst().shiftGroups().getFirst().shifts().getFirst().shiftId());
         assertEquals("Bartender", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().position());
+        assertEquals("FRT", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().category());
     }
 
     @Test

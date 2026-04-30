@@ -213,7 +213,7 @@ public class SchedulingGroupingService {
                     segment.startTime(),
                     segment.endTime(),
                     segment.position(),
-                    segment.category(),
+                    segment.categoryShortDescription(),
                     segment.description(),
                     segment.durationHours(),
                     segment.color()
@@ -323,7 +323,7 @@ public class SchedulingGroupingService {
                     segment.startTime(),
                     segment.endTime(),
                     segment.position(),
-                    segment.category(),
+                    segment.categoryShortDescription(),
                     segment.description(),
                     segment.durationHours(),
                     segment.color()
@@ -372,7 +372,7 @@ public class SchedulingGroupingService {
                     segment.startTime(),
                     segment.endTime(),
                     segment.position(),
-                    segment.category(),
+                    segment.categoryShortDescription(),
                     segment.description(),
                     segment.durationHours(),
                     segment.color()

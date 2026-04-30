@@ -33,7 +33,7 @@ filtered_shifts AS (
         se.required_position_id AS positionId,
         p.description AS position,
         se.category_id AS categoryId,
-        cat.short_desc AS category,
+        cat.description AS category,
         cat.short_desc AS categoryShortDescription,
         se.description,
         se.duration,
