@@ -1257,7 +1257,11 @@ components:
             type: string
         startTime:
           type: string
+          example: 9am
         endTime:
+          type: string
+          example: 5pm
+        position:
           type: string
         category:
           type: string
@@ -1430,6 +1434,7 @@ components:
         label:
           type: string
           nullable: true
+          example: 9am-5pm
         shiftGroups:
           type: array
           items:

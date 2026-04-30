@@ -197,7 +197,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         assertEquals(LocalTime.of(10, 0), updatedShift.startTime());
         assertEquals(LocalTime.of(18, 0), updatedShift.endTime());
         assertEquals("Server", updatedShift.position());
-        assertEquals("Back", updatedShift.category());
+        assertEquals("BCK", updatedShift.category());
         assertEquals("blue", updatedShift.color());
 
         Shift persistedShift = shiftRepository.findByShiftIdAndCompanyId(savedShift.getShiftId(), COMPANY_A_ID)
@@ -379,7 +379,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         ShiftGroup firstDatePositionGroup = response.dates().getFirst().shiftGroups().getFirst();
         assertEquals("Bartender", firstDatePositionGroup.label());
         assertEquals(1, firstDatePositionGroup.shiftGroups().size());
-        assertEquals("9:00AM-5:00PM", firstDatePositionGroup.shiftGroups().getFirst().label());
+        assertEquals("9am-5pm", firstDatePositionGroup.shiftGroups().getFirst().label());
         assertEquals(1, firstDatePositionGroup.shiftGroups().getFirst().shifts().size());
         assertEquals("Opening shift", firstDatePositionGroup.shiftGroups().getFirst().shifts().getFirst().description());
 

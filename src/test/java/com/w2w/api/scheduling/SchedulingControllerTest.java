@@ -57,7 +57,7 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.startTime").value("9:00AM"))
                 .andExpect(jsonPath("$.endTime").value("5:00PM"))
                 .andExpect(jsonPath("$.position").value("Bartender"))
-                .andExpect(jsonPath("$.category").value("Front"))
+                .andExpect(jsonPath("$.category").value("FRT"))
                 .andExpect(jsonPath("$.color").value("amber"));
 
         verify(schedulingService).getShift(9001);
@@ -102,7 +102,7 @@ class SchedulingControllerTest {
                 8.0f,
                 false,
                 "Bartender",
-                "Front",
+                "FRT",
                 "amber"
         );
 
@@ -136,7 +136,7 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.shiftId").value(9001))
                 .andExpect(jsonPath("$.employeeId").value(101))
                 .andExpect(jsonPath("$.position").value("Bartender"))
-                .andExpect(jsonPath("$.category").value("Front"))
+                .andExpect(jsonPath("$.category").value("FRT"))
                 .andExpect(jsonPath("$.startTime").value("10:00AM"))
                 .andExpect(jsonPath("$.endTime").value("6:00PM"))
                 .andExpect(jsonPath("$.color").value("amber"));
@@ -342,16 +342,31 @@ class SchedulingControllerTest {
         when(schedulingService.getShiftsGrouped(
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
-                ShiftGrouping.POSITION_SHIFT_TIMINGS
+                ShiftGrouping.POSITION_SHIFT_TIMINGS,
+                null,
+                null
         )).thenReturn(new GroupedShiftsResponse(List.of(
                 new GroupedShiftDate(
                         LocalDate.of(2026, 3, 25),
                         List.of(new ShiftGroup(
                                 "Bartender",
                                 List.of(new ShiftGroup(
-                                        "9:00AM-5:00PM",
+                                        "9am-5pm",
                                         List.of(),
-                                        List.of()
+                                        List.of(new EmployeeScheduledShift(
+                                                9001,
+                                                101,
+                                                "Ava",
+                                                "Stone",
+                                                List.of("111-222"),
+                                                "9am",
+                                                "5pm",
+                                                "Bartender",
+                                                "Front",
+                                                "Opening shift",
+                                                8.0f,
+                                                "amber"
+                                        ))
                                 )),
                                 List.of()
                         ))
@@ -367,13 +382,47 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.dates", hasSize(1)))
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].label").value("Bartender"))
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups", hasSize(1)))
-                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].label").value("9:00AM-5:00PM"))
-                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].shifts", hasSize(0)));
+                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].label").value("9am-5pm"))
+                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].shifts", hasSize(1)))
+                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].shifts[0].startTime").value("9am"))
+                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].shifts[0].endTime").value("5pm"))
+                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].shifts[0].position").value("Bartender"));
 
         verify(schedulingService).getShiftsGrouped(
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
-                ShiftGrouping.POSITION_SHIFT_TIMINGS
+                ShiftGrouping.POSITION_SHIFT_TIMINGS,
+                null,
+                null
+        );
+    }
+
+    @Test
+    void getGroupedShifts_forwardsPositionAndCategoryFilters() throws Exception {
+        when(schedulingService.getShiftsGrouped(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.POSITION_SHIFT_TIMINGS,
+                List.of(12, 19),
+                List.of(4)
+        )).thenReturn(new GroupedShiftsResponse(List.of()));
+
+        mockMvc.perform(get("/api/scheduling/shifts/grouped")
+                        .param("companyId", "7")
+                        .param("grouping", "position_shift_timings")
+                        .param("positionIds", "12", "19")
+                        .param("categoryIds", "4")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.dates", hasSize(0)));
+
+        verify(schedulingService).getShiftsGrouped(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.POSITION_SHIFT_TIMINGS,
+                List.of(12, 19),
+                List.of(4)
         );
     }
 
@@ -382,14 +431,16 @@ class SchedulingControllerTest {
         when(schedulingService.getShiftsGrouped(
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
-                ShiftGrouping.CATEGORY_SHIFT_TIMINGS
+                ShiftGrouping.CATEGORY_SHIFT_TIMINGS,
+                null,
+                null
         )).thenReturn(new GroupedShiftsResponse(List.of(
                 new GroupedShiftDate(
                         LocalDate.of(2026, 3, 25),
                         List.of(new ShiftGroup(
                                 "Front",
                                 List.of(new ShiftGroup(
-                                        "9:00AM-5:00PM",
+                                        "9am-5pm",
                                         List.of(),
                                         List.of()
                                 )),
@@ -407,12 +458,14 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.dates", hasSize(1)))
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].label").value("Front"))
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups", hasSize(1)))
-                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].label").value("9:00AM-5:00PM"));
+                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].label").value("9am-5pm"));
 
         verify(schedulingService).getShiftsGrouped(
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
-                ShiftGrouping.CATEGORY_SHIFT_TIMINGS
+                ShiftGrouping.CATEGORY_SHIFT_TIMINGS,
+                null,
+                null
         );
     }
 
@@ -421,14 +474,16 @@ class SchedulingControllerTest {
         when(schedulingService.getShiftsGrouped(
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
-                ShiftGrouping.CAT_SHIFT_TIMINGS
+                ShiftGrouping.CAT_SHIFT_TIMINGS,
+                null,
+                null
         )).thenReturn(new GroupedShiftsResponse(List.of(
                 new GroupedShiftDate(
                         LocalDate.of(2026, 3, 25),
                         List.of(new ShiftGroup(
                                 "FRT",
                                 List.of(new ShiftGroup(
-                                        "9:00AM-5:00PM",
+                                        "9am-5pm",
                                         List.of(),
                                         List.of()
                                 )),
@@ -446,12 +501,14 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.dates", hasSize(1)))
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].label").value("FRT"))
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups", hasSize(1)))
-                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].label").value("9:00AM-5:00PM"));
+                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].label").value("9am-5pm"));
 
         verify(schedulingService).getShiftsGrouped(
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
-                ShiftGrouping.CAT_SHIFT_TIMINGS
+                ShiftGrouping.CAT_SHIFT_TIMINGS,
+                null,
+                null
         );
     }
 
@@ -460,11 +517,13 @@ class SchedulingControllerTest {
         when(schedulingService.getShiftsGrouped(
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
-                ShiftGrouping.SHIFT_TIMINGS
+                ShiftGrouping.SHIFT_TIMINGS,
+                null,
+                null
         )).thenReturn(new GroupedShiftsResponse(List.of(
                 new GroupedShiftDate(
                         LocalDate.of(2026, 3, 25),
-                        List.of(new ShiftGroup("9:00AM-5:00PM", List.of(), List.of()))
+                        List.of(new ShiftGroup("9am-5pm", List.of(), List.of()))
                 )
         )));
 
@@ -477,13 +536,15 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.dates", hasSize(1)))
                 .andExpect(jsonPath("$.dates[0].date").value("2026-03-25"))
                 .andExpect(jsonPath("$.dates[0].shiftGroups", hasSize(1)))
-                .andExpect(jsonPath("$.dates[0].shiftGroups[0].label").value("9:00AM-5:00PM"))
+                .andExpect(jsonPath("$.dates[0].shiftGroups[0].label").value("9am-5pm"))
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].shifts", hasSize(0)));
 
         verify(schedulingService).getShiftsGrouped(
                 LocalDate.of(2026, 3, 25),
                 LocalDate.of(2026, 3, 26),
-                ShiftGrouping.SHIFT_TIMINGS
+                ShiftGrouping.SHIFT_TIMINGS,
+                null,
+                null
         );
     }
 
@@ -571,7 +632,7 @@ class SchedulingControllerTest {
                 8.0f,
                 false,
                 "Bartender",
-                "Front",
+                "FRT",
                 "amber"
         );
 
@@ -610,7 +671,7 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.shiftId", is(1001)))
                 .andExpect(jsonPath("$.employeeId", is(101)))
                 .andExpect(jsonPath("$.position", is("Bartender")))
-                .andExpect(jsonPath("$.category", is("Front")))
+                .andExpect(jsonPath("$.category", is("FRT")))
                 .andExpect(jsonPath("$.startTime", is("10:00AM")))
                 .andExpect(jsonPath("$.endTime", is("6:00PM")))
                 .andExpect(jsonPath("$.color", is("amber")));
@@ -668,7 +729,7 @@ class SchedulingControllerTest {
                 8.0f,
                 false,
                 "Bartender",
-                "Front",
+                "FRT",
                 "amber"
         );
     }

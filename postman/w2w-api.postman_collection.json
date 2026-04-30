@@ -986,8 +986,8 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by position and shift timing under nested shiftGroups[].",
-            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=position_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by position and shift timing under nested shiftGroups[]. Timing labels and returned shift item times use compact values such as 9am-5pm, 9am, and 5pm. Each returned shift item includes position. Optional positionIds/categoryIds filters limit returned shifts and initialized position buckets.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=position_shift_timings&startDate={{startDate}}&endDate={{endDate}}&positionIds={{positionId}}&categoryIds={{categoryId}}"
           }
         },
         {
@@ -1000,8 +1000,8 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then directly by shift timing under shiftGroups[].",
-            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then directly by shift timing under shiftGroups[]. Timing labels and returned shift item times use compact values such as 9am-5pm, 9am, and 5pm. Each returned shift item includes position. Optional positionIds/categoryIds filters limit returned shifts.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=shift_timings&startDate={{startDate}}&endDate={{endDate}}&positionIds={{positionId}}&categoryIds={{categoryId}}"
           }
         },
         {
@@ -1014,8 +1014,8 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by category and shift timing under nested shiftGroups[].",
-            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=category_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by category and shift timing under nested shiftGroups[]. Timing labels and returned shift item times use compact values such as 9am-5pm, 9am, and 5pm. Each returned shift item includes position. Optional positionIds/categoryIds filters limit returned shifts and initialized category buckets.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=category_shift_timings&startDate={{startDate}}&endDate={{endDate}}&positionIds={{positionId}}&categoryIds={{categoryId}}"
           }
         },
         {
@@ -1028,8 +1028,8 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by category short description and shift timing under nested shiftGroups[].",
-            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=cat_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+            "description": "Returns the normalized grouped response. Results are always grouped by date first under dates[], then by category short description and shift timing under nested shiftGroups[]. Timing labels and returned shift item times use compact values such as 9am-5pm, 9am, and 5pm. Each returned shift item includes position. Optional positionIds/categoryIds filters limit returned shifts and initialized category buckets.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=cat_shift_timings&startDate={{startDate}}&endDate={{endDate}}&positionIds={{positionId}}&categoryIds={{categoryId}}"
           }
         }
       ]
@@ -1227,8 +1227,8 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns day-position-shift-timing buckets through the grouped endpoint via grouping=position_shift_timings.",
-            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=position_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+            "description": "Returns day-position-shift-timing buckets through the grouped endpoint via grouping=position_shift_timings. Timing labels and returned shift item times use compact values such as 9am-5pm, 9am, and 5pm. Each returned shift item includes position. Optional positionIds/categoryIds filters limit returned shifts and initialized position buckets.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=position_shift_timings&startDate={{startDate}}&endDate={{endDate}}&positionIds={{positionId}}&categoryIds={{categoryId}}"
           }
         },
         {
@@ -1241,8 +1241,8 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns day-shift-timing buckets through the grouped endpoint via grouping=shift_timings. This payload does not include aggregate shift counts or durations.",
-            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+            "description": "Returns day-shift-timing buckets through the grouped endpoint via grouping=shift_timings. Timing labels and returned shift item times use compact values such as 9am-5pm, 9am, and 5pm. Each returned shift item includes position. This payload does not include aggregate shift counts or durations. Optional positionIds/categoryIds filters limit returned shifts.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=shift_timings&startDate={{startDate}}&endDate={{endDate}}&positionIds={{positionId}}&categoryIds={{categoryId}}"
           }
         },
         {
@@ -1255,8 +1255,8 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns day-category-shift-timing buckets through the grouped endpoint via grouping=category_shift_timings. This payload does not include aggregate shift counts or durations.",
-            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=category_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+            "description": "Returns day-category-shift-timing buckets through the grouped endpoint via grouping=category_shift_timings. Timing labels and returned shift item times use compact values such as 9am-5pm, 9am, and 5pm. Each returned shift item includes position. This payload does not include aggregate shift counts or durations. Optional positionIds/categoryIds filters limit returned shifts and initialized category buckets.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=category_shift_timings&startDate={{startDate}}&endDate={{endDate}}&positionIds={{positionId}}&categoryIds={{categoryId}}"
           }
         },
         {
@@ -1269,8 +1269,8 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns the same day-category-shift-timing payload shape as grouping=category_shift_timings, but category buckets use the category short description via grouping=cat_shift_timings.",
-            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=cat_shift_timings&startDate={{startDate}}&endDate={{endDate}}"
+            "description": "Returns the same day-category-shift-timing payload shape as grouping=category_shift_timings, but category buckets use the category short description via grouping=cat_shift_timings. Timing labels and returned shift item times use compact values such as 9am-5pm, 9am, and 5pm. Each returned shift item includes position. Optional positionIds/categoryIds filters limit returned shifts and initialized category buckets.",
+            "url": "{{baseUrl}}/api/scheduling/shifts/grouped?companyId={{companyId}}&grouping=cat_shift_timings&startDate={{startDate}}&endDate={{endDate}}&positionIds={{positionId}}&categoryIds={{categoryId}}"
           }
         }
       ]
