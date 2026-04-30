@@ -109,13 +109,14 @@ CREATE TABLE group_position (
 CREATE TABLE category (
   category_id INTEGER PRIMARY KEY DEFAULT nextval('category_id_seq'),
   company_id INTEGER NOT NULL REFERENCES company(company_id),
-  short_desc VARCHAR(255),
+  short_desc VARCHAR(255) NOT NULL,
   description VARCHAR(255),
   start_time VARCHAR(255),
   end_time VARCHAR(255),
   position_id INTEGER REFERENCES position(position_id),
   color SMALLINT,
-  is_deleted BOOLEAN NOT NULL DEFAULT FALSE
+  is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+  CONSTRAINT chk_category_short_desc_not_blank CHECK (btrim(short_desc) <> '')
 );
 
 CREATE TABLE cat_group (

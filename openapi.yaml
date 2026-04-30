@@ -1569,6 +1569,7 @@ components:
     CreateCategoryRequest:
       type: object
       required:
+        - shortDesc
         - description
       properties:
         shortDesc:
@@ -1586,6 +1587,7 @@ components:
     UpdateCategoryRequest:
       type: object
       required:
+        - shortDesc
         - description
       properties:
         shortDesc:
