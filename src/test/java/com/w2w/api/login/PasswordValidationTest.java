@@ -35,6 +35,44 @@ class PasswordValidationTest {
         assertTrue(response.isValid());
     }
 
+    @Test
+    void authenticate_missingUserDoesNotLoadFullUser() {
+        Mockito.when(loginRepository.findPasswordByLoginId("missing")).thenReturn(Optional.empty());
+
+        Optional<User> result = loginService.authenticate("missing", "wrong");
+
+        assertTrue(result.isEmpty());
+        Mockito.verify(loginRepository, Mockito.never()).findByLoginId(Mockito.any());
+    }
+
+    @Test
+    void authenticate_invalidPasswordDoesNotLoadFullUser() {
+        Mockito.when(loginRepository.findPasswordByLoginId("testuser"))
+                .thenReturn(Optional.of("hashedPassword"));
+        Mockito.when(passwordEncoder.matches("wrong", "hashedPassword")).thenReturn(false);
+
+        Optional<User> result = loginService.authenticate("testuser", "wrong");
+
+        assertTrue(result.isEmpty());
+        Mockito.verify(loginRepository, Mockito.never()).findByLoginId(Mockito.any());
+        Mockito.verify(employeeRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    void authenticate_validPasswordLoadsFullUser() {
+        User user = new User();
+        user.setLoginId("testuser");
+        Mockito.when(loginRepository.findPasswordByLoginId("testuser"))
+                .thenReturn(Optional.of("hashedPassword"));
+        Mockito.when(passwordEncoder.matches("correct", "hashedPassword")).thenReturn(true);
+        Mockito.when(loginRepository.findByLoginId("testuser")).thenReturn(Optional.of(user));
+
+        Optional<User> result = loginService.authenticate("testuser", "correct");
+
+        assertTrue(result.isPresent());
+        assertEquals(user, result.get());
+    }
+
     @ParameterizedTest
     @MethodSource("invalidPasswordCases")
     void validatePassword_rejectsInvalidPassword(String password, String expectedError) {

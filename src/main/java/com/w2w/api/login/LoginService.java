@@ -37,24 +37,29 @@ public class LoginService {
             return Optional.empty();
         }
 
+        Optional<String> passwordHash = loginRepository.findPasswordByLoginId(username);
+        if (passwordHash.isEmpty()) {
+            return Optional.empty();
+        }
+
+        if (!passwordEncoder.matches(password, passwordHash.get())) {
+            return Optional.empty();
+        }
+
         Optional<User> userOpt = loginRepository.findByLoginId(username);
         if (userOpt.isEmpty()) {
             return Optional.empty();
         }
 
         User user = userOpt.get();
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            if (user.getEmployee() != null) {
-                Employee employee = user.getEmployee();
-                employee.setLastLogon(LocalDateTime.now());
-                Integer currentCount = employee.getLogonCount();
-                employee.setLogonCount(currentCount == null ? 1 : currentCount + 1);
-                employeeRepository.save(employee);
-            }
-            return Optional.of(user);
+        if (user.getEmployee() != null) {
+            Employee employee = user.getEmployee();
+            employee.setLastLogon(LocalDateTime.now());
+            Integer currentCount = employee.getLogonCount();
+            employee.setLogonCount(currentCount == null ? 1 : currentCount + 1);
+            employeeRepository.save(employee);
         }
-    
-        return Optional.empty();
+        return Optional.of(user);
     }
 
     public String generateToken(String username, String role) {
