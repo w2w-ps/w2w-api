@@ -7,6 +7,8 @@ import com.w2w.api.scheduling.dto.DatePositionSummaryResponse;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
 import com.w2w.api.scheduling.dto.GroupedShiftsResponse;
+import com.w2w.api.scheduling.dto.PartialPublishRequest;
+import com.w2w.api.scheduling.dto.PublishScheduleRequest;
 import com.w2w.api.scheduling.dto.ShiftGrouping;
 import com.w2w.api.scheduling.dto.ShiftResponse;
 import com.w2w.api.scheduling.dto.UpdateShiftRequest;
@@ -54,8 +56,7 @@ public class SchedulingController {
                 request.duration(),
                 request.position(),
                 request.category(),
-                request.color()
-        );
+                request.color());
     }
 
     @PutMapping("/shifts/{shiftId}")
@@ -94,8 +95,7 @@ public class SchedulingController {
             @RequestParam Integer companyId,
             @RequestParam ShiftGrouping grouping,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
-    ) {
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         return schedulingService.getShiftsGrouped(startDate, endDate, grouping);
     }
 
@@ -113,5 +113,20 @@ public class SchedulingController {
     public ResponseEntity<ConflictResponse> preCheck(@RequestBody FindConflictRequest request) {
         List<ConflictItem> conflicts = schedulingService.validate(request);
         return ResponseEntity.ok(new ConflictResponse(!conflicts.isEmpty(), conflicts));
+    }
+
+    @PostMapping("/publish")
+    public void publish(@Valid @RequestBody PublishScheduleRequest request) {
+        schedulingService.publishSchedule(request.scheduleId());
+    }
+
+    @PostMapping("/unpublish")
+    public void unpublish(@Valid @RequestBody PublishScheduleRequest request) {
+        schedulingService.unpublishSchedule(request.scheduleId());
+    }
+
+    @PostMapping("/publish/partial")
+    public void partialPublish(@Valid @RequestBody PartialPublishRequest request) {
+        schedulingService.partialPublishSchedule(request.scheduleId(), request.positionIds());
     }
 }

@@ -10,6 +10,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import com.w2w.api.notification.NotificationProducer;
+import com.w2w.api.notification.NotificationRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,9 +33,11 @@ public class TimeOffService {
     private static final Set<String> SCHEDULING_BLOCKING_STATUSES = Set.of(PENDING, APPROVED);
 
     private final TimeOffRequestRepository timeOffRequestRepository;
+    private final NotificationProducer notificationProducer;
 
-    public TimeOffService(TimeOffRequestRepository timeOffRequestRepository) {
+    public TimeOffService(TimeOffRequestRepository timeOffRequestRepository, NotificationProducer notificationProducer) {
         this.timeOffRequestRepository = timeOffRequestRepository;
+        this.notificationProducer = notificationProducer;
     }
 
     @Transactional(readOnly = true)
@@ -108,7 +112,9 @@ public class TimeOffService {
         entity.setStatus(PENDING);
         entity.setComments(request.comments());
 
-        return toSummary(timeOffRequestRepository.save(entity));
+        TimeOffRequest saved = timeOffRequestRepository.save(entity);
+        notificationProducer.sendNotification(new NotificationRequest("LEAVE_CREATE", saved.getRequestId(), null, null, null, companyId));
+        return toSummary(saved);
     }
 
     @Transactional
@@ -135,7 +141,10 @@ public class TimeOffService {
                 : "Manager: " + request.managerComments().trim());
         }
 
-        return toSummary(timeOffRequestRepository.save(timeOffRequest));
+        TimeOffRequest saved = timeOffRequestRepository.save(timeOffRequest);
+        String task = request.action() == ApproveTimeOffRequest.Action.APPROVE ? "LEAVE_APPROVE" : "LEAVE_DECLINE";
+        notificationProducer.sendNotification(new NotificationRequest(task, saved.getRequestId(), null, null, null, companyId));
+        return toSummary(saved);
     }
 
     @Transactional
@@ -152,6 +161,7 @@ public class TimeOffService {
 
         timeOffRequest.setStatus(CANCELLED);
         timeOffRequestRepository.save(timeOffRequest);
+        notificationProducer.sendNotification(new NotificationRequest("LEAVE_CANCEL", requestId, null, null, null, companyId));
     }
 
     private TimeOffSummary toSummary(TimeOffRequest request) {

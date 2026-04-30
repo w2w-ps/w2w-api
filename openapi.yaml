@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Work2Work API
+  title: When2Work API
   version: 0.0.1
   description: OpenAPI specification for the current scheduling endpoints and response shapes.
 servers:
@@ -147,6 +147,42 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EmployeeWithShifts'
+  /api/scheduling/publish:
+    post:
+      summary: Publish a schedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishScheduleRequest'
+      responses:
+        '200':
+          description: Schedule published
+  /api/scheduling/unpublish:
+    post:
+      summary: Unpublish a schedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishScheduleRequest'
+      responses:
+        '200':
+          description: Schedule unpublished
+  /api/scheduling/publish/partial:
+    post:
+      summary: Partially publish a schedule by position IDs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialPublishRequest'
+      responses:
+        '200':
+          description: Schedule partially published
   /api/scheduling/shifts/date-position:
     get:
       summary: Get shifts grouped by date and position
@@ -2087,3 +2123,17 @@ components:
           enum: [APPROVE, DECLINE]
         managerComments:
           type: string
+    PublishScheduleRequest:
+      type: object
+      properties:
+        scheduleId:
+          type: integer
+    PartialPublishRequest:
+      type: object
+      properties:
+        scheduleId:
+          type: integer
+        positionIds:
+          type: array
+          items:
+            type: integer

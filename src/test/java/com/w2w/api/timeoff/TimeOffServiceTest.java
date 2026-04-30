@@ -1,6 +1,7 @@
 package com.w2w.api.timeoff;
 
 import com.w2w.api.config.TenantContext;
+import com.w2w.api.notification.NotificationProducer;
 import com.w2w.api.timeoff.dto.ApproveTimeOffRequest;
 import com.w2w.api.timeoff.dto.CreateTimeOffRequest;
 import com.w2w.api.timeoff.dto.TimeOffRequestsResponse;
@@ -28,12 +29,14 @@ import static org.mockito.Mockito.when;
 
 class TimeOffServiceTest {
     private TimeOffRequestRepository timeOffRequestRepository;
+    private NotificationProducer notificationProducer;
     private TimeOffService timeOffService;
 
     @BeforeEach
     void setUp() {
         timeOffRequestRepository = Mockito.mock(TimeOffRequestRepository.class);
-        timeOffService = new TimeOffService(timeOffRequestRepository);
+        notificationProducer = Mockito.mock(NotificationProducer.class);
+        timeOffService = new TimeOffService(timeOffRequestRepository, notificationProducer);
     }
 
     @Test

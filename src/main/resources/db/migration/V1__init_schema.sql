@@ -148,6 +148,13 @@ CREATE TABLE scheduled_employee (
   changed_by INTEGER REFERENCES employee(employee_id)
 );
 
+CREATE TABLE schedule_partial_pub (
+  schedule_id INTEGER NOT NULL REFERENCES schedule(schedule_id),
+  required_position_id INTEGER NOT NULL REFERENCES position(position_id),
+  published_by_id INTEGER REFERENCES employee(employee_id),
+  PRIMARY KEY (schedule_id, required_position_id)
+);
+
 CREATE TABLE employee_position (
   employee_id INTEGER NOT NULL REFERENCES employee(employee_id),
   position_id INTEGER NOT NULL REFERENCES position(position_id),
