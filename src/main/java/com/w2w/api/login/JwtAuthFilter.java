@@ -42,18 +42,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     String username = jwtUtil.extractUsername(token);
 
                     TenantContext.setCurrentTenant(0);
-                    Optional<User> optUser = loginRepository.findByLoginId(username);
-                    if (optUser.isEmpty() || optUser.get().getCompanyId() == null) {
+                    Optional<AuthContextProjection> authContext = loginRepository.findAuthContextByLoginId(username);
+                    if (authContext.isEmpty() || authContext.get().getCompanyId() == null) {
                         SecurityContextHolder.clearContext();
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Your account is not associated with a company.");
                         return;
                     }
 
-                    User user = optUser.get();
+                    AuthContextProjection user = authContext.get();
                     TenantContext.setCurrentTenant(user.getCompanyId());
 
-                    String role = (user.getRole() != null && user.getRole().getName() != null)
-                            ? user.getRole().getName() : "Employee";
+                    String role = user.getRoleName() != null ? user.getRoleName() : "Employee";
                     SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
 
                     UsernamePasswordAuthenticationToken authentication =
