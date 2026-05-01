@@ -89,7 +89,7 @@
 - Scheduling grouped results are built from a custom SQL query plus service-level grouping logic.
 - Shift `color` is stored as `SMALLINT`; create/update and single-shift responses use numeric IDs, while scheduling calendar/list APIs return color strings and resolve null/unknown IDs to `black`.
 - Shift color IDs follow the legacy dropdown palette: `0=black`, `1=brown`, `2=blue`, `3=fuchsia`, `4=gray`, `5=green`, `6=navy`, `7=orange`, `8=purple`, `9=red`, `10=turquoise`, `11=lavender`, `12=lime`, `13=salmon`, `14=gold`, `15=aqua`, `16=maroon`.
-- Scheduling employee view shows open/unassigned shifts only when a position filter is present and the open shift matches that position; employee totals never count unassigned shifts.
+- Scheduling employee view shows open/unassigned shifts with or without filters; supplied position/category filters apply to the open shift's position/category, and employee totals never count unassigned shifts.
 - Grouped scheduling response uses day buckets relative to the requested `startDate`.
 - Each day bucket carries the bucket date; individual shifts do not repeat that date.
 

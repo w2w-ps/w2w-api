@@ -971,7 +971,7 @@
                 "value": "Bearer {{bearerToken}}"
               }
             ],
-            "description": "Returns employees with grouped day buckets relative to the requested startDate. Each bucket date is formatted like Friday Apr-11, shift times are formatted like 6am or 6:43am, category values use the category short description, employmentType is currently returned as null, each employee includes empTypeId, alertDate, and publishedStage fields. Optional positionIds filters return employees with matching position access and show all their shifts; categoryIds filters affect totals by excluding matching categories. Open shifts are shown only when a matching positionIds filter is supplied and are never counted in employee totals.",
+            "description": "Returns employees with grouped day buckets relative to the requested startDate. Each bucket date is formatted like Friday Apr-11, shift times are formatted like 6am or 6:43am, category values use the category short description, employmentType is currently returned as null, each employee includes empTypeId, alertDate, and publishedStage fields. Optional positionIds filters return employees with matching position access and show all their shifts; categoryIds filters affect totals by excluding matching categories. Open shifts are shown with or without filters, supplied position/category filters apply to the open shift's position/category, and open shifts are never counted in employee totals.",
             "url": "{{baseUrl}}/api/scheduling/shifts/employees?companyId={{companyId}}&startDate={{startDate}}&endDate={{endDate}}&positionIds={{positionId}}&categoryIds={{categoryId}}"
           }
         },

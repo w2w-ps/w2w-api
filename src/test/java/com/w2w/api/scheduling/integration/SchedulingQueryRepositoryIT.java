@@ -169,6 +169,109 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         assertEquals((short) 1, rows.getFirst().getColor());
     }
 
+    @Test
+    void findAllEmployeeShiftsInRange_ordersUnassignedRowsFirst() {
+        createCompany(COMPANY_A_ID, "Query Tenant A");
+
+        TenantContext.setCurrentTenant(COMPANY_A_ID);
+        createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of("111-222"));
+        Position bartender = createPosition(COMPANY_A_ID, "Bartender");
+        Integer frontCategoryId = createCategory(COMPANY_A_ID, "Front", "FRT");
+        assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getPositionId());
+        Schedule companyASchedule = createSchedule(COMPANY_A_ID, SHIFT_DATE);
+        createShift(
+                EMPLOYEE_A_ID,
+                COMPANY_A_ID,
+                companyASchedule.getScheduleId(),
+                bartender.getPositionId(),
+                frontCategoryId,
+                (short) 1
+        );
+        createShift(
+                null,
+                COMPANY_A_ID,
+                companyASchedule.getScheduleId(),
+                bartender.getPositionId(),
+                frontCategoryId,
+                (short) 2
+        );
+
+        List<EmployeeShiftProjection> rows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                COMPANY_A_ID,
+                SHIFT_DATE,
+                SHIFT_DATE
+        );
+
+        assertEquals(2, rows.size());
+        assertEquals(null, rows.getFirst().getEmployeeId());
+        assertEquals(EMPLOYEE_A_ID, rows.get(1).getEmployeeId());
+    }
+
+    @Test
+    void findAllEmployeeShiftsInRange_includesUnassignedShiftsAndAppliesFilters() {
+        createCompany(COMPANY_A_ID, "Query Tenant A");
+
+        TenantContext.setCurrentTenant(COMPANY_A_ID);
+        Position bartender = createPosition(COMPANY_A_ID, "Bartender");
+        Position server = createPosition(COMPANY_A_ID, "Server");
+        Integer frontCategoryId = createCategory(COMPANY_A_ID, "Front", "FRT");
+        Integer floorCategoryId = createCategory(COMPANY_A_ID, "Floor", "FLR");
+        Schedule companyASchedule = createSchedule(COMPANY_A_ID, SHIFT_DATE);
+        createShift(
+                null,
+                COMPANY_A_ID,
+                companyASchedule.getScheduleId(),
+                bartender.getPositionId(),
+                frontCategoryId,
+                (short) 1
+        );
+        createShift(
+                null,
+                COMPANY_A_ID,
+                companyASchedule.getScheduleId(),
+                server.getPositionId(),
+                frontCategoryId,
+                (short) 2
+        );
+        createShift(
+                null,
+                COMPANY_A_ID,
+                companyASchedule.getScheduleId(),
+                bartender.getPositionId(),
+                floorCategoryId,
+                (short) 3
+        );
+
+        List<EmployeeShiftProjection> unfilteredRows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                COMPANY_A_ID,
+                SHIFT_DATE,
+                SHIFT_DATE
+        );
+        List<EmployeeShiftProjection> bartenderRows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                COMPANY_A_ID,
+                SHIFT_DATE,
+                SHIFT_DATE,
+                List.of(bartender.getPositionId()),
+                List.of()
+        );
+        List<EmployeeShiftProjection> frontRows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                COMPANY_A_ID,
+                SHIFT_DATE,
+                SHIFT_DATE,
+                List.of(),
+                List.of(frontCategoryId)
+        );
+
+        assertEquals(3, unfilteredRows.size());
+        assertEquals(3, unfilteredRows.stream().filter(row -> row.getEmployeeId() == null).count());
+        assertEquals(2, bartenderRows.size());
+        assertEquals(List.of(bartender.getPositionId(), bartender.getPositionId()),
+                bartenderRows.stream().map(EmployeeShiftProjection::getPositionId).toList());
+        assertEquals(2, frontRows.size());
+        assertEquals(List.of(frontCategoryId, frontCategoryId),
+                frontRows.stream().map(EmployeeShiftProjection::getCategoryId).toList());
+    }
+
     private void assignEmployeeSkill(Integer employeeId, Integer skillId) {
         jdbcTemplate.update(
                 "INSERT INTO employee_position (employee_id, position_id) VALUES (?, ?)",

@@ -1595,6 +1595,8 @@ class SchedulingServiceTest {
         assertEquals(1, result.size());
         EmployeeSchedule unassignedEntry = result.getFirst();
         assertEquals(null, unassignedEntry.getEmployeeId());
+        assertEquals(BigDecimal.ZERO.setScale(2), unassignedEntry.getTotalHours());
+        assertEquals(0, unassignedEntry.getShiftCount());
         assertEquals(1, unassignedEntry.getWeeklyShifts().get(0).shifts().size());
         assertEquals(9005, unassignedEntry.getWeeklyShifts().get(0).shifts().getFirst().shiftId());
     }

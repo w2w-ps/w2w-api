@@ -152,7 +152,7 @@ paths:
               type: integer
       responses:
         '200':
-          description: Employees with grouped daily shift buckets, formatted day labels, short category labels, publish-status metadata, and optional position/category filtering
+          description: Employees with grouped daily shift buckets, formatted day labels, short category labels, publish-status metadata, optional position/category filtering, and unassigned shifts that are shown with or without filters but never counted in employee totals
           content:
             application/json:
               schema:
