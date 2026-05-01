@@ -3,6 +3,7 @@ package com.w2w.api.employee;
 import com.w2w.api.config.CurrentTenant;
 import com.w2w.api.config.TenantContext;
 import com.w2w.api.employee.dto.EmployeeDetailResponse;
+import com.w2w.api.employee.dto.EmpTypeResponse;
 import com.w2w.api.employee.dto.EmployeeRequest;
 import com.w2w.api.employee.dto.EmployeeResponse;
 import com.w2w.api.config.exception.ResourceNotFoundException;
@@ -73,6 +74,14 @@ public class EmployeeService {
     }
 
     @Transactional(readOnly = true)
+    public List<EmpTypeResponse> getEmpTypes() {
+        return empTypeRepository.findAllByOrderBySortOrderAsc()
+                .stream()
+                .map(empType -> new EmpTypeResponse(empType.getId(), empType.getEffectiveDisplayName()))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public Optional<EmployeeDetailResponse> getEmployeeDetail(Integer id) {
         return employeeRepository
                 .findByEmployeeIdAndCompanyIdAndIsDeletedFalse(id, TenantContext.getCurrentTenant())
@@ -106,7 +115,6 @@ public class EmployeeService {
         User user = new User();
         user.setEmployee(saved);
         user.setCompanyId(saved.getCompanyId());
-        user.setEmpType(saved.getEmpType());
 
         // Use email as loginId if available, otherwise employee.id
         String loginId = (saved.getEmail() != null)

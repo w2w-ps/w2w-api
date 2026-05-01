@@ -88,7 +88,7 @@ class RlsTenantIsolationIT extends PostgresIntegrationTestBase {
         TenantContext.setCurrentTenant(COMPANY_B_ID);
         int empTypeCount = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM emp_type", Integer.class);
-        assertEquals(3, empTypeCount,
+        assertEquals(5, empTypeCount,
                 "emp_type (global, no RLS) must return all rows from any tenant context");
 
         int roleCount = jdbcTemplate.queryForObject(

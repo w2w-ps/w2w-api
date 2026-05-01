@@ -2,8 +2,6 @@ package com.w2w.api.manager;
 
 import com.w2w.api.employee.model.Employee;
 import com.w2w.api.employee.repository.EmployeeRepository;
-import com.w2w.api.login.EmpType;
-import com.w2w.api.login.EmpTypeRepository;
 import com.w2w.api.login.InitialAccountPasswordGenerator;
 import com.w2w.api.login.LoginRepository;
 import com.w2w.api.login.User;
@@ -50,9 +48,6 @@ class ManagerServiceTest {
     private UserRoleRepository roleRepository;
 
     @Mock
-    private EmpTypeRepository empTypeRepository;
-
-    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -77,7 +72,6 @@ class ManagerServiceTest {
                 loginRepository,
                 permissionsRepository,
                 roleRepository,
-                empTypeRepository,
                 passwordEncoder,
                 initialAccountPasswordGenerator
         );
@@ -93,12 +87,8 @@ class ManagerServiceTest {
         UserRole addManagerRole = new UserRole();
         addManagerRole.setName("AddManager");
 
-        EmpType empType = new EmpType();
-        empType.setName("Full Time");
-
         when(employeeRepository.save(any(Employee.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(roleRepository.findByName("AddManager")).thenReturn(Optional.of(addManagerRole));
-        when(empTypeRepository.findByName("Full Time")).thenReturn(Optional.of(empType));
         when(initialAccountPasswordGenerator.generate()).thenReturn(GENERATED_INITIAL_VALUE);
         when(passwordEncoder.encode(GENERATED_INITIAL_VALUE)).thenReturn("hashed-generated-value");
         when(loginRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));

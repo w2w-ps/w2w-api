@@ -243,6 +243,32 @@ class SchedulingControllerTest {
     }
 
     @Test
+    void getShiftEmployees_forwardsStatusFilter() throws Exception {
+        when(schedulingService.getEmployeeShiftsGroupedInRange(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                null,
+                null,
+                2
+        )).thenReturn(List.of(createEmployeeWithShifts()));
+
+        mockMvc.perform(get("/api/scheduling/shifts/employees")
+                        .param("companyId", "7")
+                        .param("status", "2")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk());
+
+        verify(schedulingService).getEmployeeShiftsGroupedInRange(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                null,
+                null,
+                2
+        );
+    }
+
+    @Test
     void getShiftsGroupedInRange_deprecatedPathStillReturnsEmployeeBuckets() throws Exception {
         when(schedulingService.getEmployeeShiftsGroupedInRange(
                 LocalDate.of(2026, 3, 25),
@@ -372,6 +398,32 @@ class SchedulingControllerTest {
     }
 
     @Test
+    void getShiftsGroupedByDateAndPosition_forwardsStatusFilter() throws Exception {
+        when(schedulingService.getShiftsGroupedByDateAndPosition(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                null,
+                null,
+                0
+        )).thenReturn(new DatePositionSummaryResponse("Week of Mar-25", 0, BigDecimal.ZERO, List.of()));
+
+        mockMvc.perform(get("/api/scheduling/shifts/date-position")
+                        .param("companyId", "7")
+                        .param("status", "0")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk());
+
+        verify(schedulingService).getShiftsGroupedByDateAndPosition(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                null,
+                null,
+                0
+        );
+    }
+
+    @Test
     void getGroupedShifts_positionShiftTimings_returnsNormalizedNestedGroups() throws Exception {
         when(schedulingService.getShiftsGrouped(
                 LocalDate.of(2026, 3, 25),
@@ -458,6 +510,36 @@ class SchedulingControllerTest {
                 ShiftGrouping.POSITION_SHIFT_TIMINGS,
                 List.of(12, 19),
                 List.of(4)
+        );
+    }
+
+    @Test
+    void getGroupedShifts_forwardsStatusFilter() throws Exception {
+        when(schedulingService.getShiftsGrouped(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.POSITION_SHIFT_TIMINGS,
+                null,
+                null,
+                5
+        )).thenReturn(new GroupedShiftsResponse(List.of()));
+
+        mockMvc.perform(get("/api/scheduling/shifts/grouped")
+                        .param("companyId", "7")
+                        .param("grouping", "position_shift_timings")
+                        .param("status", "5")
+                        .param("startDate", "2026-03-25")
+                        .param("endDate", "2026-03-26"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.dates", hasSize(0)));
+
+        verify(schedulingService).getShiftsGrouped(
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 26),
+                ShiftGrouping.POSITION_SHIFT_TIMINGS,
+                null,
+                null,
+                5
         );
     }
 

@@ -27,6 +27,7 @@
   `PUT /api/employees/{id}`
   `PATCH /api/employees/{id}` partial update
   `DELETE /api/employees/{id}`
+  `GET /api/employees/emp-types` returns employment type lookup items `{ id, displayName }` sorted by `sort_order`; `displayName` falls back to `name`
   `GET /api/employees/config`
   `PATCH /api/employees/config`
 - `position`
@@ -59,9 +60,9 @@
   `GET /api/scheduling/shifts/{shiftId}` returns numeric `color` ID
   `PUT /api/scheduling/shifts/{shiftId}` returns numeric `color` ID
   `GET /api/scheduling/shift-colors`
-  `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` includes nullable `employmentType`, `empTypeId`, `alertDate`, and `publishedStage`; filters keep all visible shifts for matched employees while totals count only matching positions and categories outside supplied `categoryIds`
-  `GET /api/scheduling/shifts/grouped?companyId=...&grouping=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` grouped calendar response with optional position/category filtering; shift items include nullable `empTypeId`; position grouping sorts by position, start time, last name, first name; category/CAT grouping sorts no/null category first, then category/CAT label, start time, last name, first name; shift timing grouping sorts by start time, last name, first name
-  `GET /api/scheduling/shifts/date-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` wrapped response with `title`, `totalShifts`, `totalHours`, and `dates[{ weekday, date, ... }]`; shift items include nullable `employmentType` and `empTypeId`; shifts sort by start time, last name, first name
+  `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...&status=...` includes nullable `employmentType`, `empTypeId`, `alertDate`, and `publishedStage`; filters keep all visible shifts for matched employees while totals count only matching positions and categories outside supplied `categoryIds`; optional `status` filters by employee employment type where `0` means null/empty type and `1`-`5` match `emp_type.id`; when `status` is supplied, unassigned/open shifts are excluded
+  `GET /api/scheduling/shifts/grouped?companyId=...&grouping=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...&status=...` grouped calendar response with optional position/category/employment-type filtering; shift items include nullable `empTypeId`; position grouping sorts by position, start time, last name, first name; category/CAT grouping sorts no/null category first, then category/CAT label, start time, last name, first name; shift timing grouping sorts by start time, last name, first name; optional `status` follows the scheduling employee-view semantics
+  `GET /api/scheduling/shifts/date-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...&status=...` wrapped response with `title`, `totalShifts`, `totalHours`, and `dates[{ weekday, date, ... }]`; shift items include nullable `employmentType` and `empTypeId`; shifts sort by start time, last name, first name; optional `status` follows the scheduling employee-view semantics
   `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` deprecated
 - `timeoff`
   `GET /api/time-off/requests?employeeId=...&status=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
@@ -96,7 +97,7 @@
 
 ## Testing
 - Existing automated coverage is under `src/test/java/com/w2w/api/scheduling`.
-- Run `mvn test` before pushing backend changes.
+- Run `mvn -q test` before pushing backend changes; if quiet-mode tests fail, rerun `mvn test` for full diagnostics.
 - If changing scheduling query shape or grouping logic, update both service tests and repository mapping tests.
 
 ## Change Guidelines

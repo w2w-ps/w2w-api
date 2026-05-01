@@ -1,6 +1,7 @@
 package com.w2w.api.employee;
 
 import com.w2w.api.employee.dto.EmployeeDetailResponse;
+import com.w2w.api.employee.dto.EmpTypeResponse;
 import com.w2w.api.employee.dto.EmployeeListConfigResponse;
 import com.w2w.api.employee.dto.EmployeeRequest;
 import com.w2w.api.employee.dto.EmployeeResponse;
@@ -27,6 +28,10 @@ public class EmployeeController {
         return employeeService.getEmployeesByCompany();
     }
 
+    @GetMapping("/emp-types")
+    public List<EmpTypeResponse> getEmpTypes() {
+        return employeeService.getEmpTypes();
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<EmployeeDetailResponse> getEmployeeDetail(@PathVariable Integer id) {

@@ -3,8 +3,6 @@ package com.w2w.api.manager;
 import com.w2w.api.config.CurrentTenant;
 import com.w2w.api.employee.model.Employee;
 import com.w2w.api.employee.repository.EmployeeRepository;
-import com.w2w.api.login.EmpType;
-import com.w2w.api.login.EmpTypeRepository;
 import com.w2w.api.login.InitialAccountPasswordGenerator;
 import com.w2w.api.login.LoginRepository;
 import com.w2w.api.login.User;
@@ -32,7 +30,6 @@ public class ManagerService {
     private final LoginRepository loginRepository;
     private final ManagerPermissionsRepository permissionsRepository;
     private final UserRoleRepository roleRepository;
-    private final EmpTypeRepository empTypeRepository;
     private final PasswordEncoder passwordEncoder;
     private final InitialAccountPasswordGenerator initialAccountPasswordGenerator;
 
@@ -40,14 +37,12 @@ public class ManagerService {
             LoginRepository loginRepository,
             ManagerPermissionsRepository permissionsRepository,
             UserRoleRepository roleRepository,
-            EmpTypeRepository empTypeRepository,
             PasswordEncoder passwordEncoder,
             InitialAccountPasswordGenerator initialAccountPasswordGenerator) {
         this.employeeRepository = employeeRepository;
         this.loginRepository = loginRepository;
         this.permissionsRepository = permissionsRepository;
         this.roleRepository = roleRepository;
-        this.empTypeRepository = empTypeRepository;
         this.passwordEncoder = passwordEncoder;
         this.initialAccountPasswordGenerator = initialAccountPasswordGenerator;
     }
@@ -100,12 +95,6 @@ public class ManagerService {
         UserRole managerRole = roleRepository.findByName("AddManager")
                 .orElseThrow(() -> new RuntimeException("AddManager role not found in database."));
         user.setRole(managerRole);
-
-        // Use default/first EmpType (e.g. Full Time)
-        EmpType defaultType = empTypeRepository.findByName("Full Time")
-                .orElseGet(() -> empTypeRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new RuntimeException("No employee types found in database.")));
-        user.setEmpType(defaultType);
 
         user = loginRepository.save(user);
 
