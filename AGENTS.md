@@ -60,8 +60,8 @@
   `PUT /api/scheduling/shifts/{shiftId}` returns numeric `color` ID
   `GET /api/scheduling/shift-colors`
   `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` includes nullable `employmentType`, `empTypeId`, `alertDate`, and `publishedStage`; filters keep all visible shifts for matched employees while totals count only matching positions and categories outside supplied `categoryIds`
-  `GET /api/scheduling/shifts/grouped?companyId=...&grouping=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` grouped calendar response with optional position/category filtering; shift items include nullable `empTypeId`
-  `GET /api/scheduling/shifts/date-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` wrapped response with `title`, `totalShifts`, `totalHours`, and `dates[{ weekday, date, ... }]`; shift items include nullable `employmentType` and `empTypeId`
+  `GET /api/scheduling/shifts/grouped?companyId=...&grouping=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` grouped calendar response with optional position/category filtering; shift items include nullable `empTypeId`; position grouping sorts by position, start time, last name, first name; category/CAT grouping sorts no/null category first, then category/CAT label, start time, last name, first name; shift timing grouping sorts by start time, last name, first name
+  `GET /api/scheduling/shifts/date-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` wrapped response with `title`, `totalShifts`, `totalHours`, and `dates[{ weekday, date, ... }]`; shift items include nullable `employmentType` and `empTypeId`; shifts sort by start time, last name, first name
   `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` deprecated
 - `timeoff`
   `GET /api/time-off/requests?employeeId=...&status=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
@@ -91,6 +91,7 @@
 - Shift color IDs follow the legacy dropdown palette: `0=black`, `1=brown`, `2=blue`, `3=fuchsia`, `4=gray`, `5=green`, `6=navy`, `7=orange`, `8=purple`, `9=red`, `10=turquoise`, `11=lavender`, `12=lime`, `13=salmon`, `14=gold`, `15=aqua`, `16=maroon`.
 - Scheduling employee view shows open/unassigned shifts with or without filters; supplied position/category filters apply to the open shift's position/category, and employee totals never count unassigned shifts.
 - Grouped scheduling response uses day buckets relative to the requested `startDate`.
+- Scheduling grouped/date-position name sorting puts null names before non-null names.
 - Each day bucket carries the bucket date; individual shifts do not repeat that date.
 
 ## Testing
