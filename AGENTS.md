@@ -56,9 +56,9 @@
   `DELETE /api/category-groups/{id}`
 - `scheduling`
   `POST /api/scheduling/shifts`
-  `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` includes nullable `employmentType`, `alertDate`, and `publishedStage`
-  `GET /api/scheduling/shifts/grouped?companyId=...&grouping=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` grouped calendar response with optional position/category filtering
-  `GET /api/scheduling/shifts/date-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` wrapped response with `title`, `totalShifts`, `totalHours`, and `dates[{ weekday, date, ... }]`; shift items include nullable `employmentType`
+  `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` includes nullable `employmentType`, `empTypeId`, `alertDate`, and `publishedStage`; filters keep all visible shifts for matched employees while totals count only matching positions and categories outside supplied `categoryIds`
+  `GET /api/scheduling/shifts/grouped?companyId=...&grouping=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` grouped calendar response with optional position/category filtering; shift items include nullable `empTypeId`
+  `GET /api/scheduling/shifts/date-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` wrapped response with `title`, `totalShifts`, `totalHours`, and `dates[{ weekday, date, ... }]`; shift items include nullable `employmentType` and `empTypeId`
   `GET /api/scheduling/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` deprecated
 - `timeoff`
   `GET /api/time-off/requests?employeeId=...&status=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd`
@@ -84,6 +84,7 @@
 ## Data and Query Notes
 - `schema.sql` is a checked-in schema snapshot and should stay aligned with Flyway migrations.
 - Scheduling grouped results are built from a custom SQL query plus service-level grouping logic.
+- Scheduling employee view shows open/unassigned shifts only when a position filter is present and the open shift matches that position; employee totals never count unassigned shifts.
 - Grouped scheduling response uses day buckets relative to the requested `startDate`.
 - Each day bucket carries the bucket date; individual shifts do not repeat that date.
 
