@@ -574,17 +574,17 @@ class SchedulingServiceTest {
                         ),
                         new TestProjection(
                                 9005,
-                                102,
-                                "Ben",
-                                "Cole",
-                                List.of("333-444"),
-                                List.of(new PositionSummary(19, "Server")),
+                                101,
+                                "Ava",
+                                "Stone",
+                                List.of("111-222"),
+                                List.of(new PositionSummary(12, "Bartender")),
                                 LocalDate.of(2026, 3, 25),
                                 LocalTime.of(10, 0),
                                 LocalTime.of(18, 0),
                                 false,
-                                19,
-                                "Server",
+                                12,
+                                "Bartender",
                                 9,
                                 "Floor",
                                 "FLR",
@@ -607,7 +607,7 @@ class SchedulingServiceTest {
         assertEquals(101, employee.getEmployeeId());
         assertEquals(1, employee.getShiftCount());
         assertEquals(new BigDecimal("8.00"), employee.getTotalHours());
-        assertEquals(1, employee.getWeeklyShifts().get(0).shifts().size());
+        assertEquals(2, employee.getWeeklyShifts().get(0).shifts().size());
         assertEquals("Bartender", employee.getWeeklyShifts().get(0).shifts().getFirst().position());
         assertEquals("FRT", employee.getWeeklyShifts().get(0).shifts().getFirst().category());
     }

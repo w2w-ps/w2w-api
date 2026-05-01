@@ -14,6 +14,8 @@ filtered_employees AS (
         e.employee_id,
         e.first_name,
         e.last_name,
+        e.emp_type_id,
+        e.next_alert_date,
         e.company_id
     FROM employee e
     WHERE e.company_id = :companyId
@@ -21,7 +23,7 @@ filtered_employees AS (
 filtered_company AS (
     SELECT company_id AS c_id FROM company WHERE company_id = :companyId
 ),
-filtered_shifts AS (
+all_shifts AS (
     SELECT
         se.shift_id,
         se.employee_id,
@@ -45,16 +47,55 @@ filtered_shifts AS (
     LEFT JOIN position p ON se.required_position_id = p.position_id
     LEFT JOIN category cat ON se.category_id = cat.category_id
     WHERE se.is_deleted = false
-      AND (:positionFilterEnabled = false OR se.required_position_id IN (:positionIds))
-      AND (:categoryFilterEnabled = false OR se.category_id IN (:categoryIds))
+),
+filtered_shifts AS (
+    SELECT *
+    FROM all_shifts
+    WHERE (:positionFilterEnabled = false OR positionId IN (:positionIds))
+      AND (:categoryFilterEnabled = false OR categoryId IN (:categoryIds))
+),
+visible_shifts AS (
+    SELECT shifts.*
+    FROM all_shifts shifts
+    WHERE shifts.employee_id IN (
+        SELECT employee_id
+        FROM filtered_employees
+        WHERE :positionFilterEnabled = false
+           OR EXISTS (
+               SELECT 1
+               FROM employee_position ep
+               WHERE ep.employee_id = filtered_employees.employee_id
+                 AND ep.position_id IN (:positionIds)
+           )
+    )
+    UNION
+    SELECT shifts.*
+    FROM filtered_shifts shifts
+    WHERE shifts.employee_id IS NOT NULL
+    UNION ALL
+    SELECT shifts.*
+    FROM all_shifts shifts
+    WHERE shifts.employee_id IS NULL
+      AND (:positionFilterEnabled = false OR shifts.positionId IN (:positionIds))
+      AND :positionFilterEnabled = true
 ),
 relevant_employee_ids AS (
     SELECT employee_id
     FROM filtered_employees
     WHERE :positionFilterEnabled = false
-      AND :categoryFilterEnabled = false
+       OR EXISTS (
+           SELECT 1
+           FROM employee_position ep
+           WHERE ep.employee_id = filtered_employees.employee_id
+             AND ep.position_id IN (:positionIds)
+       )
     UNION
     SELECT employee_id FROM filtered_shifts WHERE employee_id IS NOT NULL
+),
+unassigned_shifts AS (
+    SELECT *
+    FROM visible_shifts
+    WHERE employee_id IS NULL
 ),
 phone_data AS (
     SELECT
@@ -80,25 +121,51 @@ SELECT
     fe.employee_id AS "employeeId",
     fe.first_name AS "firstName",
     fe.last_name AS "lastName",
+    fe.emp_type_id AS "empTypeId",
+    fe.next_alert_date AS "alertDate",
     pd.phones AS "phones",
     posd.positions AS "availablePositions",
-    fs.shift_id AS "shiftId",
-    fs.weekCommencing AS "weekCommencing",
-    fs.start_time AS "startTime",
-    fs.end_time AS "endTime",
-    fs.is_overnight AS "isOvernight",
-    fs.positionId AS "positionId",
-    fs.position AS "position",
-    fs.categoryId AS "categoryId",
-    fs.category AS "category",
-    fs.categoryShortDescription AS "categoryShortDescription",
-    fs.description AS "description",
-    fs.duration AS "duration",
-    fs.schedulePublished AS "schedulePublished",
-    fs.color AS "color"
+    vs.shift_id AS "shiftId",
+    vs.weekCommencing AS "weekCommencing",
+    vs.start_time AS "startTime",
+    vs.end_time AS "endTime",
+    vs.is_overnight AS "isOvernight",
+    vs.positionId AS "positionId",
+    vs.position AS "position",
+    vs.categoryId AS "categoryId",
+    vs.category AS "category",
+    vs.categoryShortDescription AS "categoryShortDescription",
+    vs.description AS "description",
+    vs.duration AS "duration",
+    vs.schedulePublished AS "schedulePublished",
+    vs.color AS "color"
 FROM filtered_employees fe
 LEFT JOIN phone_data pd ON fe.employee_id = pd.employee_id
 LEFT JOIN position_data posd ON fe.employee_id = posd.employee_id
-LEFT JOIN filtered_shifts fs ON fe.employee_id = fs.employee_id
+LEFT JOIN visible_shifts vs ON fe.employee_id = vs.employee_id
 WHERE fe.employee_id IN (SELECT employee_id FROM relevant_employee_ids)
-ORDER BY fe.last_name, fe.first_name, fs.weekCommencing, fs.start_time;
+UNION ALL
+SELECT
+    NULL AS "employeeId",
+    NULL AS "firstName",
+    NULL AS "lastName",
+    NULL AS "empTypeId",
+    NULL AS "alertDate",
+    NULL AS "phones",
+    NULL AS "availablePositions",
+    us.shift_id AS "shiftId",
+    us.weekCommencing AS "weekCommencing",
+    us.start_time AS "startTime",
+    us.end_time AS "endTime",
+    us.is_overnight AS "isOvernight",
+    us.positionId AS "positionId",
+    us.position AS "position",
+    us.categoryId AS "categoryId",
+    us.category AS "category",
+    us.categoryShortDescription AS "categoryShortDescription",
+    us.description AS "description",
+    us.duration AS "duration",
+    us.schedulePublished AS "schedulePublished",
+    us.color AS "color"
+FROM unassigned_shifts us
+ORDER BY "lastName" NULLS LAST, "firstName" NULLS LAST, "weekCommencing", "startTime";

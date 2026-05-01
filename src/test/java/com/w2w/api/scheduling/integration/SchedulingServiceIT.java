@@ -10,6 +10,7 @@ import com.w2w.api.position.repository.PositionRepository;
 import com.w2w.api.scheduling.ScheduleRepository;
 import com.w2w.api.scheduling.SchedulingService;
 import com.w2w.api.scheduling.ShiftRepository;
+import com.w2w.api.scheduling.dto.DatePositionSummaryResponse;
 import com.w2w.api.scheduling.dto.DayShiftBucket;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
 import com.w2w.api.scheduling.dto.GroupedShiftsResponse;
@@ -386,6 +387,96 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         ShiftGroup secondDatePositionGroup = response.dates().get(1).shiftGroups().getFirst();
         assertEquals("Bartender", secondDatePositionGroup.label());
         assertTrue(secondDatePositionGroup.shiftGroups().isEmpty());
+    }
+
+    @Test
+    void schedulingReadsReturnEmployeeTypeAlertDateAndOpenShiftsFromDatabase() {
+        createCompany(COMPANY_A_ID, "Pilot Tenant A");
+        TenantContext.setCurrentTenant(COMPANY_A_ID);
+        createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of("111-222"));
+        Position position = createPosition(COMPANY_A_ID, "Bartender");
+        Category category = createCategory(COMPANY_A_ID, "Front", "FRT", position.getPositionId());
+        assignEmployeeSkill(EMPLOYEE_A_ID, position.getPositionId());
+
+        Integer partTimeId = jdbcTemplate.queryForObject(
+                "SELECT emp_type_id FROM emp_type WHERE emp_type_name = 'Part Time'",
+                Integer.class
+        );
+        jdbcTemplate.update(
+                "UPDATE employee SET emp_type_id = ?, next_alert_date = ? WHERE employee_id = ?",
+                partTimeId,
+                LocalDate.of(2026, 5, 6),
+                EMPLOYEE_A_ID
+        );
+
+        schedulingService.saveShift(
+                EMPLOYEE_A_ID,
+                "Assigned shift",
+                SHIFT_DATE,
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                null,
+                position.getPositionId(),
+                category.getCategoryId(),
+                "amber"
+        );
+        schedulingService.saveShift(
+                null,
+                "Open shift",
+                SHIFT_DATE,
+                LocalTime.of(12, 0),
+                LocalTime.of(20, 0),
+                null,
+                position.getPositionId(),
+                category.getCategoryId(),
+                "open"
+        );
+
+        List<EmployeeSchedule> employeeSchedules = schedulingService.getEmployeeShiftsGroupedInRange(
+                SHIFT_DATE,
+                SHIFT_DATE,
+                List.of(position.getPositionId()),
+                null
+        );
+
+        EmployeeSchedule assignedEmployee = employeeSchedules.stream()
+                .filter(schedule -> EMPLOYEE_A_ID.equals(schedule.getEmployeeId()))
+                .findFirst()
+                .orElseThrow();
+        EmployeeSchedule openSchedule = employeeSchedules.stream()
+                .filter(schedule -> schedule.getEmployeeId() == null)
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals(partTimeId, assignedEmployee.getEmpTypeId());
+        assertEquals("2026-05-06", assignedEmployee.getAlertDate());
+        assertEquals(partTimeId, assignedEmployee.getWeeklyShifts().get(0).shifts().getFirst().empTypeId());
+        assertEquals(1, assignedEmployee.getShiftCount());
+        assertEquals(new BigDecimal("8.00"), assignedEmployee.getTotalHours());
+        assertEquals(0, openSchedule.getShiftCount());
+        assertEquals(new BigDecimal("0.00"), openSchedule.getTotalHours());
+        assertEquals(1, openSchedule.getWeeklyShifts().get(0).shifts().size());
+
+        DatePositionSummaryResponse datePosition = schedulingService.getShiftsGroupedByDateAndPosition(
+                SHIFT_DATE,
+                SHIFT_DATE,
+                List.of(position.getPositionId()),
+                null
+        );
+        assertTrue(datePosition.dates().getFirst().positions().getFirst().shifts().stream()
+                .anyMatch(shift -> partTimeId.equals(shift.empTypeId())));
+
+        GroupedShiftsResponse grouped = schedulingService.getShiftsGrouped(
+                SHIFT_DATE,
+                SHIFT_DATE,
+                ShiftGrouping.POSITION_SHIFT_TIMINGS,
+                List.of(position.getPositionId()),
+                null
+        );
+        assertTrue(grouped.dates().getFirst().shiftGroups().stream()
+                .flatMap(positionGroup -> positionGroup.shiftGroups().stream())
+                .flatMap(timingGroup -> timingGroup.shifts().stream())
+                .anyMatch(shift -> partTimeId.equals(shift.empTypeId())));
     }
 
     private void assignEmployeeSkill(Integer employeeId, Integer skillId) {
