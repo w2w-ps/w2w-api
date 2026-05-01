@@ -78,7 +78,7 @@ class SchedulingGroupedApiIT extends PostgresIntegrationTestBase {
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].shifts[0].startTime").value("9am"))
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].shifts[0].endTime").value("5pm"))
                 .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].shifts[0].category").value("FRT"))
-                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].shifts[0].color").value("amber"));
+                .andExpect(jsonPath("$.dates[0].shiftGroups[0].shiftGroups[0].shifts[0].color").value("brown"));
     }
 
     private void createCompany() {

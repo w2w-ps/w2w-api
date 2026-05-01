@@ -1167,7 +1167,25 @@ components:
           example: 1
         color:
           type: string
-          example: amber
+          example: brown
+          enum:
+            - black
+            - brown
+            - blue
+            - fuchsia
+            - gray
+            - green
+            - navy
+            - orange
+            - purple
+            - red
+            - turquoise
+            - lavender
+            - lime
+            - salmon
+            - gold
+            - aqua
+            - maroon
     ShiftEntity:
       type: object
       properties:

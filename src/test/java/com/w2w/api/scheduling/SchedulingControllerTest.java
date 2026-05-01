@@ -48,19 +48,33 @@ class SchedulingControllerTest {
     void getShiftColors_returnsPalette() throws Exception {
         when(schedulingService.getShiftColors()).thenReturn(List.of(
                 new ShiftColorResponse((short) 0, "black"),
-                new ShiftColorResponse((short) 1, "amber"),
+                new ShiftColorResponse((short) 1, "brown"),
                 new ShiftColorResponse((short) 2, "blue"),
-                new ShiftColorResponse((short) 3, "charcoal"),
-                new ShiftColorResponse((short) 4, "gray")
+                new ShiftColorResponse((short) 3, "fuchsia"),
+                new ShiftColorResponse((short) 4, "gray"),
+                new ShiftColorResponse((short) 5, "green"),
+                new ShiftColorResponse((short) 6, "navy"),
+                new ShiftColorResponse((short) 7, "orange"),
+                new ShiftColorResponse((short) 8, "purple"),
+                new ShiftColorResponse((short) 9, "red"),
+                new ShiftColorResponse((short) 10, "turquoise"),
+                new ShiftColorResponse((short) 11, "lavender"),
+                new ShiftColorResponse((short) 12, "lime"),
+                new ShiftColorResponse((short) 13, "salmon"),
+                new ShiftColorResponse((short) 14, "gold"),
+                new ShiftColorResponse((short) 15, "aqua"),
+                new ShiftColorResponse((short) 16, "maroon")
         ));
 
         mockMvc.perform(get("/api/scheduling/shift-colors"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(5)))
+                .andExpect(jsonPath("$", hasSize(17)))
                 .andExpect(jsonPath("$[0].id").value(0))
                 .andExpect(jsonPath("$[0].color").value("black"))
                 .andExpect(jsonPath("$[1].id").value(1))
-                .andExpect(jsonPath("$[1].color").value("amber"));
+                .andExpect(jsonPath("$[1].color").value("brown"))
+                .andExpect(jsonPath("$[16].id").value(16))
+                .andExpect(jsonPath("$[16].color").value("maroon"));
     }
 
     @Test
@@ -286,7 +300,7 @@ class SchedulingControllerTest {
                                                                 "FRT",
                                                                 "Opening shift",
                                                                 8.0f,
-                                                                "amber"
+                                                                "brown"
                                                         )
                                                 )),
                                                 1,
@@ -386,7 +400,7 @@ class SchedulingControllerTest {
                                                 "Front",
                                                 "Opening shift",
                                                 8.0f,
-                                                "amber"
+                                                "brown"
                                         ))
                                 )),
                                 List.of()
@@ -792,7 +806,7 @@ class SchedulingControllerTest {
                 "Opening shift",
                 8.0f,
                 2,
-                "amber"
+                "brown"
         ));
         employee.setTotalHours(new BigDecimal("8.00"));
         employee.setShiftCount(1);

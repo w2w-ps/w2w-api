@@ -59,6 +59,16 @@ class SchedulingServiceTest {
     }
 
     @Test
+    void getShiftColorsReturnsLegacyDropdownPalette() {
+        List<ShiftColorResponse> colors = schedulingService.getShiftColors();
+
+        assertEquals(17, colors.size());
+        assertEquals(new ShiftColorResponse((short) 0, "black"), colors.get(0));
+        assertEquals(new ShiftColorResponse((short) 1, "brown"), colors.get(1));
+        assertEquals(new ShiftColorResponse((short) 16, "maroon"), colors.get(16));
+    }
+
+    @Test
     void saveShiftCalculatesDurationAndOvernightStatus() {
         LocalDate date = LocalDate.of(2026, 3, 31);
         CreateShiftRequest request = new CreateShiftRequest(
@@ -427,7 +437,7 @@ class SchedulingServiceTest {
                         "Front",
                         "Opening shift",
                         8.0f,
-                        "amber"
+                        "brown"
                 )));
 
         List<EmployeeSchedule> result = schedulingService.getEmployeeShiftsGroupedInRange(startDate, endDate, null, null);
@@ -446,7 +456,7 @@ class SchedulingServiceTest {
         assertEquals(9001, firstBucket.shifts().getFirst().shiftId());
         assertEquals("9am", firstBucket.shifts().getFirst().startTime());
         assertEquals("5pm", firstBucket.shifts().getFirst().endTime());
-        assertEquals("amber", firstBucket.shifts().getFirst().color());
+        assertEquals("brown", firstBucket.shifts().getFirst().color());
         assertTrue(employee.getWeeklyShifts().get(1).shifts().isEmpty());
         assertTrue(employee.getWeeklyShifts().get(2).shifts().isEmpty());
         assertEquals(new BigDecimal("8.00"), employee.getTotalHours());
@@ -527,7 +537,7 @@ class SchedulingServiceTest {
                         "Opening shift",
                         8.0f,
                         true,
-                        "amber"
+                        "brown"
                 )));
 
         List<EmployeeSchedule> result = schedulingService.getEmployeeShiftsGroupedInRange(startDate, endDate, null, null);
@@ -570,7 +580,7 @@ class SchedulingServiceTest {
                                 "Opening shift",
                                 8.0f,
                                 true,
-                                "amber"
+                                "brown"
                         ),
                         new TestProjection(
                                 9005,
@@ -634,7 +644,7 @@ class SchedulingServiceTest {
                         "Front",
                         "Carry over",
                         4.0f,
-                        "charcoal"
+                        "fuchsia"
                 )));
 
         List<EmployeeSchedule> result = schedulingService.getEmployeeShiftsGroupedInRange(startDate, endDate, null, null);
@@ -643,7 +653,7 @@ class SchedulingServiceTest {
         assertNotNull(employee.getWeeklyShifts().get(0));
         assertEquals(1, employee.getWeeklyShifts().get(0).shifts().size());
         assertEquals(9003, employee.getWeeklyShifts().get(0).shifts().getFirst().shiftId());
-        assertEquals("charcoal", employee.getWeeklyShifts().get(0).shifts().getFirst().color());
+        assertEquals("fuchsia", employee.getWeeklyShifts().get(0).shifts().getFirst().color());
         assertTrue(employee.getWeeklyShifts().get(0).shifts().getFirst().color().length() > 0);
         assertTrue(employee.getWeeklyShifts().get(1).shifts().isEmpty());
         assertTrue(employee.getWeeklyShifts().get(2).shifts().isEmpty());
@@ -715,7 +725,7 @@ class SchedulingServiceTest {
                                 "Opening shift",
                                 8.0f,
                                 true,
-                                "amber"
+                                "brown"
                         ),
                         new TestProjection(
                                 9002,
@@ -779,7 +789,7 @@ class SchedulingServiceTest {
         assertEquals(null, firstDayPositions.get(0).shifts().getFirst().employmentType());
         assertEquals("9am", firstDayPositions.get(0).shifts().getFirst().startTime());
         assertEquals("FRT", firstDayPositions.get(0).shifts().getFirst().category());
-        assertEquals("amber", firstDayPositions.get(0).shifts().getFirst().color());
+        assertEquals("brown", firstDayPositions.get(0).shifts().getFirst().color());
         assertEquals(102, firstDayPositions.get(1).shifts().getFirst().employeeId());
         assertEquals("Lunch shift", firstDayPositions.get(1).shifts().getFirst().description());
     }
@@ -811,7 +821,7 @@ class SchedulingServiceTest {
                         "Front",
                         "Close",
                         8.0f,
-                        "charcoal"
+                        "fuchsia"
                 )));
 
         DatePositionSummaryResponse result = schedulingService.getShiftsGroupedByDateAndPosition(startDate, endDate, null, null);
@@ -885,7 +895,7 @@ class SchedulingServiceTest {
                                 "Opening shift",
                                 8.0f,
                                 true,
-                                "amber"
+                                "brown"
                         ),
                         new TestProjection(
                                 9002,
@@ -956,7 +966,7 @@ class SchedulingServiceTest {
                                 "Opening shift",
                                 8.0f,
                                 true,
-                                "amber"
+                                "brown"
                         ),
                         new TestProjection(
                                 9002,
@@ -1018,7 +1028,7 @@ class SchedulingServiceTest {
                                 "Front",
                                 "Opening shift",
                                 8.0f,
-                                "amber"
+                                "brown"
                         ),
                         new TestProjection(
                                 9002,
@@ -1077,7 +1087,7 @@ class SchedulingServiceTest {
                                 "Front",
                                 "Opening shift",
                                 8.0f,
-                                "amber"
+                                "brown"
                         ),
                         new TestProjection(
                                 9002,
@@ -1138,7 +1148,7 @@ class SchedulingServiceTest {
                                 "Front",
                                 "Opening shift",
                                 8.0f,
-                                "amber"
+                                "brown"
                         ),
                         new TestProjection(
                                 9002,
@@ -1197,7 +1207,7 @@ class SchedulingServiceTest {
                                 "Front",
                                 "Opening shift",
                                 8.0f,
-                                "amber"
+                                "brown"
                         )
                 ));
 
@@ -1355,7 +1365,7 @@ class SchedulingServiceTest {
                         "Opening shift",
                         8.0f,
                         true,
-                        "amber"
+                        "brown"
                 )));
 
         GroupedShiftsResponse result = schedulingService.getShiftsGrouped(
@@ -1436,7 +1446,7 @@ class SchedulingServiceTest {
                                 "Front",
                                 "Opening shift",
                                 8.0f,
-                                "amber"
+                                "brown"
                         )
                 ));
 
@@ -1473,7 +1483,7 @@ class SchedulingServiceTest {
                                 "Front",
                                 "Opening shift",
                                 8.0f,
-                                "amber"
+                                "brown"
                         ),
                         new TestProjection(
                                 9002,
@@ -1527,7 +1537,7 @@ class SchedulingServiceTest {
                                 "Front",
                                 "Late shift",
                                 8.0f,
-                                "amber"
+                                "brown"
                         ),
                         new TestProjection(
                                 9002,
@@ -1610,7 +1620,7 @@ class SchedulingServiceTest {
                         "Opening shift",
                         8.0f,
                         true,
-                        "amber"
+                        "brown"
                 ),
                 new TestProjection(
                         9002,
@@ -1861,9 +1871,9 @@ class SchedulingServiceTest {
             return null;
         }
         return switch (color) {
-            case "amber" -> (short) 1;
+            case "brown" -> (short) 1;
             case "blue" -> (short) 2;
-            case "charcoal" -> (short) 3;
+            case "fuchsia" -> (short) 3;
             case "gray", "open" -> (short) 4;
             default -> (short) 0;
         };
