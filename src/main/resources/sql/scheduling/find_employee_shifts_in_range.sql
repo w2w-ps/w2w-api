@@ -74,10 +74,8 @@ visible_shifts AS (
     WHERE shifts.employee_id IS NOT NULL
     UNION ALL
     SELECT shifts.*
-    FROM all_shifts shifts
+    FROM filtered_shifts shifts
     WHERE shifts.employee_id IS NULL
-      AND (:positionFilterEnabled = false OR shifts.positionId IN (:positionIds))
-      AND :positionFilterEnabled = true
 ),
 relevant_employee_ids AS (
     SELECT employee_id
@@ -168,4 +166,4 @@ SELECT
     us.schedulePublished AS "schedulePublished",
     us.color AS "color"
 FROM unassigned_shifts us
-ORDER BY "lastName" NULLS LAST, "firstName" NULLS LAST, "weekCommencing", "startTime";
+ORDER BY "lastName" NULLS FIRST, "firstName" NULLS FIRST, "weekCommencing", "startTime";
