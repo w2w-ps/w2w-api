@@ -6,6 +6,18 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
+  /api/scheduling/shift-colors:
+    get:
+      summary: List available shift colors
+      responses:
+        '200':
+          description: Available shift color identifiers and display values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShiftColorResponse'
   /api/scheduling/shifts:
     post:
       summary: Create a shift
@@ -46,7 +58,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ShiftEntity'
+                $ref: '#/components/schemas/ShiftResponse'
     delete:
       summary: Soft-delete a shift
       parameters:
@@ -1084,7 +1096,9 @@ components:
         category:
           type: integer
         color:
-          type: string
+          type: integer
+          format: int32
+          example: 1
     UpdateShiftRequest:
       type: object
       required: [date, startTime, endTime, position]
@@ -1110,7 +1124,9 @@ components:
         category:
           type: integer
         color:
-          type: string
+          type: integer
+          format: int32
+          example: 2
     ShiftResponse:
       type: object
       properties:
@@ -1139,7 +1155,19 @@ components:
         category:
           type: string
         color:
+          type: integer
+          format: int32
+          nullable: true
+    ShiftColorResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 1
+        color:
           type: string
+          example: amber
     ShiftEntity:
       type: object
       properties:
@@ -1167,7 +1195,9 @@ components:
         categoryId:
           type: integer
         color:
-          type: string
+          type: integer
+          format: int32
+          nullable: true
         isDeleted:
           type: boolean
         changedBy:

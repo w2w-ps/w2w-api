@@ -71,7 +71,7 @@ class SchedulingServiceTest {
                 null,
                 1,
                 null,
-                "amber"
+                (short) 1
         );
 
         Schedule schedule = new Schedule();
@@ -95,11 +95,11 @@ class SchedulingServiceTest {
         assertEquals(false, saved.getIsOvernight());
         assertEquals(101, saved.getChangedBy());
         assertEquals(500, saved.getScheduleId());
-        assertEquals("amber", saved.getColor());
+        assertEquals((short) 1, saved.getColor());
     }
 
     @Test
-    void saveShiftAllowsBlankColor() {
+    void saveShiftAllowsNullColor() {
         LocalDate date = LocalDate.of(2026, 3, 31);
         CreateShiftRequest request = new CreateShiftRequest(
                 101,
@@ -111,7 +111,7 @@ class SchedulingServiceTest {
                 null,
                 1,
                 null,
-                ""
+                null
         );
 
         Schedule schedule = new Schedule();
@@ -131,7 +131,7 @@ class SchedulingServiceTest {
                 request.color()
         );
 
-        assertEquals("", saved.getColor());
+        assertNull(saved.getColor());
     }
 
     @Test
@@ -300,7 +300,7 @@ class SchedulingServiceTest {
                 LocalTime.of(18, 0),
                 2,
                 null,
-                "amber",
+                (short) 1,
                 null,
                 null
         );
@@ -328,7 +328,7 @@ class SchedulingServiceTest {
                         false,
                         "Bartender",
                         "Front",
-                        "amber"
+                        (short) 1
                 )));
 
         ShiftResponse updated = schedulingService.updateShift(shiftId, request);
@@ -337,7 +337,7 @@ class SchedulingServiceTest {
         assertEquals(LocalTime.of(10, 0), updated.startTime());
         assertEquals(8.0f, updated.duration());
         assertEquals("Bartender", updated.position());
-        assertEquals("amber", updated.color());
+        assertEquals((short) 1, updated.color());
     }
 
     @Test
@@ -372,7 +372,7 @@ class SchedulingServiceTest {
                         false,
                         "Bartender",
                         "FRT",
-                        ""
+                        (Short) null
                 )));
 
         ShiftResponse response = schedulingService.getShift(shiftId);
@@ -388,7 +388,7 @@ class SchedulingServiceTest {
         assertEquals(false, response.isOvernight());
         assertEquals("Bartender", response.position());
         assertEquals("FRT", response.category());
-        assertEquals("", response.color());
+        assertNull(response.color());
         verifyNoInteractions(scheduleRepository);
     }
 
@@ -680,7 +680,7 @@ class SchedulingServiceTest {
 
         ShiftSummary groupedShift = result.getFirst().getWeeklyShifts().get(0).shifts().getFirst();
         assertEquals(null, groupedShift.shiftId());
-        assertEquals(null, groupedShift.color());
+        assertEquals("black", groupedShift.color());
     }
 
     @Test
@@ -1656,7 +1656,7 @@ class SchedulingServiceTest {
             String description,
             Float duration,
             Boolean schedulePublished,
-            String color
+            Short color
     ) implements EmployeeShiftProjection {
         private TestProjection(
                 Integer shiftId,
@@ -1699,7 +1699,7 @@ class SchedulingServiceTest {
                     description,
                     duration,
                     schedulePublished,
-                    color
+                    toColorId(color)
             );
         }
 
@@ -1740,7 +1740,7 @@ class SchedulingServiceTest {
                     description,
                     duration,
                     null,
-                    color
+                    toColorId(color)
             );
         }
 
@@ -1783,7 +1783,7 @@ class SchedulingServiceTest {
         @Override
         public Boolean getSchedulePublished() { return schedulePublished; }
         @Override
-        public String getColor() { return color; }
+        public Short getColor() { return color; }
     }
 
     private record TestShiftDetailsProjection(
@@ -1798,8 +1798,38 @@ class SchedulingServiceTest {
             Boolean isOvernight,
             String position,
             String category,
-            String color
+            Short color
     ) implements ShiftDetailsProjection {
+        private TestShiftDetailsProjection(
+                Integer shiftId,
+                Integer employeeId,
+                Integer companyId,
+                String description,
+                LocalDate date,
+                LocalTime startTime,
+                LocalTime endTime,
+                Float duration,
+                Boolean isOvernight,
+                String position,
+                String category,
+                String color
+        ) {
+            this(
+                    shiftId,
+                    employeeId,
+                    companyId,
+                    description,
+                    date,
+                    startTime,
+                    endTime,
+                    duration,
+                    isOvernight,
+                    position,
+                    category,
+                    toColorId(color)
+            );
+        }
+
         @Override
         public Integer getShiftId() { return shiftId; }
         @Override
@@ -1823,6 +1853,19 @@ class SchedulingServiceTest {
         @Override
         public String getCategory() { return category; }
         @Override
-        public String getColor() { return color; }
+        public Short getColor() { return color; }
+    }
+
+    private static Short toColorId(String color) {
+        if (color == null || color.isBlank()) {
+            return null;
+        }
+        return switch (color) {
+            case "amber" -> (short) 1;
+            case "blue" -> (short) 2;
+            case "charcoal" -> (short) 3;
+            case "gray", "open" -> (short) 4;
+            default -> (short) 0;
+        };
     }
 }

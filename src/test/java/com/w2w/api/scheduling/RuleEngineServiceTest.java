@@ -1533,7 +1533,7 @@ class RuleEngineServiceTest {
                         endTime,
                         12,
                         7,
-                        "amber",
+                        (short) 1,
                         date,
                         duration
                 )

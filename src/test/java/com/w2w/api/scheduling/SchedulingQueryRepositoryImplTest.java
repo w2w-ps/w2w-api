@@ -58,7 +58,7 @@ class SchedulingQueryRepositoryImplTest {
             when(resultSet.getString("description")).thenReturn("Opening shift");
             when(resultSet.getFloat("duration")).thenReturn(8.0f);
             when(resultSet.getBoolean("schedulePublished")).thenReturn(true);
-            when(resultSet.getString("color")).thenReturn("amber");
+            when(resultSet.getShort("color")).thenReturn((short) 1);
 
             return List.of(rowMapper.mapRow(resultSet, 0));
         });
@@ -81,7 +81,7 @@ class SchedulingQueryRepositoryImplTest {
         assertEquals("FRT", result.getFirst().getCategoryShortDescription());
         assertEquals(true, result.getFirst().getSchedulePublished());
         assertEquals(List.of("111-222", "333-444"), result.getFirst().getPhones());
-        assertEquals("amber", result.getFirst().getColor());
+        assertEquals((short) 1, result.getFirst().getColor());
     }
 
     @Test
@@ -119,8 +119,8 @@ class SchedulingQueryRepositoryImplTest {
             when(resultSet.getString("description")).thenReturn("Opening shift");
             when(resultSet.getFloat("duration")).thenReturn(8.0f);
             when(resultSet.getBoolean("schedulePublished")).thenReturn(false);
-            when(resultSet.getString("color")).thenReturn(null);
-            when(resultSet.wasNull()).thenReturn(true, false, false, true, false);
+            when(resultSet.getShort("color")).thenReturn((short) 0);
+            when(resultSet.wasNull()).thenReturn(false, false, false, false, false, false, false, false, true);
 
             return List.of(rowMapper.mapRow(resultSet, 0));
         });

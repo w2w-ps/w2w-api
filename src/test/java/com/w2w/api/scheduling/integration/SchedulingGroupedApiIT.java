@@ -57,8 +57,8 @@ class SchedulingGroupedApiIT extends PostgresIntegrationTestBase {
         Integer frontCategoryId = createCategory("Front", "FRT");
         Integer floorCategoryId = createCategory("Floor", "FLR");
         Schedule schedule = createSchedule();
-        createShift(EMPLOYEE_A_ID, schedule.getScheduleId(), bartenderId, frontCategoryId, "amber");
-        createShift(EMPLOYEE_B_ID, schedule.getScheduleId(), serverId, floorCategoryId, "blue");
+        createShift(EMPLOYEE_A_ID, schedule.getScheduleId(), bartenderId, frontCategoryId, (short) 1);
+        createShift(EMPLOYEE_B_ID, schedule.getScheduleId(), serverId, floorCategoryId, (short) 2);
 
         mockMvc.perform(get("/api/scheduling/shifts/grouped")
                         .param("companyId", COMPANY_ID.toString())
@@ -169,7 +169,7 @@ class SchedulingGroupedApiIT extends PostgresIntegrationTestBase {
             Integer scheduleId,
             Integer positionId,
             Integer categoryId,
-            String color
+            Short color
     ) {
         Shift shift = new Shift();
         shift.setEmployeeId(employeeId);

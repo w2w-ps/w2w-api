@@ -55,7 +55,10 @@
   `PUT /api/category-groups/{id}`
   `DELETE /api/category-groups/{id}`
 - `scheduling`
-  `POST /api/scheduling/shifts`
+  `POST /api/scheduling/shifts` accepts numeric `color` ID
+  `GET /api/scheduling/shifts/{shiftId}` returns numeric `color` ID
+  `PUT /api/scheduling/shifts/{shiftId}` returns numeric `color` ID
+  `GET /api/scheduling/shift-colors`
   `GET /api/scheduling/shifts/employees?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` includes nullable `employmentType`, `empTypeId`, `alertDate`, and `publishedStage`; filters keep all visible shifts for matched employees while totals count only matching positions and categories outside supplied `categoryIds`
   `GET /api/scheduling/shifts/grouped?companyId=...&grouping=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` grouped calendar response with optional position/category filtering; shift items include nullable `empTypeId`
   `GET /api/scheduling/shifts/date-position?companyId=...&startDate=yyyy-MM-dd&endDate=yyyy-MM-dd&positionIds=...&categoryIds=...` wrapped response with `title`, `totalShifts`, `totalHours`, and `dates[{ weekday, date, ... }]`; shift items include nullable `employmentType` and `empTypeId`
@@ -84,6 +87,7 @@
 ## Data and Query Notes
 - `schema.sql` is a checked-in schema snapshot and should stay aligned with Flyway migrations.
 - Scheduling grouped results are built from a custom SQL query plus service-level grouping logic.
+- Shift `color` is stored as `SMALLINT`; create/update and single-shift responses use numeric IDs, while scheduling calendar/list APIs return color strings and resolve null/unknown IDs to `black`.
 - Scheduling employee view shows open/unassigned shifts only when a position filter is present and the open shift matches that position; employee totals never count unassigned shifts.
 - Grouped scheduling response uses day buckets relative to the requested `startDate`.
 - Each day bucket carries the bucket date; individual shifts do not repeat that date.
