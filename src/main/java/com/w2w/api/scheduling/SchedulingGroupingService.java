@@ -24,6 +24,10 @@ public class SchedulingGroupingService {
     private static final DateTimeFormatter DAY_BUCKET_WEEKDAY_FORMATTER = DateTimeFormatter.ofPattern("EEEE", Locale.ENGLISH);
     private static final DateTimeFormatter TITLE_SINGLE_DAY_FORMATTER = DateTimeFormatter.ofPattern("EEEE - MMM d, yyyy", Locale.ENGLISH);
     private static final DateTimeFormatter WEEK_TEXT_FORMATTER = DateTimeFormatter.ofPattern("MMM-dd", Locale.ENGLISH);
+    private static final Comparator<String> TEXT_COMPARATOR =
+            String.CASE_INSENSITIVE_ORDER.thenComparing(Comparator.naturalOrder());
+    private static final Comparator<String> NULL_FIRST_TEXT_COMPARATOR = Comparator.nullsFirst(TEXT_COMPARATOR);
+    private static final Comparator<LocalTime> NULL_FIRST_TIME_COMPARATOR = Comparator.nullsFirst(Comparator.naturalOrder());
 
     private final SchedulingQueryRepository schedulingQueryRepository;
     private final PositionService positionService;
@@ -125,7 +129,7 @@ public class SchedulingGroupingService {
                 endDate,
                 getCompanyPositionNames(companyId, positionFilter)
         );
-        List<ShiftSegment> segments = findGroupedShiftSegments(companyId, startDate, endDate, positionFilter, categoryFilter);
+        List<ShiftSegment> segments = findDatePositionShiftSegments(companyId, startDate, endDate, positionFilter, categoryFilter);
         int totalShifts = 0;
         BigDecimal totalHours = scaledHours(0.0f);
 
@@ -192,7 +196,7 @@ public class SchedulingGroupingService {
                 endDate,
                 getCompanyPositionNames(companyId, positionFilter)
         );
-        List<ShiftSegment> segments = findGroupedShiftSegments(companyId, startDate, endDate, positionFilter, categoryFilter);
+        List<ShiftSegment> segments = findPositionGroupedShiftSegments(companyId, startDate, endDate, positionFilter, categoryFilter);
 
         for (ShiftSegment segment : segments) {
             DayPositionTimingBucketDto dayBucket = grouped.get(segment.date());
@@ -300,7 +304,14 @@ public class SchedulingGroupingService {
                         .sorted()
                         .toList()
         );
-        List<ShiftSegment> segments = findGroupedShiftSegments(companyId, startDate, endDate, positionIds, categoryIds);
+        List<ShiftSegment> segments = findCategoryGroupedShiftSegments(
+                companyId,
+                startDate,
+                endDate,
+                positionIds,
+                categoryIds,
+                categoryLabelByName
+        );
 
         for (ShiftSegment segment : segments) {
             DayCategoryTimingBucketDto dayBucket = grouped.get(segment.date());
@@ -383,30 +394,65 @@ public class SchedulingGroupingService {
         return new ArrayList<>(grouped.values());
     }
 
-    private List<ShiftSegment> findGroupedShiftSegments(
+    private List<ShiftSegment> findDatePositionShiftSegments(
             Integer companyId,
             LocalDate startDate,
             LocalDate endDate,
             Set<Integer> positionIds,
             Set<Integer> categoryIds
     ) {
-        List<ShiftSegment> segments = new ArrayList<>();
-
-        for (EmployeeShiftProjection row : findEmployeeShiftRows(companyId, startDate, endDate, positionIds, categoryIds)) {
-            for (ShiftSegment segment : buildShiftSegments(row, startDate, endDate)) {
-                if (matchesFilters(segment, positionIds, categoryIds)) {
-                    segments.add(segment);
-                }
-            }
-        }
+        List<ShiftSegment> segments = findMatchingShiftSegments(companyId, startDate, endDate, positionIds, categoryIds);
 
         segments.sort(Comparator
                 .comparing(ShiftSegment::date)
-                .thenComparing(segment -> segment.position() == null ? "" : segment.position())
-                .thenComparing(segment -> segment.lastName() == null ? "" : segment.lastName())
-                .thenComparing(segment -> segment.firstName() == null ? "" : segment.firstName())
-                .thenComparing(ShiftSegment::startTime)
-                .thenComparing(ShiftSegment::employeeId));
+                .thenComparing(ShiftSegment::position, NULL_FIRST_TEXT_COMPARATOR)
+                .thenComparing(ShiftSegment::startTime, NULL_FIRST_TIME_COMPARATOR)
+                .thenComparing(ShiftSegment::lastName, NULL_FIRST_TEXT_COMPARATOR)
+                .thenComparing(ShiftSegment::firstName, NULL_FIRST_TEXT_COMPARATOR)
+                .thenComparing(ShiftSegment::employeeId, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(ShiftSegment::shiftId, Comparator.nullsLast(Comparator.naturalOrder())));
+        return segments;
+    }
+
+    private List<ShiftSegment> findPositionGroupedShiftSegments(
+            Integer companyId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Set<Integer> positionIds,
+            Set<Integer> categoryIds
+    ) {
+        List<ShiftSegment> segments = findMatchingShiftSegments(companyId, startDate, endDate, positionIds, categoryIds);
+
+        segments.sort(Comparator
+                .comparing(ShiftSegment::date)
+                .thenComparing(ShiftSegment::position, NULL_FIRST_TEXT_COMPARATOR)
+                .thenComparing(ShiftSegment::startTime, NULL_FIRST_TIME_COMPARATOR)
+                .thenComparing(ShiftSegment::lastName, NULL_FIRST_TEXT_COMPARATOR)
+                .thenComparing(ShiftSegment::firstName, NULL_FIRST_TEXT_COMPARATOR)
+                .thenComparing(ShiftSegment::employeeId, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(ShiftSegment::shiftId, Comparator.nullsLast(Comparator.naturalOrder())));
+        return segments;
+    }
+
+    private List<ShiftSegment> findCategoryGroupedShiftSegments(
+            Integer companyId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Set<Integer> positionIds,
+            Set<Integer> categoryIds,
+            Map<String, String> categoryLabelByName
+    ) {
+        List<ShiftSegment> segments = findMatchingShiftSegments(companyId, startDate, endDate, positionIds, categoryIds);
+
+        segments.sort(Comparator
+                .comparing(ShiftSegment::date)
+                .thenComparing(segment -> normalizeBlankLabel(resolveCategoryLabel(categoryLabelByName, segment.category())),
+                        NULL_FIRST_TEXT_COMPARATOR)
+                .thenComparing(ShiftSegment::startTime, NULL_FIRST_TIME_COMPARATOR)
+                .thenComparing(ShiftSegment::lastName, NULL_FIRST_TEXT_COMPARATOR)
+                .thenComparing(ShiftSegment::firstName, NULL_FIRST_TEXT_COMPARATOR)
+                .thenComparing(ShiftSegment::employeeId, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(ShiftSegment::shiftId, Comparator.nullsLast(Comparator.naturalOrder())));
         return segments;
     }
 
@@ -417,6 +463,25 @@ public class SchedulingGroupingService {
             Set<Integer> positionIds,
             Set<Integer> categoryIds
     ) {
+        List<ShiftSegment> segments = findMatchingShiftSegments(companyId, startDate, endDate, positionIds, categoryIds);
+
+        segments.sort(Comparator
+                .comparing(ShiftSegment::date)
+                .thenComparing(ShiftSegment::startTime, NULL_FIRST_TIME_COMPARATOR)
+                .thenComparing(ShiftSegment::lastName, NULL_FIRST_TEXT_COMPARATOR)
+                .thenComparing(ShiftSegment::firstName, NULL_FIRST_TEXT_COMPARATOR)
+                .thenComparing(ShiftSegment::employeeId, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(ShiftSegment::shiftId, Comparator.nullsLast(Comparator.naturalOrder())));
+        return segments;
+    }
+
+    private List<ShiftSegment> findMatchingShiftSegments(
+            Integer companyId,
+            LocalDate startDate,
+            LocalDate endDate,
+            Set<Integer> positionIds,
+            Set<Integer> categoryIds
+    ) {
         List<ShiftSegment> segments = new ArrayList<>();
 
         for (EmployeeShiftProjection row : findEmployeeShiftRows(companyId, startDate, endDate, positionIds, categoryIds)) {
@@ -427,11 +492,6 @@ public class SchedulingGroupingService {
             }
         }
 
-        segments.sort(Comparator
-                .comparing(ShiftSegment::date)
-                .thenComparing(ShiftSegment::startTime)
-                .thenComparing(ShiftSegment::endTime)
-                .thenComparing(ShiftSegment::employeeId));
         return segments;
     }
 
@@ -440,6 +500,7 @@ public class SchedulingGroupingService {
                 .map(dateBucket -> new GroupedShiftDate(
                         dateBucket.date(),
                         dateBucket.positions().stream()
+                                .sorted(Comparator.comparing(PositionTimingBucketDto::position, NULL_FIRST_TEXT_COMPARATOR))
                                 .map(this::toPositionTimingShiftGroup)
                                 .toList()
                 ))
@@ -451,6 +512,10 @@ public class SchedulingGroupingService {
                 .map(dateBucket -> new GroupedShiftDate(
                         dateBucket.date(),
                         dateBucket.categories().stream()
+                                .sorted(Comparator.comparing(
+                                        category -> normalizeBlankLabel(category.category()),
+                                        NULL_FIRST_TEXT_COMPARATOR
+                                ))
                                 .map(this::toCategoryTimingShiftGroup)
                                 .toList()
                 ))
@@ -472,6 +537,9 @@ public class SchedulingGroupingService {
         return new ShiftGroup(
                 positionBucket.position(),
                 positionBucket.shiftTimings().stream()
+                        .sorted(Comparator
+                                .comparing(ShiftTimingBucketDto::startTime, NULL_FIRST_TIME_COMPARATOR)
+                                .thenComparing(ShiftTimingBucketDto::endTime, NULL_FIRST_TIME_COMPARATOR))
                         .map(this::toTimingShiftGroup)
                         .toList(),
                 List.of()
@@ -520,6 +588,10 @@ public class SchedulingGroupingService {
                 dto.duration(),
                 dto.color()
         );
+    }
+
+    private static String normalizeBlankLabel(String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 
     private List<EmployeeShiftProjection> findEmployeeShiftRows(Integer companyId, LocalDate startDate, LocalDate endDate) {

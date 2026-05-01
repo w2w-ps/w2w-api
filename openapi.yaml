@@ -198,7 +198,7 @@ paths:
               type: integer
       responses:
         '200':
-          description: Wrapped date-position summary for the requested range, including filtered totals and per-day buckets with split weekday/date fields
+          description: Wrapped date-position summary for the requested range, including filtered totals and per-day buckets with split weekday/date fields. Shifts within each date/position bucket are ordered by start time, then last name and first name with null names first.
           content:
             application/json:
               schema:
@@ -251,7 +251,7 @@ paths:
             format: date
       responses:
         '200':
-          description: Grouped shifts in one normalized structure. Results are always grouped by date first, then by the requested grouping strategy under `shiftGroups`.
+          description: Grouped shifts in one normalized structure. Results are always grouped by date first, then by the requested grouping strategy under `shiftGroups`. Position grouping is ordered by position, start time, last name, and first name. Category and CAT grouping put no/null category first, then sort by category/CAT label, start time, last name, and first name. Shift-timing grouping is ordered by start time, last name, and first name. Name sorting puts null names first.
           content:
             application/json:
               schema:

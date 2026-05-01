@@ -938,7 +938,7 @@ class SchedulingServiceTest {
     }
 
     @Test
-    void dateAndPositionGroupingSortsShiftsByLastNameAscendingWithinPosition() {
+    void dateAndPositionGroupingSortsShiftsByStartTimeThenNullFirstName() {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 25);
         TenantContext.setCurrentTenant(7);
@@ -951,12 +951,12 @@ class SchedulingServiceTest {
                                 9001,
                                 101,
                                 "Ava",
-                                "Zulu",
+                                "Alpha",
                                 List.of("111-222"),
                                 List.of(new PositionSummary(12, "Bartender")),
                                 LocalDate.of(2026, 3, 25),
-                                LocalTime.of(9, 0),
-                                LocalTime.of(17, 0),
+                                LocalTime.of(10, 0),
+                                LocalTime.of(18, 0),
                                 false,
                                 12,
                                 "Bartender",
@@ -972,12 +972,12 @@ class SchedulingServiceTest {
                                 9002,
                                 102,
                                 "Ben",
-                                "Alpha",
+                                "Zulu",
                                 List.of("333-444"),
                                 List.of(new PositionSummary(12, "Bartender")),
                                 LocalDate.of(2026, 3, 25),
-                                LocalTime.of(10, 0),
-                                LocalTime.of(18, 0),
+                                LocalTime.of(9, 0),
+                                LocalTime.of(17, 0),
                                 false,
                                 12,
                                 "Bartender",
@@ -988,16 +988,38 @@ class SchedulingServiceTest {
                                 8.0f,
                                 true,
                                 "blue"
+                        ),
+                        new TestProjection(
+                                9003,
+                                103,
+                                "Cara",
+                                null,
+                                List.of("555-666"),
+                                List.of(new PositionSummary(12, "Bartender")),
+                                LocalDate.of(2026, 3, 25),
+                                LocalTime.of(9, 0),
+                                LocalTime.of(17, 0),
+                                false,
+                                12,
+                                "Bartender",
+                                4,
+                                "Front",
+                                "FRT",
+                                "Null name shift",
+                                8.0f,
+                                true,
+                                "gray"
                         )
                 ));
 
         DatePositionSummaryResponse result = schedulingService.getShiftsGroupedByDateAndPosition(startDate, endDate, null, null);
 
         List<EmployeeShift> shifts = result.dates().getFirst().positions().getFirst().shifts();
-        assertEquals(2, shifts.size());
+        assertEquals(3, shifts.size());
         assertEquals(null, shifts.get(0).employmentType());
-        assertEquals("Alpha", shifts.get(0).lastName());
-        assertEquals("Zulu", shifts.get(1).lastName());
+        assertEquals(9003, shifts.get(0).shiftId());
+        assertEquals(9002, shifts.get(1).shiftId());
+        assertEquals(9001, shifts.get(2).shiftId());
     }
 
     @Test
@@ -1269,6 +1291,115 @@ class SchedulingServiceTest {
     }
 
     @Test
+    void getShiftsGrouped_positionShiftTimingsSortsByPositionStartTimeAndNullFirstNames() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(positionService.get("all"))
+                .thenReturn(List.of(
+                        new PositionSummary(19, "Server"),
+                        new PositionSummary(12, "Bartender")
+                ));
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+                .thenReturn(List.of(
+                        new TestProjection(
+                                9001,
+                                101,
+                                "Ava",
+                                "Zulu",
+                                List.of("111-222"),
+                                List.of(new PositionSummary(19, "Server")),
+                                startDate,
+                                LocalTime.of(8, 0),
+                                LocalTime.of(16, 0),
+                                false,
+                                19,
+                                "Server",
+                                4,
+                                "Front",
+                                "FRT",
+                                "Server shift",
+                                8.0f,
+                                true,
+                                "brown"
+                        ),
+                        new TestProjection(
+                                9002,
+                                102,
+                                "Ben",
+                                "Cole",
+                                List.of("333-444"),
+                                List.of(new PositionSummary(12, "Bartender")),
+                                startDate,
+                                LocalTime.of(10, 0),
+                                LocalTime.of(18, 0),
+                                false,
+                                12,
+                                "Bartender",
+                                4,
+                                "Front",
+                                "FRT",
+                                "Late bartender",
+                                8.0f,
+                                true,
+                                "blue"
+                        ),
+                        new TestProjection(
+                                9003,
+                                103,
+                                "Cara",
+                                null,
+                                List.of("555-666"),
+                                List.of(new PositionSummary(12, "Bartender")),
+                                startDate,
+                                LocalTime.of(9, 0),
+                                LocalTime.of(17, 0),
+                                false,
+                                12,
+                                "Bartender",
+                                4,
+                                "Front",
+                                "FRT",
+                                "Null name bartender",
+                                8.0f,
+                                true,
+                                "gray"
+                        ),
+                        new TestProjection(
+                                9004,
+                                104,
+                                "Drew",
+                                "Alpha",
+                                List.of("777-888"),
+                                List.of(new PositionSummary(12, "Bartender")),
+                                startDate,
+                                LocalTime.of(9, 0),
+                                LocalTime.of(17, 0),
+                                false,
+                                12,
+                                "Bartender",
+                                4,
+                                "Front",
+                                "FRT",
+                                "Alpha bartender",
+                                8.0f,
+                                true,
+                                "fuchsia"
+                        )
+                ));
+
+        GroupedShiftsResponse result = schedulingService.getShiftsGrouped(startDate, endDate, ShiftGrouping.POSITION_SHIFT_TIMINGS);
+
+        List<ShiftGroup> positions = result.dates().getFirst().shiftGroups();
+        assertEquals(List.of("Bartender", "Server"), positions.stream().map(ShiftGroup::label).toList());
+        assertEquals("9am-5pm", positions.getFirst().shiftGroups().get(0).label());
+        assertEquals("10am-6pm", positions.getFirst().shiftGroups().get(1).label());
+        assertEquals(9003, positions.getFirst().shiftGroups().getFirst().shifts().get(0).shiftId());
+        assertEquals(9004, positions.getFirst().shiftGroups().getFirst().shifts().get(1).shiftId());
+    }
+
+    @Test
     void getShiftsGrouped_shiftTimingsAppliesPositionAndCategoryFilters() {
         LocalDate startDate = LocalDate.of(2026, 3, 25);
         LocalDate endDate = LocalDate.of(2026, 3, 25);
@@ -1299,6 +1430,76 @@ class SchedulingServiceTest {
         assertEquals("5pm", timingGroups.getFirst().shifts().getFirst().endTime());
         assertEquals("Bartender", timingGroups.getFirst().shifts().getFirst().position());
         assertEquals("FRT", timingGroups.getFirst().shifts().getFirst().category());
+    }
+
+    @Test
+    void getShiftsGrouped_shiftTimingsSortsByStartTimeAndNullFirstNames() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+                .thenReturn(List.of(
+                        new TestProjection(
+                                9001,
+                                101,
+                                "Ava",
+                                "Zulu",
+                                List.of("111-222"),
+                                List.of(new PositionSummary(12, "Bartender")),
+                                startDate,
+                                LocalTime.of(9, 0),
+                                LocalTime.of(17, 0),
+                                false,
+                                "Bartender",
+                                "Front",
+                                "Late row",
+                                8.0f,
+                                "brown"
+                        ),
+                        new TestProjection(
+                                9002,
+                                102,
+                                "Ben",
+                                null,
+                                List.of("333-444"),
+                                List.of(new PositionSummary(19, "Server")),
+                                startDate,
+                                LocalTime.of(9, 0),
+                                LocalTime.of(17, 0),
+                                false,
+                                "Server",
+                                "Floor",
+                                "Null name row",
+                                8.0f,
+                                "blue"
+                        ),
+                        new TestProjection(
+                                9003,
+                                103,
+                                "Cara",
+                                "Alpha",
+                                List.of("555-666"),
+                                List.of(new PositionSummary(20, "Host")),
+                                startDate,
+                                LocalTime.of(8, 0),
+                                LocalTime.of(16, 0),
+                                false,
+                                "Host",
+                                "Floor",
+                                "Early row",
+                                8.0f,
+                                "gray"
+                        )
+                ));
+
+        GroupedShiftsResponse result = schedulingService.getShiftsGrouped(startDate, endDate, ShiftGrouping.SHIFT_TIMINGS);
+
+        List<ShiftGroup> timingGroups = result.dates().getFirst().shiftGroups();
+        assertEquals("8am-4pm", timingGroups.get(0).label());
+        assertEquals("9am-5pm", timingGroups.get(1).label());
+        assertEquals(9002, timingGroups.get(1).shifts().get(0).shiftId());
+        assertEquals(9001, timingGroups.get(1).shifts().get(1).shiftId());
     }
 
     @Test
@@ -1335,6 +1536,73 @@ class SchedulingServiceTest {
         assertEquals(9001, categories.getFirst().shiftGroups().getFirst().shifts().getFirst().shiftId());
         assertEquals("Bartender", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().position());
         assertEquals("FRT", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().category());
+    }
+
+    @Test
+    void getShiftsGrouped_categoryShiftTimingsSortsNullCategoryFirstThenStartTimeAndNames() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(categoryService.getCategoriesByCompanyId())
+                .thenReturn(List.of(
+                        new CategorySummary(4, "Front", "FRT"),
+                        new CategorySummary(9, "Floor", "FLR")
+                ));
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+                .thenReturn(List.of(
+                        new TestProjection(
+                                9001,
+                                101,
+                                "Ava",
+                                "Zulu",
+                                List.of("111-222"),
+                                List.of(new PositionSummary(12, "Bartender")),
+                                startDate,
+                                LocalTime.of(9, 0),
+                                LocalTime.of(17, 0),
+                                false,
+                                12,
+                                "Bartender",
+                                null,
+                                null,
+                                null,
+                                "No category shift",
+                                8.0f,
+                                true,
+                                "brown"
+                        ),
+                        new TestProjection(
+                                9002,
+                                102,
+                                "Ben",
+                                "Cole",
+                                List.of("333-444"),
+                                List.of(new PositionSummary(19, "Server")),
+                                startDate,
+                                LocalTime.of(8, 0),
+                                LocalTime.of(16, 0),
+                                false,
+                                19,
+                                "Server",
+                                4,
+                                "Front",
+                                "FRT",
+                                "Front shift",
+                                8.0f,
+                                true,
+                                "blue"
+                        )
+                ));
+
+        GroupedShiftsResponse result = schedulingService.getShiftsGrouped(startDate, endDate, ShiftGrouping.CATEGORY_SHIFT_TIMINGS);
+
+        List<ShiftGroup> categories = result.dates().getFirst().shiftGroups();
+        assertEquals(null, categories.getFirst().label());
+        assertEquals(9001, categories.getFirst().shiftGroups().getFirst().shifts().getFirst().shiftId());
+        assertEquals(null, categories.get(0).label());
+        assertEquals("Floor", categories.get(1).label());
+        assertEquals("Front", categories.get(2).label());
     }
 
     @Test
@@ -1419,6 +1687,68 @@ class SchedulingServiceTest {
         assertEquals(9001, categories.getFirst().shiftGroups().getFirst().shifts().getFirst().shiftId());
         assertEquals("Bartender", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().position());
         assertEquals("FRT", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().category());
+    }
+
+    @Test
+    void getShiftsGrouped_catShiftTimingsSortsNullCategoryFirst() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(categoryService.getCategoriesByCompanyId())
+                .thenReturn(List.of(new CategorySummary(4, "Front", "FRT")));
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+                .thenReturn(List.of(
+                        new TestProjection(
+                                9001,
+                                101,
+                                "Ava",
+                                "Stone",
+                                List.of("111-222"),
+                                List.of(new PositionSummary(12, "Bartender")),
+                                startDate,
+                                LocalTime.of(9, 0),
+                                LocalTime.of(17, 0),
+                                false,
+                                12,
+                                "Bartender",
+                                4,
+                                "Front",
+                                "FRT",
+                                "Front shift",
+                                8.0f,
+                                true,
+                                "brown"
+                        ),
+                        new TestProjection(
+                                9002,
+                                102,
+                                "Ben",
+                                "Cole",
+                                List.of("333-444"),
+                                List.of(new PositionSummary(19, "Server")),
+                                startDate,
+                                LocalTime.of(8, 0),
+                                LocalTime.of(16, 0),
+                                false,
+                                19,
+                                "Server",
+                                null,
+                                null,
+                                null,
+                                "No category shift",
+                                8.0f,
+                                true,
+                                "blue"
+                        )
+                ));
+
+        GroupedShiftsResponse result = schedulingService.getShiftsGrouped(startDate, endDate, ShiftGrouping.CAT_SHIFT_TIMINGS);
+
+        List<ShiftGroup> categories = result.dates().getFirst().shiftGroups();
+        assertEquals(null, categories.getFirst().label());
+        assertEquals(9002, categories.getFirst().shiftGroups().getFirst().shifts().getFirst().shiftId());
+        assertEquals("FRT", categories.get(1).label());
     }
 
     @Test
