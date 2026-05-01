@@ -141,6 +141,6 @@ record CreateShiftCommand(
         Float duration,
         Integer position,
         Integer category,
-        String color
+        Short color
 ) {
 }

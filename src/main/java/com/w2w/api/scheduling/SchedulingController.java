@@ -7,6 +7,7 @@ import com.w2w.api.scheduling.dto.DatePositionSummaryResponse;
 import com.w2w.api.scheduling.dto.EmployeeSchedule;
 import com.w2w.api.scheduling.dto.FindConflictRequest;
 import com.w2w.api.scheduling.dto.GroupedShiftsResponse;
+import com.w2w.api.scheduling.dto.ShiftColorResponse;
 import com.w2w.api.scheduling.dto.ShiftGrouping;
 import com.w2w.api.scheduling.dto.ShiftResponse;
 import com.w2w.api.scheduling.dto.UpdateShiftRequest;
@@ -35,6 +36,11 @@ public class SchedulingController {
 
     public SchedulingController(SchedulingService schedulingService) {
         this.schedulingService = schedulingService;
+    }
+
+    @GetMapping("/shift-colors")
+    public List<ShiftColorResponse> getShiftColors() {
+        return schedulingService.getShiftColors();
     }
 
     @GetMapping("/shifts/{shiftId}")

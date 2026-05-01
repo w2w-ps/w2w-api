@@ -34,5 +34,5 @@ public interface EmployeeShiftProjection {
     Float getDuration();
     Boolean getIsOvernight();
     Boolean getSchedulePublished();
-    String getColor();
+    Short getColor();
 }

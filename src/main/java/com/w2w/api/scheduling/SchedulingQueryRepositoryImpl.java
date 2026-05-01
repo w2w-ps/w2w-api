@@ -131,7 +131,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                     rs.getString("description"),
                     getNullableFloat(rs, "duration"),
                     getNullableBoolean(rs, "schedulePublished"),
-                    rs.getString("color")
+                    getNullableShort(rs, "color")
             );
         }
     }
@@ -148,6 +148,11 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
 
     private Float getNullableFloat(ResultSet rs, String column) throws SQLException {
         float value = rs.getFloat(column);
+        return rs.wasNull() ? null : value;
+    }
+
+    private Short getNullableShort(ResultSet rs, String column) throws SQLException {
+        short value = rs.getShort(column);
         return rs.wasNull() ? null : value;
     }
 
@@ -202,7 +207,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         private final String description;
         private final Float duration;
         private final Boolean schedulePublished;
-        private final String color;
+        private final Short color;
 
         private EmployeeShiftRow(
                 Integer shiftId,
@@ -225,7 +230,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                 String description,
                 Float duration,
                 Boolean schedulePublished,
-                String color
+                Short color
         ) {
             this.shiftId = shiftId;
             this.employeeId = employeeId;
@@ -351,7 +356,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         }
 
         @Override
-        public String getColor() {
+        public Short getColor() {
             return color;
         }
     }

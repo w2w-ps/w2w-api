@@ -16,7 +16,7 @@ import java.time.LocalTime;
  * @param endTime         The end time of the shift.
  * @param position        The position or skill required for the shift.
  * @param category        The category of the shift.
- * @param color           A color code associated with the shift.
+ * @param color           A color identifier associated with the shift.
  * @param date            The date of the shift.
  * @param duration        The duration of the shift in hours.
  */
@@ -28,7 +28,7 @@ public record UpdateShiftRequest(
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma") LocalTime endTime,
         Integer position,
         Integer category,
-        String color,
+        Short color,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd") LocalDate date,
         Float duration
 ) {

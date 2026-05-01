@@ -26,5 +26,5 @@ public interface ShiftDetailsProjection {
 
     String getCategory();
 
-    String getColor();
+    Short getColor();
 }
