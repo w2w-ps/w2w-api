@@ -150,9 +150,15 @@ paths:
             type: array
             items:
               type: integer
+        - in: query
+          name: status
+          required: false
+          description: Employment type filter. Omit to ignore employment type and include unassigned/open shifts. Use 0 for employees with no employment type, or 1-5 to match emp_type.id; unsupported values return no shifts.
+          schema:
+            type: integer
       responses:
         '200':
-          description: Employees with grouped daily shift buckets, formatted day labels, short category labels, publish-status metadata, optional position/category filtering, and unassigned shifts that are shown with or without filters but never counted in employee totals
+          description: Employees with grouped daily shift buckets, formatted day labels, short category labels, publish-status metadata, optional position/category/status filtering, and unassigned shifts that are shown when status is omitted but never counted in employee totals
           content:
             application/json:
               schema:
@@ -196,9 +202,15 @@ paths:
             type: array
             items:
               type: integer
+        - in: query
+          name: status
+          required: false
+          description: Employment type filter. Omit to ignore employment type and include unassigned/open shifts. Use 0 for employees with no employment type, or 1-5 to match emp_type.id; unsupported values return no shifts.
+          schema:
+            type: integer
       responses:
         '200':
-          description: Wrapped date-position summary for the requested range, including filtered totals and per-day buckets with split weekday/date fields. Shifts within each date/position bucket are ordered by start time, then last name and first name with null names first.
+          description: Wrapped date-position summary for the requested range, including filtered totals and per-day buckets with split weekday/date fields. Optional status filters by employee employment type and excludes unassigned/open shifts when supplied. Shifts within each date/position bucket are ordered by start time, then last name and first name with null names first.
           content:
             application/json:
               schema:
@@ -238,6 +250,12 @@ paths:
             items:
               type: integer
         - in: query
+          name: status
+          required: false
+          description: Employment type filter. Omit to ignore employment type and include unassigned/open shifts. Use 0 for employees with no employment type, or 1-5 to match emp_type.id; unsupported values return no shifts.
+          schema:
+            type: integer
+        - in: query
           name: startDate
           required: true
           schema:
@@ -251,7 +269,7 @@ paths:
             format: date
       responses:
         '200':
-          description: Grouped shifts in one normalized structure. Results are always grouped by date first, then by the requested grouping strategy under `shiftGroups`. Position grouping is ordered by position, start time, last name, and first name. Category and CAT grouping put no/null category first, then sort by category/CAT label, start time, last name, and first name. Shift-timing grouping is ordered by start time, last name, and first name. Name sorting puts null names first.
+          description: Grouped shifts in one normalized structure. Results are always grouped by date first, then by the requested grouping strategy under `shiftGroups`. Optional status filters by employee employment type and excludes unassigned/open shifts when supplied. Position grouping is ordered by position, start time, last name, and first name. Category and CAT grouping put no/null category first, then sort by category/CAT label, start time, last name, and first name. Shift-timing grouping is ordered by start time, last name, and first name. Name sorting puts null names first.
           content:
             application/json:
               schema:
@@ -895,6 +913,18 @@ paths:
                 $ref: '#/components/schemas/EmployeeDetailResponse'
         '404':
           description: Employee not found
+  /api/employees/emp-types:
+    get:
+      summary: Get employment type lookup values
+      responses:
+        '200':
+          description: Employment type lookup values sorted by sort_order. displayName uses display_name when present and name otherwise.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmpTypeResponse'
   /api/employees/config:
     get:
       summary: Get employee list configuration
@@ -2027,6 +2057,13 @@ components:
         id:
           type: integer
         name:
+          type: string
+    EmpTypeResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        displayName:
           type: string
     ManagerResponse:
       type: object
