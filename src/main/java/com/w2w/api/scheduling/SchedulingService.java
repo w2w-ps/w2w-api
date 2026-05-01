@@ -75,6 +75,16 @@ public class SchedulingService {
         return schedulingGroupingService.getEmployeeShiftsGroupedInRange(startDate, endDate, positionIds, categoryIds);
     }
 
+    public List<EmployeeSchedule> getEmployeeShiftsGroupedInRange(
+            LocalDate startDate,
+            LocalDate endDate,
+            List<Integer> positionIds,
+            List<Integer> categoryIds,
+            Integer status
+    ) {
+        return schedulingGroupingService.getEmployeeShiftsGroupedInRange(startDate, endDate, positionIds, categoryIds, status);
+    }
+
     public GroupedShiftsResponse getShiftsGrouped(
             LocalDate startDate,
             LocalDate endDate,
@@ -93,6 +103,17 @@ public class SchedulingService {
         return schedulingGroupingService.getShiftsGrouped(startDate, endDate, grouping, positionIds, categoryIds);
     }
 
+    public GroupedShiftsResponse getShiftsGrouped(
+            LocalDate startDate,
+            LocalDate endDate,
+            ShiftGrouping grouping,
+            List<Integer> positionIds,
+            List<Integer> categoryIds,
+            Integer status
+    ) {
+        return schedulingGroupingService.getShiftsGrouped(startDate, endDate, grouping, positionIds, categoryIds, status);
+    }
+
     public DatePositionSummaryResponse getShiftsGroupedByDateAndPosition(
             LocalDate startDate,
             LocalDate endDate,
@@ -100,6 +121,16 @@ public class SchedulingService {
             List<Integer> categoryIds
     ) {
         return schedulingGroupingService.getShiftsGroupedByDateAndPosition(startDate, endDate, positionIds, categoryIds);
+    }
+
+    public DatePositionSummaryResponse getShiftsGroupedByDateAndPosition(
+            LocalDate startDate,
+            LocalDate endDate,
+            List<Integer> positionIds,
+            List<Integer> categoryIds,
+            Integer status
+    ) {
+        return schedulingGroupingService.getShiftsGroupedByDateAndPosition(startDate, endDate, positionIds, categoryIds, status);
     }
 
     public List<DayPositionTimingBucketDto> getShiftsGroupedByDayPositionAndTiming(

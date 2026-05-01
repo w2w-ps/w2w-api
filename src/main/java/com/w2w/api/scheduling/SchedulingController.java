@@ -82,7 +82,7 @@ public class SchedulingController {
             @RequestParam(required = false) List<Integer> categoryIds,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        return getShiftEmployees(companyId, positionIds, categoryIds, startDate, endDate);
+        return getShiftEmployees(companyId, positionIds, categoryIds, null, startDate, endDate);
     }
 
     @GetMapping("/shifts/employees")
@@ -90,9 +90,13 @@ public class SchedulingController {
             @RequestParam Integer companyId,
             @RequestParam(required = false) List<Integer> positionIds,
             @RequestParam(required = false) List<Integer> categoryIds,
+            @RequestParam(required = false) Integer status,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        return schedulingService.getEmployeeShiftsGroupedInRange(startDate, endDate, positionIds, categoryIds);
+        if (status == null) {
+            return schedulingService.getEmployeeShiftsGroupedInRange(startDate, endDate, positionIds, categoryIds);
+        }
+        return schedulingService.getEmployeeShiftsGroupedInRange(startDate, endDate, positionIds, categoryIds, status);
     }
 
     @GetMapping("/shifts/grouped")
@@ -101,10 +105,14 @@ public class SchedulingController {
             @RequestParam ShiftGrouping grouping,
             @RequestParam(required = false) List<Integer> positionIds,
             @RequestParam(required = false) List<Integer> categoryIds,
+            @RequestParam(required = false) Integer status,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
     ) {
-        return schedulingService.getShiftsGrouped(startDate, endDate, grouping, positionIds, categoryIds);
+        if (status == null) {
+            return schedulingService.getShiftsGrouped(startDate, endDate, grouping, positionIds, categoryIds);
+        }
+        return schedulingService.getShiftsGrouped(startDate, endDate, grouping, positionIds, categoryIds, status);
     }
 
     @GetMapping("/shifts/date-position")
@@ -112,9 +120,13 @@ public class SchedulingController {
             @RequestParam Integer companyId,
             @RequestParam(required = false) List<Integer> positionIds,
             @RequestParam(required = false) List<Integer> categoryIds,
+            @RequestParam(required = false) Integer status,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
-        return schedulingService.getShiftsGroupedByDateAndPosition(startDate, endDate, positionIds, categoryIds);
+        if (status == null) {
+            return schedulingService.getShiftsGroupedByDateAndPosition(startDate, endDate, positionIds, categoryIds);
+        }
+        return schedulingService.getShiftsGroupedByDateAndPosition(startDate, endDate, positionIds, categoryIds, status);
     }
 
     @PostMapping("/validation/precheck")

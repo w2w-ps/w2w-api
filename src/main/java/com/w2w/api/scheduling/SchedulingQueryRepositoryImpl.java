@@ -60,6 +60,21 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
             List<Integer> positionIds,
             List<Integer> categoryIds
     ) {
+        return findAllEmployeeShiftsInRange(companyId, startDate, endDate, positionIds, categoryIds, null);
+    }
+
+    @Override
+    public List<EmployeeShiftProjection> findAllEmployeeShiftsInRange(
+            Integer companyId,
+            LocalDate startDate,
+            LocalDate endDate,
+            List<Integer> positionIds,
+            List<Integer> categoryIds,
+            Integer status
+    ) {
+        if (!isValidStatus(status)) {
+            return List.of();
+        }
         List<Integer> positionFilter = normalizeFilterIds(positionIds);
         List<Integer> categoryFilter = normalizeFilterIds(categoryIds);
         MapSqlParameterSource parameters = new MapSqlParameterSource()
@@ -68,6 +83,8 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                 .addValue("endDate", endDate)
                 .addValue("positionFilterEnabled", !positionFilter.isEmpty())
                 .addValue("categoryFilterEnabled", !categoryFilter.isEmpty())
+                .addValue("statusFilterEnabled", status != null)
+                .addValue("status", status)
                 .addValue("positionIds", positionFilter.isEmpty() ? List.of(-1) : positionFilter)
                 .addValue("categoryIds", categoryFilter.isEmpty() ? List.of(-1) : categoryFilter);
 
@@ -76,6 +93,10 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                 parameters,
                 new RowMapperImpl()
         );
+    }
+
+    private boolean isValidStatus(Integer status) {
+        return status == null || (status >= 0 && status <= 5);
     }
 
     private List<Integer> normalizeFilterIds(List<Integer> ids) {

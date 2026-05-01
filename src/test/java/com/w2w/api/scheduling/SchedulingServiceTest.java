@@ -1931,6 +1931,101 @@ class SchedulingServiceTest {
         assertEquals(9005, unassignedEntry.getWeeklyShifts().get(0).shifts().getFirst().shiftId());
     }
 
+    @Test
+    void employeeSchedulePassesStatusFilterToRepository() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                7,
+                startDate.minusDays(1),
+                endDate,
+                List.of(),
+                List.of(),
+                2
+        )).thenReturn(List.of(new TestProjection(
+                9001,
+                101,
+                "Ava",
+                "Stone",
+                List.of("111-222"),
+                List.of(),
+                LocalDate.of(2026, 3, 25),
+                LocalTime.of(9, 0),
+                LocalTime.of(17, 0),
+                false,
+                "Bartender",
+                "Front",
+                "Filtered Shift",
+                8.0f,
+                "brown"
+        )));
+
+        List<EmployeeSchedule> result = schedulingService.getEmployeeShiftsGroupedInRange(
+                startDate,
+                endDate,
+                null,
+                null,
+                2
+        );
+
+        assertEquals(1, result.size());
+        assertEquals(101, result.getFirst().getEmployeeId());
+        verify(schedulingQueryRepository).findAllEmployeeShiftsInRange(
+                7,
+                startDate.minusDays(1),
+                endDate,
+                List.of(),
+                List.of(),
+                2
+        );
+    }
+
+    @Test
+    void groupedAndDatePositionPassStatusFilterToRepository() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                7,
+                startDate.minusDays(1),
+                endDate,
+                List.of(),
+                List.of(),
+                0
+        )).thenReturn(List.of());
+        when(positionService.getPositionsByCompany(7, "active")).thenReturn(List.of());
+
+        DatePositionSummaryResponse datePosition = schedulingService.getShiftsGroupedByDateAndPosition(
+                startDate,
+                endDate,
+                null,
+                null,
+                0
+        );
+        GroupedShiftsResponse grouped = schedulingService.getShiftsGrouped(
+                startDate,
+                endDate,
+                ShiftGrouping.SHIFT_TIMINGS,
+                null,
+                null,
+                0
+        );
+
+        assertEquals(0, datePosition.totalShifts());
+        assertEquals(1, grouped.dates().size());
+        verify(schedulingQueryRepository, times(2)).findAllEmployeeShiftsInRange(
+                7,
+                startDate.minusDays(1),
+                endDate,
+                List.of(),
+                List.of(),
+                0
+        );
+    }
+
     private List<EmployeeShiftProjection> twoFilteredCandidateRows(LocalDate shiftDate) {
         return List.of(
                 new TestProjection(

@@ -19,6 +19,11 @@ filtered_employees AS (
         e.company_id
     FROM employee e
     WHERE e.company_id = :companyId
+      AND (
+          :statusFilterEnabled = false
+          OR (:status = 0 AND e.emp_type_id IS NULL)
+          OR e.emp_type_id = :status
+      )
 ),
 filtered_company AS (
     SELECT company_id AS c_id FROM company WHERE company_id = :companyId
@@ -94,6 +99,7 @@ unassigned_shifts AS (
     SELECT *
     FROM visible_shifts
     WHERE employee_id IS NULL
+      AND :statusFilterEnabled = false
 ),
 phone_data AS (
     SELECT
