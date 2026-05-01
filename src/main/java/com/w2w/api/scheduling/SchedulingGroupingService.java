@@ -692,8 +692,17 @@ public class SchedulingGroupingService {
             Set<Integer> categoryIds,
             Integer status
     ) {
-        if (positionIds.isEmpty() && categoryIds.isEmpty() && status == null) {
-            return findEmployeeShiftRows(companyId, startDate, endDate);
+        if (status == null) {
+            if (positionIds.isEmpty() && categoryIds.isEmpty()) {
+                return findEmployeeShiftRows(companyId, startDate, endDate);
+            }
+            return schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                    companyId,
+                    startDate.minusDays(1),
+                    endDate,
+                    new ArrayList<>(positionIds),
+                    new ArrayList<>(categoryIds)
+            );
         }
         return schedulingQueryRepository.findAllEmployeeShiftsInRange(
                 companyId,

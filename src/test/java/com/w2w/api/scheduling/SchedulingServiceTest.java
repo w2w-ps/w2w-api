@@ -1996,7 +1996,7 @@ class SchedulingServiceTest {
                 List.of(),
                 0
         )).thenReturn(List.of());
-        when(positionService.getPositionsByCompany(7, "active")).thenReturn(List.of());
+        when(positionService.get("active")).thenReturn(List.of());
 
         DatePositionSummaryResponse datePosition = schedulingService.getShiftsGroupedByDateAndPosition(
                 startDate,
