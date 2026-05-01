@@ -37,10 +37,6 @@ BEGIN
         RAISE EXCEPTION 'Required emp_type or user_roles rows are missing for user setup';
     END IF;
 
-    UPDATE employee
-    SET emp_type_id = COALESCE(emp_type_id, full_time_id)
-    WHERE emp_type_id IS NULL;
-
     INSERT INTO users (
         user_login_id,
         user_login_pw,
