@@ -96,7 +96,7 @@
 
 ## Testing
 - Existing automated coverage is under `src/test/java/com/w2w/api/scheduling`.
-- Run `mvn test` before pushing backend changes.
+- Run `mvn -q test` before pushing backend changes; if quiet-mode tests fail, rerun `mvn test` for full diagnostics.
 - If changing scheduling query shape or grouping logic, update both service tests and repository mapping tests.
 
 ## Change Guidelines
