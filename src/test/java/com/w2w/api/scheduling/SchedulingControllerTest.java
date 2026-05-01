@@ -45,6 +45,39 @@ class SchedulingControllerTest {
     private JwtUtil jwtUtil;
 
     @Test
+    void getShiftColors_returnsPalette() throws Exception {
+        when(schedulingService.getShiftColors()).thenReturn(List.of(
+                new ShiftColorResponse((short) 0, "black"),
+                new ShiftColorResponse((short) 1, "brown"),
+                new ShiftColorResponse((short) 2, "blue"),
+                new ShiftColorResponse((short) 3, "fuchsia"),
+                new ShiftColorResponse((short) 4, "gray"),
+                new ShiftColorResponse((short) 5, "green"),
+                new ShiftColorResponse((short) 6, "navy"),
+                new ShiftColorResponse((short) 7, "orange"),
+                new ShiftColorResponse((short) 8, "purple"),
+                new ShiftColorResponse((short) 9, "red"),
+                new ShiftColorResponse((short) 10, "turquoise"),
+                new ShiftColorResponse((short) 11, "lavender"),
+                new ShiftColorResponse((short) 12, "lime"),
+                new ShiftColorResponse((short) 13, "salmon"),
+                new ShiftColorResponse((short) 14, "gold"),
+                new ShiftColorResponse((short) 15, "aqua"),
+                new ShiftColorResponse((short) 16, "maroon")
+        ));
+
+        mockMvc.perform(get("/api/scheduling/shift-colors"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(17)))
+                .andExpect(jsonPath("$[0].id").value(0))
+                .andExpect(jsonPath("$[0].color").value("black"))
+                .andExpect(jsonPath("$[1].id").value(1))
+                .andExpect(jsonPath("$[1].color").value("brown"))
+                .andExpect(jsonPath("$[16].id").value(16))
+                .andExpect(jsonPath("$[16].color").value("maroon"));
+    }
+
+    @Test
     void getShift_returnsShiftDetails() throws Exception {
         when(schedulingService.getShift(9001)).thenReturn(createShiftResponse());
 
@@ -58,7 +91,7 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.endTime").value("5:00PM"))
                 .andExpect(jsonPath("$.position").value("Bartender"))
                 .andExpect(jsonPath("$.category").value("FRT"))
-                .andExpect(jsonPath("$.color").value("amber"));
+                .andExpect(jsonPath("$.color").value(1));
 
         verify(schedulingService).getShift(9001);
     }
@@ -76,7 +109,7 @@ class SchedulingControllerTest {
                   "duration": 8.0,
                   "position": 12,
                   "category": 4,
-                  "color": "amber"
+                  "color": 1
                 }
                 """;
 
@@ -86,7 +119,7 @@ class SchedulingControllerTest {
                 .andExpect(status().isCreated());
 
         verify(schedulingService).saveShift(101, "Opening shift", LocalDate.of(2026, 3, 25),
-                LocalTime.of(9, 0), LocalTime.of(17, 0), 8.0f, 12, 4, "amber");
+                LocalTime.of(9, 0), LocalTime.of(17, 0), 8.0f, 12, 4, (short) 1);
     }
 
     @Test
@@ -103,7 +136,7 @@ class SchedulingControllerTest {
                 false,
                 "Bartender",
                 "FRT",
-                "amber"
+                (short) 1
         );
 
         when(schedulingService.updateShift(
@@ -111,7 +144,7 @@ class SchedulingControllerTest {
                 argThat(value -> value.shiftId().equals(9001)
                         && value.employeeId().equals(101)
                         && value.position().equals(12)
-                        && value.color().equals("amber"))))
+                        && value.color().equals((short) 1))))
                 .thenReturn(response);
 
         String request = """
@@ -123,7 +156,7 @@ class SchedulingControllerTest {
                   "endTime": "6:00PM",
                   "position": 12,
                   "category": 4,
-                  "color": "amber",
+                  "color": 1,
                   "date": "2026-03-25",
                   "duration": 8.0
                 }
@@ -139,7 +172,7 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.category").value("FRT"))
                 .andExpect(jsonPath("$.startTime").value("10:00AM"))
                 .andExpect(jsonPath("$.endTime").value("6:00PM"))
-                .andExpect(jsonPath("$.color").value("amber"));
+                .andExpect(jsonPath("$.color").value(1));
     }
 
     @Test
@@ -267,7 +300,7 @@ class SchedulingControllerTest {
                                                                 "FRT",
                                                                 "Opening shift",
                                                                 8.0f,
-                                                                "amber"
+                                                                "brown"
                                                         )
                                                 )),
                                                 1,
@@ -367,7 +400,7 @@ class SchedulingControllerTest {
                                                 "Front",
                                                 "Opening shift",
                                                 8.0f,
-                                                "amber"
+                                                "brown"
                                         ))
                                 )),
                                 List.of()
@@ -587,7 +620,7 @@ class SchedulingControllerTest {
                     "endTime": "6:00PM",
                     "position": 12,
                     "category": 4,
-                    "color": "amber",
+                    "color": 1,
                     "date": "2026-03-25",
                     "duration": 8.0
                   }
@@ -635,7 +668,7 @@ class SchedulingControllerTest {
                 false,
                 "Bartender",
                 "FRT",
-                "amber"
+                (short) 1
         );
 
         when(schedulingService.updateShift(
@@ -648,7 +681,7 @@ class SchedulingControllerTest {
                                 && request.endTime().equals(LocalTime.of(18, 0))
                                 && request.position().equals(2)
                                 && request.category().equals(4)
-                                && request.color().equals("amber")
+                                && request.color().equals((short) 1)
                 )
         )).thenReturn(response);
 
@@ -662,7 +695,7 @@ class SchedulingControllerTest {
                   "endTime": "6:00PM",
                   "position": 2,
                   "category": 4,
-                  "color": "amber"
+                  "color": 1
                 }
                 """;
 
@@ -676,7 +709,7 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.category", is("FRT")))
                 .andExpect(jsonPath("$.startTime", is("10:00AM")))
                 .andExpect(jsonPath("$.endTime", is("6:00PM")))
-                .andExpect(jsonPath("$.color", is("amber")));
+                .andExpect(jsonPath("$.color", is(1)));
     }
 
     @Test
@@ -732,7 +765,7 @@ class SchedulingControllerTest {
                 false,
                 "Bartender",
                 "FRT",
-                "amber"
+                (short) 1
         );
     }
 
@@ -749,7 +782,7 @@ class SchedulingControllerTest {
         shift.setIsOvernight(false);
         shift.setRequiredPositionId(12);
         shift.setCategoryId(4);
-        shift.setColor("amber");
+        shift.setColor((short) 1);
         shift.setIsDeleted(false);
         shift.setChangedBy(101);
         return shift;
@@ -773,7 +806,7 @@ class SchedulingControllerTest {
                 "Opening shift",
                 8.0f,
                 2,
-                "amber"
+                "brown"
         ));
         employee.setTotalHours(new BigDecimal("8.00"));
         employee.setShiftCount(1);

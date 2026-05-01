@@ -66,14 +66,14 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getPositionId());
         assignEmployeeSkill(EMPLOYEE_A_ID, server.getPositionId());
         Schedule companyASchedule = createSchedule(COMPANY_A_ID, SHIFT_DATE);
-        createShift(EMPLOYEE_A_ID, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), "amber");
+        createShift(EMPLOYEE_A_ID, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), (short) 1);
 
         TenantContext.setCurrentTenant(COMPANY_B_ID);
         createEmployee(EMPLOYEE_B_ID, COMPANY_B_ID, "Ben", "Miles", List.of("999-000"));
         Position houseman = createPosition(COMPANY_B_ID, "Houseman");
         assignEmployeeSkill(EMPLOYEE_B_ID, houseman.getPositionId());
         Schedule companyBSchedule = createSchedule(COMPANY_B_ID, SHIFT_DATE);
-        createShift(EMPLOYEE_B_ID, COMPANY_B_ID, companyBSchedule.getScheduleId(), houseman.getPositionId(), "green");
+        createShift(EMPLOYEE_B_ID, COMPANY_B_ID, companyBSchedule.getScheduleId(), houseman.getPositionId(), (short) 0);
 
         TenantContext.setCurrentTenant(COMPANY_A_ID);
         List<EmployeeShiftProjection> rows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
@@ -94,7 +94,7 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         assertEquals(LocalTime.of(17, 0), row.getEndTime());
         assertEquals("Bartender", row.getPosition());
         assertEquals("Opening shift", row.getDescription());
-        assertEquals("amber", row.getColor());
+        assertEquals((short) 1, row.getColor());
         assertEquals(null, row.getEmploymentType());
     }
 
@@ -107,7 +107,7 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         Position bartender = createPosition(COMPANY_A_ID, "Bartender");
         assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getPositionId());
         Schedule companyASchedule = createSchedule(COMPANY_A_ID, SHIFT_DATE);
-        createShift(EMPLOYEE_A_ID, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), "amber");
+        createShift(EMPLOYEE_A_ID, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), (short) 1);
         createUserLogin("employee.701101", COMPANY_A_ID, EMPLOYEE_A_ID, "Employee");
         createUserLogin("manager.701101", COMPANY_A_ID, EMPLOYEE_A_ID, "Manager");
 
@@ -142,7 +142,7 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
                 companyASchedule.getScheduleId(),
                 bartender.getPositionId(),
                 frontCategoryId,
-                "amber"
+                (short) 1
         );
         createShift(
                 EMPLOYEE_A_ID + 1,
@@ -150,7 +150,7 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
                 companyASchedule.getScheduleId(),
                 server.getPositionId(),
                 floorCategoryId,
-                "blue"
+                (short) 2
         );
 
         List<EmployeeShiftProjection> rows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
@@ -166,7 +166,7 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         assertEquals(bartender.getPositionId(), rows.getFirst().getPositionId());
         assertEquals(frontCategoryId, rows.getFirst().getCategoryId());
         assertEquals("FRT", rows.getFirst().getCategoryShortDescription());
-        assertEquals("amber", rows.getFirst().getColor());
+        assertEquals((short) 1, rows.getFirst().getColor());
     }
 
     private void assignEmployeeSkill(Integer employeeId, Integer skillId) {
@@ -294,7 +294,7 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
             Integer companyId,
             Integer scheduleId,
             Integer positionId,
-            String color
+            Short color
     ) {
         createShift(employeeId, companyId, scheduleId, positionId, null, color);
     }
@@ -305,7 +305,7 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
             Integer scheduleId,
             Integer positionId,
             Integer categoryId,
-            String color
+            Short color
     ) {
         Shift shift = new Shift();
         shift.setEmployeeId(employeeId);

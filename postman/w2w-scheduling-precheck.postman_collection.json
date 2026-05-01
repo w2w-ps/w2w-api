@@ -45,7 +45,7 @@
     },
     {
       "key": "color",
-      "value": "amber"
+      "value": "1"
     }
   ],
   "auth": {
@@ -133,7 +133,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Pre-check no conflict shift\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"1:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"{{color}}\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Pre-check no conflict shift\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"1:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": {{color}},\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -174,7 +174,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps an existing scheduled shift\",\n    \"startTime\": \"10:00AM\",\n    \"endTime\": \"2:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"red\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps an existing scheduled shift\",\n    \"startTime\": \"10:00AM\",\n    \"endTime\": \"2:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -215,7 +215,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"UPDATE\",\n  \"shift\": {\n    \"shiftId\": {{shiftId}},\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Update current shift without self-conflict\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"{{color}}\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"UPDATE\",\n  \"shift\": {\n    \"shiftId\": {{shiftId}},\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Update current shift without self-conflict\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": {{color}},\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -256,7 +256,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds daily scheduled hours\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"orange\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds daily scheduled hours\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -297,7 +297,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds daily shift count\",\n    \"startTime\": \"6:00PM\",\n    \"endTime\": \"10:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"purple\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds daily shift count\",\n    \"startTime\": \"6:00PM\",\n    \"endTime\": \"10:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -338,7 +338,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds weekly limits\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"blue\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds weekly limits\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 2,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -379,7 +379,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps cannot-work or dislike preference\",\n    \"startTime\": \"10:00AM\",\n    \"endTime\": \"10:30AM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"teal\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 0.5\n  }\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps cannot-work or dislike preference\",\n    \"startTime\": \"10:00AM\",\n    \"endTime\": \"10:30AM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 0.5\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -420,7 +420,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps approved or pending time off\",\n    \"startTime\": \"12:00PM\",\n    \"endTime\": \"4:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"pink\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps approved or pending time off\",\n    \"startTime\": \"12:00PM\",\n    \"endTime\": \"4:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -461,7 +461,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overnight shift spanning validation windows\",\n    \"startTime\": \"10:00PM\",\n    \"endTime\": \"2:00AM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"charcoal\",\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overnight shift spanning validation windows\",\n    \"startTime\": \"10:00PM\",\n    \"endTime\": \"2:00AM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 3,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -502,7 +502,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"REASSIGN\",\n  \"shift\": {\n    \"shiftId\": {{shiftId}},\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Reassign pre-check for target employee\",\n    \"startTime\": \"2:00PM\",\n    \"endTime\": \"6:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": \"green\",\n    \"date\": \"{{nextShiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"REASSIGN\",\n  \"shift\": {\n    \"shiftId\": {{shiftId}},\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Reassign pre-check for target employee\",\n    \"startTime\": \"2:00PM\",\n    \"endTime\": \"6:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{nextShiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"

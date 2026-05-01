@@ -45,7 +45,7 @@ public class Shift {
     private Integer categoryId;
 
     @Column(name = "color")
-    private String color;
+    private Short color;
 
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
@@ -145,11 +145,11 @@ public class Shift {
         this.categoryId = categoryId;
     }
 
-    public String getColor() {
+    public Short getColor() {
         return color;
     }
 
-    public void setColor(String color) {
+    public void setColor(Short color) {
         this.color = color;
     }
 

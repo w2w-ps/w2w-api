@@ -15,6 +15,6 @@ public record CreateShiftRequest(
         Float duration,
         @NotNull Integer position,
         Integer category,
-        String color
+        Short color
 ) {
 }

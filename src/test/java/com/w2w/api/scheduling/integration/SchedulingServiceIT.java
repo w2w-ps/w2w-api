@@ -91,7 +91,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 null,
                 position.getPositionId(),
                 null,
-                "amber"
+                (short) 1
         );
 
         assertNotNull(savedShift.getShiftId());
@@ -111,7 +111,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         assertEquals(LocalTime.of(9, 0), shiftResponse.startTime());
         assertEquals(LocalTime.of(17, 0), shiftResponse.endTime());
         assertEquals("Bartender", shiftResponse.position());
-        assertEquals("amber", shiftResponse.color());
+        assertEquals((short) 1, shiftResponse.color());
 
         TenantContext.setCurrentTenant(COMPANY_B_ID);
 
@@ -141,7 +141,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 null,
                 position.getPositionId(),
                 null,
-                "blue"
+                (short) 2
         );
 
         Schedule schedule = scheduleRepository.findByCompanyIdAndStartDate(COMPANY_A_ID, UPDATED_SHIFT_DATE)
@@ -174,7 +174,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 null,
                 originalPosition.getPositionId(),
                 originalCategory.getCategoryId(),
-                "amber"
+                (short) 1
         );
 
         ShiftResponse updatedShift = schedulingService.updateShift(
@@ -187,7 +187,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                         LocalTime.of(18, 0),
                         updatedPosition.getPositionId(),
                         updatedCategory.getCategoryId(),
-                        "blue",
+                        (short) 2,
                         UPDATED_SHIFT_DATE,
                         8.0f
                 )
@@ -199,7 +199,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         assertEquals(LocalTime.of(18, 0), updatedShift.endTime());
         assertEquals("Server", updatedShift.position());
         assertEquals("BCK", updatedShift.category());
-        assertEquals("blue", updatedShift.color());
+        assertEquals((short) 2, updatedShift.color());
 
         Shift persistedShift = shiftRepository.findByShiftIdAndCompanyId(savedShift.getShiftId(), COMPANY_A_ID)
                 .orElseThrow();
@@ -225,7 +225,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 null,
                 position.getPositionId(),
                 null,
-                "amber"
+                (short) 1
         );
 
         TenantContext.setCurrentTenant(COMPANY_B_ID);
@@ -239,7 +239,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 LocalTime.of(19, 0),
                 null,
                 null,
-                "red",
+                (short) 0,
                 UPDATED_SHIFT_DATE,
                 8.0f
         );
@@ -274,7 +274,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 null,
                 position.getPositionId(),
                 null,
-                "amber"
+                (short) 1
         );
 
         schedulingService.softDeleteShift(savedShift.getShiftId());
@@ -316,7 +316,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 null,
                 bartender.getPositionId(),
                 category.getCategoryId(),
-                "purple"
+                (short) 0
         );
 
         List<EmployeeSchedule> schedules = schedulingService.getEmployeeShiftsGroupedInRange(
@@ -366,7 +366,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 null,
                 position.getPositionId(),
                 null,
-                "amber"
+                (short) 1
         );
 
         GroupedShiftsResponse response = (GroupedShiftsResponse) schedulingService.getShiftsGrouped(
@@ -418,7 +418,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 null,
                 position.getPositionId(),
                 category.getCategoryId(),
-                "amber"
+                (short) 1
         );
         schedulingService.saveShift(
                 null,
@@ -429,7 +429,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
                 null,
                 position.getPositionId(),
                 category.getCategoryId(),
-                "open"
+                (short) 4
         );
 
         List<EmployeeSchedule> employeeSchedules = schedulingService.getEmployeeShiftsGroupedInRange(

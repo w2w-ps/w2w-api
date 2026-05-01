@@ -37,7 +37,7 @@ public class SchedulingService {
             Float duration,
             Integer position,
             Integer category,
-            String color
+            Short color
     ) {
         return shiftCommandService.saveShift(new CreateShiftCommand(
                 employeeId,
@@ -54,6 +54,12 @@ public class SchedulingService {
 
     public ShiftResponse updateShift(Integer shiftId, UpdateShiftRequest request) {
         return shiftCommandService.updateShift(shiftId, request);
+    }
+
+    public List<ShiftColorResponse> getShiftColors() {
+        return ShiftColor.palette().stream()
+                .map(color -> new ShiftColorResponse(color.id(), color.color()))
+                .toList();
     }
 
     public void softDeleteShift(Integer shiftId) {

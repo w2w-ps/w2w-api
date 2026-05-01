@@ -669,7 +669,7 @@ public class SchedulingGroupingService {
                 row.getDescription(),
                 durationHours,
                 row.getSchedulePublished(),
-                row.getColor()
+                ShiftColor.colorForId(row.getColor())
         );
     }
 

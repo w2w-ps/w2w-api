@@ -16,6 +16,6 @@ public record ShiftResponse(
         Boolean isOvernight,
         String position,
         String category,
-        String color
+        Short color
 ) {
 }

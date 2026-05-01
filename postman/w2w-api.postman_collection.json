@@ -900,7 +900,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"employeeId\": 1,\n  \"companyId\": 1,\n  \"date\": \"2026-03-31\",\n  \"description\": \"Opening shift\",\n  \"startTime\": \"9:00AM\",\n  \"endTime\": \"5:00PM\",\n  \"position\": 1,\n  \"category\": 1,\n  \"color\": \"amber\"\n}",
+              "raw": "{\n  \"employeeId\": 1,\n  \"companyId\": 1,\n  \"date\": \"2026-03-31\",\n  \"description\": \"Opening shift\",\n  \"startTime\": \"9:00AM\",\n  \"endTime\": \"5:00PM\",\n  \"position\": 1,\n  \"category\": 1,\n  \"color\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -930,7 +930,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"date\": \"2026-03-31\",\n  \"description\": \"Updated opening shift\",\n  \"startTime\": \"10:00AM\",\n  \"endTime\": \"6:00PM\",\n  \"position\": 1\n}",
+              "raw": "{\n  \"date\": \"2026-03-31\",\n  \"description\": \"Updated opening shift\",\n  \"startTime\": \"10:00AM\",\n  \"endTime\": \"6:00PM\",\n  \"position\": 1,\n  \"color\": 2\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -946,6 +946,19 @@
             "method": "DELETE",
             "header": [],
             "url": "{{baseUrl}}/api/scheduling/shifts/{{shiftId}}"
+          }
+        },
+        {
+          "name": "Get Shift Colors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/scheduling/shift-colors"
           }
         },
         {
