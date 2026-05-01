@@ -26,7 +26,10 @@ public class LoginController {
             String roleName = (user.getRole() != null) ? user.getRole().getName() : "ROLE_USER";
             String token = loginService.generateToken(user.getLoginId(), roleName);
             
-            String empTypeName = (user.getEmpType() != null) ? user.getEmpType().getName() : null;
+            String empTypeName = null;
+            if (user.getEmployee() != null && user.getEmployee().getEmpType() != null) {
+                empTypeName = user.getEmployee().getEmpType().getEffectiveDisplayName();
+            }
             String displayName = (user.getEmployee() != null) ? 
                 user.getEmployee().getFirstName() + " " + user.getEmployee().getLastName() : user.getLoginId();
 

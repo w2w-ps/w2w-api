@@ -15,9 +15,7 @@ UPDATE employee
 SET emp_type_id = 4
 WHERE emp_type_id = 3;
 
-UPDATE users
-SET emp_type_id = 4
-WHERE emp_type_id = 3;
+ALTER TABLE users DROP COLUMN IF EXISTS emp_type_id;
 
 INSERT INTO emp_type (id, name, display_name, sort_order)
 VALUES

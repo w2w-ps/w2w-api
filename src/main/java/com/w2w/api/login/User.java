@@ -31,10 +31,6 @@ public class User {
     private Integer companyId;
 
     @ManyToOne
-    @JoinColumn(name = "emp_type_id")
-    private EmpType empType;
-
-    @ManyToOne
     @JoinColumn(name = "role_id")
     private UserRole role;
 
@@ -63,9 +59,6 @@ public class User {
 
     public Integer getCompanyId() { return companyId; }
     public void setCompanyId(Integer companyId) { this.companyId = companyId; }
-
-    public EmpType getEmpType() { return empType; }
-    public void setEmpType(EmpType empType) { this.empType = empType; }
 
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role; }

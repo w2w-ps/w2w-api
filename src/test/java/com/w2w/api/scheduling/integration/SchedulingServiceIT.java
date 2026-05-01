@@ -399,7 +399,7 @@ class SchedulingServiceIT extends PostgresIntegrationTestBase {
         assignEmployeeSkill(EMPLOYEE_A_ID, position.getPositionId());
 
         Integer partTimeId = jdbcTemplate.queryForObject(
-                "SELECT emp_type_id FROM emp_type WHERE emp_type_name = 'Part Time'",
+                "SELECT id FROM emp_type WHERE id = 2",
                 Integer.class
         );
         jdbcTemplate.update(

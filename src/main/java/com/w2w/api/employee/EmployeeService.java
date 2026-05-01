@@ -115,7 +115,6 @@ public class EmployeeService {
         User user = new User();
         user.setEmployee(saved);
         user.setCompanyId(saved.getCompanyId());
-        user.setEmpType(saved.getEmpType());
 
         // Use email as loginId if available, otherwise employee.id
         String loginId = (saved.getEmail() != null)
