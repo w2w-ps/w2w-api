@@ -228,7 +228,8 @@ BEGIN
                         is_overnight,
                         duration,
                         required_position_id,
-                        category_id
+                        category_id,
+                        color
                     )
                     VALUES (
                         shift_id_value,
@@ -241,7 +242,8 @@ BEGIN
                         is_overnight,
                         current_duration,
                         company_position_ids[floor(random() * array_length(company_position_ids, 1)) + 1],
-                        company_category_ids[floor(random() * array_length(company_category_ids, 1)) + 1]
+                        company_category_ids[floor(random() * array_length(company_category_ids, 1)) + 1],
+                        4
                     );
                     shift_id_value := shift_id_value + 1;
                 END IF;
@@ -274,7 +276,7 @@ BEGIN
                     8.0,
                     company_position_ids[((m - 1) % array_length(company_position_ids, 1)) + 1],
                     company_category_ids[((m - 1) % array_length(company_category_ids, 1)) + 1],
-                    'open'
+                    4
                 );
                 shift_id_value := shift_id_value + 1;
             END LOOP;

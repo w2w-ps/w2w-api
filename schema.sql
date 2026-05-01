@@ -144,7 +144,7 @@ CREATE TABLE scheduled_employee (
   is_overnight BOOLEAN DEFAULT FALSE,
   required_position_id INTEGER REFERENCES position(position_id),
   category_id INTEGER REFERENCES category(category_id),
-  color VARCHAR(255),
+  color SMALLINT,
   is_deleted BOOLEAN DEFAULT FALSE,
   changed_by INTEGER REFERENCES employee(employee_id)
 );
