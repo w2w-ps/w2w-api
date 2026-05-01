@@ -14,6 +14,12 @@ public interface EmployeeShiftProjection {
     default String getEmploymentType() {
         return null;
     }
+    default Integer getEmpTypeId() {
+        return null;
+    }
+    default LocalDate getAlertDate() {
+        return null;
+    }
     List<String> getPhones();
     List<PositionSummary> getAvailablePositions();
     LocalDate getWeekCommencing();

@@ -11,6 +11,7 @@ public record EmployeeScheduledShiftDto(
         String firstName,
         String lastName,
         List<String> phones,
+        Integer empTypeId,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma") LocalTime startTime,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "h:mma") LocalTime endTime,
         String position,

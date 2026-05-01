@@ -9,6 +9,7 @@ public record EmployeeShift(
         String lastName,
         List<String> phones,
         String employmentType,
+        Integer empTypeId,
         String startTime,
         String endTime,
         String category,

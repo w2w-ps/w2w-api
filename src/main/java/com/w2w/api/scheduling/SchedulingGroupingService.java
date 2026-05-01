@@ -54,30 +54,27 @@ public class SchedulingGroupingService {
                 positionFilter,
                 categoryFilter
         );
-        boolean hasFilters = !positionFilter.isEmpty() || !categoryFilter.isEmpty();
         Map<Integer, EmployeeSchedule> grouped = new LinkedHashMap<>();
 
         for (EmployeeShiftProjection row : flatResults) {
-            List<ShiftSegment> segments = buildShiftSegments(row, startDate, endDate);
-            List<ShiftSegment> matchingSegments = segments.stream()
-                    .filter(segment -> matchesFilters(segment, positionFilter, categoryFilter))
-                    .toList();
-
-            if (matchingSegments.isEmpty()) {
-                if (!hasFilters && segments.isEmpty()) {
-                    getOrCreateEmployeeDto(grouped, row, startDate, endDate);
-                }
+            if (!isEligibleEmployeeScheduleRow(row, positionFilter)) {
                 continue;
             }
-
             EmployeeSchedule employeeDto = getOrCreateEmployeeDto(grouped, row, startDate, endDate);
+            List<ShiftSegment> segments = buildShiftSegments(row, startDate, endDate);
             updatePublishedStage(employeeDto, row);
 
-            for (ShiftSegment segment : matchingSegments) {
+            boolean countedShift = false;
+            for (ShiftSegment segment : segments) {
                 addShiftSegment(employeeDto, startDate, segment);
+                if (countsTowardEmployeeTotals(segment, positionFilter, categoryFilter)) {
+                    countedShift = true;
+                    employeeDto.setTotalHours(addHours(employeeDto.getTotalHours(), segment.durationHours()));
+                }
             }
-
-            employeeDto.setShiftCount(employeeDto.getShiftCount() + 1);
+            if (countedShift) {
+                employeeDto.setShiftCount(employeeDto.getShiftCount() + 1);
+            }
         }
 
         return new ArrayList<>(grouped.values());
@@ -143,6 +140,7 @@ public class SchedulingGroupingService {
                     segment.lastName(),
                     segment.phones(),
                     null,
+                    segment.empTypeId(),
                     formatTime(segment.startTime()),
                     formatTime(segment.endTime()),
                     segment.categoryShortDescription(),
@@ -210,6 +208,7 @@ public class SchedulingGroupingService {
                     segment.firstName(),
                     segment.lastName(),
                     segment.phones(),
+                    segment.empTypeId(),
                     segment.startTime(),
                     segment.endTime(),
                     segment.position(),
@@ -320,6 +319,7 @@ public class SchedulingGroupingService {
                     segment.firstName(),
                     segment.lastName(),
                     segment.phones(),
+                    segment.empTypeId(),
                     segment.startTime(),
                     segment.endTime(),
                     segment.position(),
@@ -369,6 +369,7 @@ public class SchedulingGroupingService {
                     segment.firstName(),
                     segment.lastName(),
                     segment.phones(),
+                    segment.empTypeId(),
                     segment.startTime(),
                     segment.endTime(),
                     segment.position(),
@@ -510,6 +511,7 @@ public class SchedulingGroupingService {
                 dto.firstName(),
                 dto.lastName(),
                 dto.phones(),
+                dto.empTypeId(),
                 formatTime(dto.startTime()),
                 formatTime(dto.endTime()),
                 dto.position(),
@@ -561,7 +563,7 @@ public class SchedulingGroupingService {
             LocalDate startDate,
             LocalDate endDate
     ) {
-        return grouped.computeIfAbsent(
+        EmployeeSchedule schedule = grouped.computeIfAbsent(
                 row.getEmployeeId(),
                 id -> new EmployeeSchedule(
                         row.getEmployeeId(),
@@ -572,6 +574,9 @@ public class SchedulingGroupingService {
                         endDate
                 )
         );
+        schedule.setEmpTypeId(row.getEmpTypeId());
+        schedule.setAlertDate(row.getAlertDate() == null ? null : row.getAlertDate().toString());
+        return schedule;
     }
 
     private void addShiftSegment(EmployeeSchedule employeeDto, LocalDate rangeStartDate, ShiftSegment segment) {
@@ -584,9 +589,9 @@ public class SchedulingGroupingService {
                 segment.categoryShortDescription(),
                 segment.description(),
                 segment.durationHours(),
+                segment.empTypeId(),
                 segment.color()
         ));
-        employeeDto.setTotalHours(addHours(employeeDto.getTotalHours(), segment.durationHours()));
     }
 
     private List<ShiftSegment> buildShiftSegments(
@@ -652,6 +657,7 @@ public class SchedulingGroupingService {
                 row.getFirstName(),
                 row.getLastName(),
                 row.getPhones(),
+                row.getEmpTypeId(),
                 date,
                 startTime,
                 endTime,
@@ -962,6 +968,26 @@ public class SchedulingGroupingService {
         return matchesPosition && matchesCategory;
     }
 
+    private boolean countsTowardEmployeeTotals(ShiftSegment segment, Set<Integer> positionIds, Set<Integer> categoryIds) {
+        if (segment.employeeId() == null) {
+            return false;
+        }
+
+        boolean matchesPosition = positionIds.isEmpty() || positionIds.contains(segment.positionId());
+        boolean matchesCategory = categoryIds.isEmpty() || !categoryIds.contains(segment.categoryId());
+        return matchesPosition && matchesCategory;
+    }
+
+    private boolean isEligibleEmployeeScheduleRow(EmployeeShiftProjection row, Set<Integer> positionIds) {
+        if (row.getEmployeeId() == null || positionIds.isEmpty()) {
+            return true;
+        }
+
+        return row.getAvailablePositions().stream()
+                .map(PositionSummary::positionId)
+                .anyMatch(positionIds::contains);
+    }
+
     private String formatTime(LocalTime time) {
         if (time == null) {
             return null;
@@ -1042,6 +1068,7 @@ public class SchedulingGroupingService {
             String firstName,
             String lastName,
             List<String> phones,
+            Integer empTypeId,
             LocalDate date,
             LocalTime startTime,
             LocalTime endTime,

@@ -8,6 +8,7 @@ public record EmployeeScheduledShift(
         String firstName,
         String lastName,
         List<String> phones,
+        Integer empTypeId,
         String startTime,
         String endTime,
         String position,

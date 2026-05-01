@@ -1,5 +1,9 @@
 -- Seed Data (DML)
 
+INSERT INTO emp_type (emp_type_name)
+VALUES ('Full Time'), ('Part Time'), ('Per Diem')
+ON CONFLICT (emp_type_name) DO NOTHING;
+
 -- ============================================================
 -- SECTION 1: Tenant-scoped demo data (tenants 1–6)
 -- app.current_tenant is set per company inside the loop so every insert
@@ -44,7 +48,10 @@ DECLARE
     j INT;
     m INT;
     current_date_value DATE;
-    end_date_value DATE := '2026-04-30'::DATE;
+    end_date_value DATE := '2026-06-15'::DATE;
+    full_time_id INT;
+    part_time_id INT;
+    per_diem_id INT;
 
     employee_ids INT[];
     company_position_ids INT[];
@@ -55,6 +62,10 @@ DECLARE
     end_time_for_shift TIME;
     current_duration FLOAT;
 BEGIN
+    SELECT emp_type_id INTO full_time_id FROM emp_type WHERE emp_type_name = 'Full Time';
+    SELECT emp_type_id INTO part_time_id FROM emp_type WHERE emp_type_name = 'Part Time';
+    SELECT emp_type_id INTO per_diem_id FROM emp_type WHERE emp_type_name = 'Per Diem';
+
     FOR i IN 1..array_length(company_seeds, 1) LOOP
         company_seed := company_seeds[i];
         target_count := (company_seed->>'count')::INT;
@@ -103,7 +114,17 @@ BEGIN
         FOR j IN 1..target_count LOOP
             first_name_value := first_names[floor(random() * array_length(first_names, 1)) + 1];
             last_name_value := last_names[floor(random() * array_length(last_names, 1)) + 1];
-            INSERT INTO employee (employee_id, company_id, first_name, last_name, email, status, hire_date)
+            INSERT INTO employee (
+                employee_id,
+                company_id,
+                first_name,
+                last_name,
+                email,
+                status,
+                hire_date,
+                emp_type_id,
+                next_alert_date
+            )
             VALUES (
                 employee_id_value,
                 company_id_value,
@@ -111,7 +132,18 @@ BEGIN
                 last_name_value,
                 LOWER(first_name_value) || '.' || LOWER(last_name_value) || employee_id_value || '@example.com',
                 'active',
-                NOW()
+                NOW(),
+                CASE j % 4
+                    WHEN 0 THEN full_time_id
+                    WHEN 1 THEN part_time_id
+                    WHEN 2 THEN per_diem_id
+                    ELSE NULL
+                END,
+                CASE
+                    WHEN j % 9 = 0 THEN '2026-04-20'::DATE + (j % 18)
+                    WHEN j % 13 = 0 THEN '2026-05-01'::DATE + (j % 20)
+                    ELSE NULL
+                END
             );
 
             INSERT INTO employee_phone (employee_id, sort_order, phone_number)
@@ -159,7 +191,7 @@ BEGIN
               WHERE ep.employee_id = e.employee_id
           );
 
-        current_date_value := '2026-03-01'::DATE;
+        current_date_value := '2026-04-15'::DATE;
         WHILE current_date_value <= end_date_value LOOP
             INSERT INTO schedule (schedule_id, company_id, description, start_date, day_of_week, is_published, timestamp)
             VALUES (
@@ -213,6 +245,38 @@ BEGIN
                     );
                     shift_id_value := shift_id_value + 1;
                 END IF;
+            END LOOP;
+
+            FOR m IN 1..3 LOOP
+                INSERT INTO scheduled_employee (
+                    shift_id,
+                    employee_id,
+                    schedule_id,
+                    company_id,
+                    description,
+                    start_time,
+                    end_time,
+                    is_overnight,
+                    duration,
+                    required_position_id,
+                    category_id,
+                    color
+                )
+                VALUES (
+                    shift_id_value,
+                    NULL,
+                    schedule_id_value,
+                    company_id_value,
+                    'Open Shift ' || shift_id_value,
+                    '12:00:00'::TIME,
+                    '20:00:00'::TIME,
+                    FALSE,
+                    8.0,
+                    company_position_ids[((m - 1) % array_length(company_position_ids, 1)) + 1],
+                    company_category_ids[((m - 1) % array_length(company_category_ids, 1)) + 1],
+                    'open'
+                );
+                shift_id_value := shift_id_value + 1;
             END LOOP;
 
             current_date_value := current_date_value + 1;

@@ -115,6 +115,8 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                     employeeId,
                     rs.getString("firstName"),
                     rs.getString("lastName"),
+                    getNullableInteger(rs, "empTypeId"),
+                    rs.getObject("alertDate", LocalDate.class),
                     phones,
                     positions,
                     rs.getObject("weekCommencing", LocalDate.class),
@@ -184,6 +186,8 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         private final Integer employeeId;
         private final String firstName;
         private final String lastName;
+        private final Integer empTypeId;
+        private final LocalDate alertDate;
         private final List<String> phones;
         private final List<PositionSummary> availablePositions;
         private final LocalDate weekCommencing;
@@ -205,6 +209,8 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
                 Integer employeeId,
                 String firstName,
                 String lastName,
+                Integer empTypeId,
+                LocalDate alertDate,
                 List<String> phones,
                 List<PositionSummary> availablePositions,
                 LocalDate weekCommencing,
@@ -225,6 +231,8 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
             this.employeeId = employeeId;
             this.firstName = firstName;
             this.lastName = lastName;
+            this.empTypeId = empTypeId;
+            this.alertDate = alertDate;
             this.phones = phones;
             this.availablePositions = availablePositions;
             this.weekCommencing = weekCommencing;
@@ -260,6 +268,16 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
         @Override
         public String getLastName() {
             return lastName;
+        }
+
+        @Override
+        public Integer getEmpTypeId() {
+            return empTypeId;
+        }
+
+        @Override
+        public LocalDate getAlertDate() {
+            return alertDate;
         }
 
         @Override

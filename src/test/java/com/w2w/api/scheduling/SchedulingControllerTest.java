@@ -261,6 +261,7 @@ class SchedulingControllerTest {
                                                                 "Stone",
                                                                 List.of("111-222"),
                                                                 null,
+                                                                2,
                                                                 "9am",
                                                                 "5pm",
                                                                 "FRT",
@@ -359,6 +360,7 @@ class SchedulingControllerTest {
                                                 "Ava",
                                                 "Stone",
                                                 List.of("111-222"),
+                                                2,
                                                 "9am",
                                                 "5pm",
                                                 "Bartender",
@@ -770,6 +772,7 @@ class SchedulingControllerTest {
                 "FRT",
                 "Opening shift",
                 8.0f,
+                2,
                 "amber"
         ));
         employee.setTotalHours(new BigDecimal("8.00"));

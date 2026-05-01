@@ -21,6 +21,7 @@ public class EmployeeSchedule {
     private BigDecimal totalHours;
     private int shiftCount;
     private String employmentType;
+    private Integer empTypeId;
     private String alertDate;
     private String publishedStage;
 
@@ -126,6 +127,14 @@ public class EmployeeSchedule {
 
     public void setEmploymentType(String employmentType) {
         this.employmentType = employmentType;
+    }
+
+    public Integer getEmpTypeId() {
+        return empTypeId;
+    }
+
+    public void setEmpTypeId(Integer empTypeId) {
+        this.empTypeId = empTypeId;
     }
 
     public String getAlertDate() {

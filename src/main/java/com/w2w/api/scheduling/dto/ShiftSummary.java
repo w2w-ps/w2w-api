@@ -8,6 +8,7 @@ public record ShiftSummary(
         String category,
         String description,
         Float duration,
+        Integer empTypeId,
         String color
 ) {
 }
