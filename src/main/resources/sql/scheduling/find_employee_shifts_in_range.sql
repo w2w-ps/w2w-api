@@ -45,9 +45,14 @@ filtered_shifts AS (
     LEFT JOIN position p ON se.required_position_id = p.position_id
     LEFT JOIN category cat ON se.category_id = cat.category_id
     WHERE se.is_deleted = false
+      AND (:positionFilterEnabled = false OR se.required_position_id IN (:positionIds))
+      AND (:categoryFilterEnabled = false OR se.category_id IN (:categoryIds))
 ),
 relevant_employee_ids AS (
-    SELECT employee_id FROM filtered_employees
+    SELECT employee_id
+    FROM filtered_employees
+    WHERE :positionFilterEnabled = false
+      AND :categoryFilterEnabled = false
     UNION
     SELECT employee_id FROM filtered_shifts WHERE employee_id IS NOT NULL
 ),

@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -157,6 +158,25 @@ class CategoryControllerTest {
     }
 
     @Test
+    void createCategory_blankShortDesc_returnsBadRequest() throws Exception {
+        mockMvc.perform(post("/api/categories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "shortDesc": " ",
+                                  "description": "Description",
+                                  "startTime": "09:00",
+                                  "endTime": "17:00",
+                                  "positionId": 12,
+                                  "color": 1
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(categoryService);
+    }
+
+    @Test
     void updateCategory_returnsNoContent() throws Exception {
         mockMvc.perform(put("/api/categories/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -194,6 +214,24 @@ class CategoryControllerTest {
                                 }
                                 """))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void updateCategory_missingShortDesc_returnsBadRequest() throws Exception {
+        mockMvc.perform(put("/api/categories/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "description": "New Description",
+                                  "startTime": "10:00",
+                                  "endTime": "18:00",
+                                  "positionId": 13,
+                                  "color": 2
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(categoryService);
     }
 
     @Test

@@ -11,4 +11,12 @@ public interface SchedulingQueryRepository {
             LocalDate startDate,
             LocalDate endDate
     );
+
+    List<EmployeeShiftProjection> findAllEmployeeShiftsInRange(
+            Integer companyId,
+            LocalDate startDate,
+            LocalDate endDate,
+            List<Integer> positionIds,
+            List<Integer> categoryIds
+    );
 }

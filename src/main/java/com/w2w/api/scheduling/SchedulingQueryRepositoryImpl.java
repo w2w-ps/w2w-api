@@ -48,16 +48,43 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
             LocalDate startDate,
             LocalDate endDate
     ) {
+        return findAllEmployeeShiftsInRange(companyId, startDate, endDate, List.of(), List.of());
+    }
+
+    @Override
+    public List<EmployeeShiftProjection> findAllEmployeeShiftsInRange(
+            Integer companyId,
+            LocalDate startDate,
+            LocalDate endDate,
+            List<Integer> positionIds,
+            List<Integer> categoryIds
+    ) {
+        List<Integer> positionFilter = normalizeFilterIds(positionIds);
+        List<Integer> categoryFilter = normalizeFilterIds(categoryIds);
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("companyId", companyId)
                 .addValue("startDate", startDate)
-                .addValue("endDate", endDate);
+                .addValue("endDate", endDate)
+                .addValue("positionFilterEnabled", !positionFilter.isEmpty())
+                .addValue("categoryFilterEnabled", !categoryFilter.isEmpty())
+                .addValue("positionIds", positionFilter.isEmpty() ? List.of(-1) : positionFilter)
+                .addValue("categoryIds", categoryFilter.isEmpty() ? List.of(-1) : categoryFilter);
 
         return jdbcTemplate.query(
                 findEmployeeShiftsInRangeSql,
                 parameters,
                 new RowMapperImpl()
         );
+    }
+
+    private List<Integer> normalizeFilterIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return ids.stream()
+                .filter(id -> id != null)
+                .distinct()
+                .toList();
     }
 
     private final class RowMapperImpl implements RowMapper<EmployeeShiftProjection> {

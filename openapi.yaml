@@ -212,6 +212,20 @@ paths:
               - category_shift_timings
               - cat_shift_timings
         - in: query
+          name: positionIds
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+        - in: query
+          name: categoryIds
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+        - in: query
           name: startDate
           required: true
           schema:
@@ -1243,7 +1257,11 @@ components:
             type: string
         startTime:
           type: string
+          example: 9am
         endTime:
+          type: string
+          example: 5pm
+        position:
           type: string
         category:
           type: string
@@ -1416,6 +1434,7 @@ components:
         label:
           type: string
           nullable: true
+          example: 9am-5pm
         shiftGroups:
           type: array
           items:
@@ -1569,6 +1588,7 @@ components:
     CreateCategoryRequest:
       type: object
       required:
+        - shortDesc
         - description
       properties:
         shortDesc:
@@ -1586,6 +1606,7 @@ components:
     UpdateCategoryRequest:
       type: object
       required:
+        - shortDesc
         - description
       properties:
         shortDesc:

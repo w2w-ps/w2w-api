@@ -47,13 +47,14 @@ class JwtAuthFilterTest {
 
         when(jwtUtil.isTokenValid("token")).thenReturn(true);
         when(jwtUtil.extractUsername("token")).thenReturn("missing-user");
-        when(loginRepository.findByLoginId("missing-user")).thenReturn(Optional.empty());
+        when(loginRepository.findAuthContextByLoginId("missing-user")).thenReturn(Optional.empty());
 
         jwtAuthFilter.doFilter(request, response, filterChain);
 
         assertEquals(401, response.getStatus());
         assertEquals("Your account is not associated with a company.", response.getErrorMessage());
         verify(filterChain, never()).doFilter(any(), any());
+        verify(loginRepository, never()).findByLoginId(any());
     }
 
     @Test
@@ -62,16 +63,10 @@ class JwtAuthFilterTest {
         MockHttpServletRequest request = requestWithBearerToken();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        User user = new User();
-        user.setLoginId("manager");
-        user.setCompanyId(7);
-        UserRole role = new UserRole();
-        role.setName("Manager");
-        user.setRole(role);
-
         when(jwtUtil.isTokenValid("token")).thenReturn(true);
         when(jwtUtil.extractUsername("token")).thenReturn("manager");
-        when(loginRepository.findByLoginId("manager")).thenReturn(Optional.of(user));
+        when(loginRepository.findAuthContextByLoginId("manager"))
+                .thenReturn(Optional.of(new TestAuthContextProjection(7, "Manager")));
         doAnswer(invocation -> {
             assertEquals(7, TenantContext.getCurrentTenant());
             assertNotNull(SecurityContextHolder.getContext().getAuthentication());
@@ -84,6 +79,7 @@ class JwtAuthFilterTest {
         assertEquals(200, response.getStatus());
         assertEquals(-1, TenantContext.getCurrentTenant());
         verify(filterChain).doFilter(any(), any());
+        verify(loginRepository, never()).findByLoginId(any());
     }
 
     @Test
@@ -92,13 +88,10 @@ class JwtAuthFilterTest {
         MockHttpServletRequest request = requestWithBearerToken();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        User user = new User();
-        user.setLoginId("employee");
-        user.setCompanyId(9);
-
         when(jwtUtil.isTokenValid("token")).thenReturn(true);
         when(jwtUtil.extractUsername("token")).thenReturn("employee");
-        when(loginRepository.findByLoginId("employee")).thenReturn(Optional.of(user));
+        when(loginRepository.findAuthContextByLoginId("employee"))
+                .thenReturn(Optional.of(new TestAuthContextProjection(9, null)));
         doAnswer(invocation -> {
             assertNotNull(SecurityContextHolder.getContext().getAuthentication());
             assertEquals(
@@ -112,11 +105,24 @@ class JwtAuthFilterTest {
 
         assertEquals(200, response.getStatus());
         verify(filterChain).doFilter(any(), any());
+        verify(loginRepository, never()).findByLoginId(any());
     }
 
     private MockHttpServletRequest requestWithBearerToken() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer token");
         return request;
+    }
+
+    private record TestAuthContextProjection(Integer companyId, String roleName) implements AuthContextProjection {
+        @Override
+        public Integer getCompanyId() {
+            return companyId;
+        }
+
+        @Override
+        public String getRoleName() {
+            return roleName;
+        }
     }
 }

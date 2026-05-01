@@ -371,7 +371,7 @@ class SchedulingServiceTest {
                         8.0f,
                         false,
                         "Bartender",
-                        "Front",
+                        "FRT",
                         ""
                 )));
 
@@ -387,7 +387,7 @@ class SchedulingServiceTest {
         assertEquals(8.0f, response.duration());
         assertEquals(false, response.isOvernight());
         assertEquals("Bartender", response.position());
-        assertEquals("Front", response.category());
+        assertEquals("FRT", response.category());
         assertEquals("", response.color());
         verifyNoInteractions(scheduleRepository);
     }
@@ -543,7 +543,13 @@ class SchedulingServiceTest {
         LocalDate endDate = LocalDate.of(2026, 3, 25);
         TenantContext.setCurrentTenant(7);
 
-        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                7,
+                startDate.minusDays(1),
+                endDate,
+                List.of(12),
+                List.of(4)
+        ))
                 .thenReturn(List.of(
                         new TestProjection(
                                 9004,
@@ -852,7 +858,13 @@ class SchedulingServiceTest {
                         new PositionSummary(12, "Bartender"),
                         new PositionSummary(19, "Server")
                 ));
-        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                7,
+                startDate.minusDays(1),
+                endDate,
+                List.of(12),
+                List.of(4)
+        ))
                 .thenReturn(List.of(
                         new TestProjection(
                                 9001,
@@ -1194,8 +1206,209 @@ class SchedulingServiceTest {
         assertEquals(1, result.dates().size());
         assertEquals("Bartender", result.dates().getFirst().shiftGroups().getFirst().label());
         assertEquals(1, result.dates().getFirst().shiftGroups().getFirst().shiftGroups().size());
-        assertEquals("9:00AM-5:00PM", result.dates().getFirst().shiftGroups().getFirst().shiftGroups().getFirst().label());
+        assertEquals("9am-5pm", result.dates().getFirst().shiftGroups().getFirst().shiftGroups().getFirst().label());
         assertEquals(1, result.dates().getFirst().shiftGroups().getFirst().shiftGroups().getFirst().shifts().size());
+        assertEquals(
+                "9am",
+                result.dates().getFirst().shiftGroups().getFirst().shiftGroups().getFirst().shifts().getFirst().startTime()
+        );
+        assertEquals(
+                "5pm",
+                result.dates().getFirst().shiftGroups().getFirst().shiftGroups().getFirst().shifts().getFirst().endTime()
+        );
+        assertEquals(
+                "Bartender",
+                result.dates().getFirst().shiftGroups().getFirst().shiftGroups().getFirst().shifts().getFirst().position()
+        );
+    }
+
+    @Test
+    void getShiftsGrouped_positionShiftTimingsAppliesPositionAndCategoryFilters() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(positionService.get("all"))
+                .thenReturn(List.of(
+                        new PositionSummary(12, "Bartender"),
+                        new PositionSummary(19, "Server")
+                ));
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                7,
+                startDate.minusDays(1),
+                endDate,
+                List.of(12),
+                List.of(4)
+        )).thenReturn(twoFilteredCandidateRows(startDate));
+
+        GroupedShiftsResponse result = schedulingService.getShiftsGrouped(
+                startDate,
+                endDate,
+                ShiftGrouping.POSITION_SHIFT_TIMINGS,
+                List.of(12),
+                List.of(4)
+        );
+
+        List<ShiftGroup> positions = result.dates().getFirst().shiftGroups();
+        assertEquals(1, positions.size());
+        assertEquals("Bartender", positions.getFirst().label());
+        assertEquals(1, positions.getFirst().shiftGroups().size());
+        assertEquals(9001, positions.getFirst().shiftGroups().getFirst().shifts().getFirst().shiftId());
+        assertEquals("Bartender", positions.getFirst().shiftGroups().getFirst().shifts().getFirst().position());
+        assertEquals("FRT", positions.getFirst().shiftGroups().getFirst().shifts().getFirst().category());
+    }
+
+    @Test
+    void getShiftsGrouped_shiftTimingsAppliesPositionAndCategoryFilters() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                7,
+                startDate.minusDays(1),
+                endDate,
+                List.of(12),
+                List.of(4)
+        )).thenReturn(twoFilteredCandidateRows(startDate));
+
+        GroupedShiftsResponse result = schedulingService.getShiftsGrouped(
+                startDate,
+                endDate,
+                ShiftGrouping.SHIFT_TIMINGS,
+                List.of(12),
+                List.of(4)
+        );
+
+        List<ShiftGroup> timingGroups = result.dates().getFirst().shiftGroups();
+        assertEquals(1, timingGroups.size());
+        assertEquals("9am-5pm", timingGroups.getFirst().label());
+        assertEquals(1, timingGroups.getFirst().shifts().size());
+        assertEquals(9001, timingGroups.getFirst().shifts().getFirst().shiftId());
+        assertEquals("9am", timingGroups.getFirst().shifts().getFirst().startTime());
+        assertEquals("5pm", timingGroups.getFirst().shifts().getFirst().endTime());
+        assertEquals("Bartender", timingGroups.getFirst().shifts().getFirst().position());
+        assertEquals("FRT", timingGroups.getFirst().shifts().getFirst().category());
+    }
+
+    @Test
+    void getShiftsGrouped_categoryShiftTimingsAppliesFiltersAndInitializesMatchingCategories() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(categoryService.getCategoriesByCompanyId())
+                .thenReturn(List.of(
+                        new CategorySummary(4, "Front", "FRT"),
+                        new CategorySummary(9, "Floor", "FLR")
+                ));
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                7,
+                startDate.minusDays(1),
+                endDate,
+                List.of(12),
+                List.of(4)
+        )).thenReturn(twoFilteredCandidateRows(startDate));
+
+        GroupedShiftsResponse result = schedulingService.getShiftsGrouped(
+                startDate,
+                endDate,
+                ShiftGrouping.CATEGORY_SHIFT_TIMINGS,
+                List.of(12),
+                List.of(4)
+        );
+
+        List<ShiftGroup> categories = result.dates().getFirst().shiftGroups();
+        assertEquals(1, categories.size());
+        assertEquals("Front", categories.getFirst().label());
+        assertEquals(1, categories.getFirst().shiftGroups().size());
+        assertEquals(9001, categories.getFirst().shiftGroups().getFirst().shifts().getFirst().shiftId());
+        assertEquals("Bartender", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().position());
+        assertEquals("FRT", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().category());
+    }
+
+    @Test
+    void getShiftsGrouped_categoryShiftTimingsDoesNotCreateShortCategoryBucket() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(categoryService.getCategoriesByCompanyId())
+                .thenReturn(List.of(new CategorySummary(4, "Front", "FRT")));
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(7, startDate.minusDays(1), endDate))
+                .thenReturn(List.of(new TestProjection(
+                        9001,
+                        101,
+                        "Ava",
+                        "Stone",
+                        List.of("111-222"),
+                        List.of(new PositionSummary(12, "Bartender")),
+                        startDate,
+                        LocalTime.of(9, 0),
+                        LocalTime.of(17, 0),
+                        false,
+                        12,
+                        "Bartender",
+                        4,
+                        "Front",
+                        "FRT",
+                        "Opening shift",
+                        8.0f,
+                        true,
+                        "amber"
+                )));
+
+        GroupedShiftsResponse result = schedulingService.getShiftsGrouped(
+                startDate,
+                endDate,
+                ShiftGrouping.CATEGORY_SHIFT_TIMINGS
+        );
+
+        List<String> labels = result.dates().getFirst().shiftGroups().stream()
+                .map(ShiftGroup::label)
+                .toList();
+        assertEquals(List.of("Front"), labels);
+        assertFalse(labels.contains("FRT"));
+        assertEquals(
+                "FRT",
+                result.dates().getFirst().shiftGroups().getFirst().shiftGroups().getFirst().shifts().getFirst().category()
+        );
+    }
+
+    @Test
+    void getShiftsGrouped_catShiftTimingsAppliesFiltersAndInitializesMatchingShortCategories() {
+        LocalDate startDate = LocalDate.of(2026, 3, 25);
+        LocalDate endDate = LocalDate.of(2026, 3, 25);
+        TenantContext.setCurrentTenant(7);
+
+        when(categoryService.getCategoriesByCompanyId())
+                .thenReturn(List.of(
+                        new CategorySummary(4, "Front", "FRT"),
+                        new CategorySummary(9, "Floor", "FLR")
+                ));
+        when(schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                7,
+                startDate.minusDays(1),
+                endDate,
+                List.of(12),
+                List.of(4)
+        )).thenReturn(twoFilteredCandidateRows(startDate));
+
+        GroupedShiftsResponse result = schedulingService.getShiftsGrouped(
+                startDate,
+                endDate,
+                ShiftGrouping.CAT_SHIFT_TIMINGS,
+                List.of(12),
+                List.of(4)
+        );
+
+        List<ShiftGroup> categories = result.dates().getFirst().shiftGroups();
+        assertEquals(1, categories.size());
+        assertEquals("FRT", categories.getFirst().label());
+        assertEquals(1, categories.getFirst().shiftGroups().size());
+        assertEquals(9001, categories.getFirst().shiftGroups().getFirst().shifts().getFirst().shiftId());
+        assertEquals("Bartender", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().position());
+        assertEquals("FRT", categories.getFirst().shiftGroups().getFirst().shifts().getFirst().category());
     }
 
     @Test
@@ -1233,7 +1446,7 @@ class SchedulingServiceTest {
         ShiftGroup categoryGroup = result.dates().getFirst().shiftGroups().getFirst();
         assertEquals("FRT", categoryGroup.label());
         assertEquals(1, categoryGroup.shiftGroups().size());
-        assertEquals("9:00AM-5:00PM", categoryGroup.shiftGroups().getFirst().label());
+        assertEquals("9am-5pm", categoryGroup.shiftGroups().getFirst().label());
         assertEquals(1, categoryGroup.shiftGroups().getFirst().shifts().size());
     }
 
@@ -1286,7 +1499,7 @@ class SchedulingServiceTest {
         assertEquals(2, result.size());
         assertEquals(startDate, result.get(0).date());
         assertEquals(1, result.get(0).shiftTimings().size());
-        assertEquals("9:00AM-5:00PM", result.get(0).shiftTimings().getFirst().label());
+        assertEquals("9am-5pm", result.get(0).shiftTimings().getFirst().label());
         assertEquals(2, result.get(0).shiftTimings().getFirst().shifts().size());
         assertTrue(result.get(1).shiftTimings().isEmpty());
     }
@@ -1338,8 +1551,8 @@ class SchedulingServiceTest {
         List<DayShiftTimingBucketDto> result = schedulingService.getShiftsGroupedByDayAndTiming(startDate, endDate);
 
         assertEquals(2, result.getFirst().shiftTimings().size());
-        assertEquals("9:00AM-5:00PM", result.getFirst().shiftTimings().get(0).label());
-        assertEquals("10:00AM-6:00PM", result.getFirst().shiftTimings().get(1).label());
+        assertEquals("9am-5pm", result.getFirst().shiftTimings().get(0).label());
+        assertEquals("10am-6pm", result.getFirst().shiftTimings().get(1).label());
     }
 
     @Test
@@ -1374,6 +1587,53 @@ class SchedulingServiceTest {
         assertEquals(null, unassignedEntry.getEmployeeId());
         assertEquals(1, unassignedEntry.getWeeklyShifts().get(0).shifts().size());
         assertEquals(9005, unassignedEntry.getWeeklyShifts().get(0).shifts().getFirst().shiftId());
+    }
+
+    private List<EmployeeShiftProjection> twoFilteredCandidateRows(LocalDate shiftDate) {
+        return List.of(
+                new TestProjection(
+                        9001,
+                        101,
+                        "Ava",
+                        "Stone",
+                        List.of("111-222"),
+                        List.of(new PositionSummary(12, "Bartender")),
+                        shiftDate,
+                        LocalTime.of(9, 0),
+                        LocalTime.of(17, 0),
+                        false,
+                        12,
+                        "Bartender",
+                        4,
+                        "Front",
+                        "FRT",
+                        "Opening shift",
+                        8.0f,
+                        true,
+                        "amber"
+                ),
+                new TestProjection(
+                        9002,
+                        102,
+                        "Ben",
+                        "Cole",
+                        List.of("333-444"),
+                        List.of(new PositionSummary(19, "Server")),
+                        shiftDate,
+                        LocalTime.of(10, 0),
+                        LocalTime.of(18, 0),
+                        false,
+                        19,
+                        "Server",
+                        9,
+                        "Floor",
+                        "FLR",
+                        "Lunch shift",
+                        8.0f,
+                        false,
+                        "blue"
+                )
+        );
     }
 
     private record TestProjection(

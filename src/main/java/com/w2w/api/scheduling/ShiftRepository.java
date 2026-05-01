@@ -26,7 +26,7 @@ public interface ShiftRepository extends JpaRepository<Shift, Integer> {
                 se.duration AS duration,
                 se.is_overnight AS isOvernight,
                 sk.description AS position,
-                cat.description AS category,
+                cat.short_desc AS category,
                 se.color AS color
             FROM scheduled_employee se
             LEFT JOIN schedule sc ON se.schedule_id = sc.schedule_id
@@ -49,7 +49,7 @@ public interface ShiftRepository extends JpaRepository<Shift, Integer> {
                 se.duration AS duration,
                 se.is_overnight AS isOvernight,
                 sk.description AS position,
-                cat.description AS category,
+                cat.short_desc AS category,
                 se.color AS color
             FROM scheduled_employee se
             LEFT JOIN schedule sc ON se.schedule_id = sc.schedule_id

@@ -122,6 +122,53 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         assertEquals(null, rows.getFirst().getEmploymentType());
     }
 
+    @Test
+    void findAllEmployeeShiftsInRange_appliesPositionAndCategoryFilters() {
+        createCompany(COMPANY_A_ID, "Query Tenant A");
+
+        TenantContext.setCurrentTenant(COMPANY_A_ID);
+        createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of("111-222"));
+        createEmployee(EMPLOYEE_A_ID + 1, COMPANY_A_ID, "Ben", "Miles", List.of("333-444"));
+        Position bartender = createPosition(COMPANY_A_ID, "Bartender");
+        Position server = createPosition(COMPANY_A_ID, "Server");
+        Integer frontCategoryId = createCategory(COMPANY_A_ID, "Front", "FRT");
+        Integer floorCategoryId = createCategory(COMPANY_A_ID, "Floor", "FLR");
+        assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getPositionId());
+        assignEmployeeSkill(EMPLOYEE_A_ID + 1, server.getPositionId());
+        Schedule companyASchedule = createSchedule(COMPANY_A_ID, SHIFT_DATE);
+        createShift(
+                EMPLOYEE_A_ID,
+                COMPANY_A_ID,
+                companyASchedule.getScheduleId(),
+                bartender.getPositionId(),
+                frontCategoryId,
+                "amber"
+        );
+        createShift(
+                EMPLOYEE_A_ID + 1,
+                COMPANY_A_ID,
+                companyASchedule.getScheduleId(),
+                server.getPositionId(),
+                floorCategoryId,
+                "blue"
+        );
+
+        List<EmployeeShiftProjection> rows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                COMPANY_A_ID,
+                SHIFT_DATE,
+                SHIFT_DATE,
+                List.of(bartender.getPositionId()),
+                List.of(frontCategoryId)
+        );
+
+        assertEquals(1, rows.size());
+        assertEquals(EMPLOYEE_A_ID, rows.getFirst().getEmployeeId());
+        assertEquals(bartender.getPositionId(), rows.getFirst().getPositionId());
+        assertEquals(frontCategoryId, rows.getFirst().getCategoryId());
+        assertEquals("FRT", rows.getFirst().getCategoryShortDescription());
+        assertEquals("amber", rows.getFirst().getColor());
+    }
+
     private void assignEmployeeSkill(Integer employeeId, Integer skillId) {
         jdbcTemplate.update(
                 "INSERT INTO employee_position (employee_id, position_id) VALUES (?, ?)",
@@ -223,11 +270,41 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         return scheduleRepository.save(schedule);
     }
 
+    private Integer createCategory(Integer companyId, String description, String shortDescription) {
+        return jdbcTemplate.queryForObject(
+                """
+                INSERT INTO category (
+                    company_id,
+                    short_desc,
+                    description,
+                    is_deleted
+                )
+                VALUES (?, ?, ?, false)
+                RETURNING category_id
+                """,
+                Integer.class,
+                companyId,
+                shortDescription,
+                description
+        );
+    }
+
     private void createShift(
             Integer employeeId,
             Integer companyId,
             Integer scheduleId,
             Integer positionId,
+            String color
+    ) {
+        createShift(employeeId, companyId, scheduleId, positionId, null, color);
+    }
+
+    private void createShift(
+            Integer employeeId,
+            Integer companyId,
+            Integer scheduleId,
+            Integer positionId,
+            Integer categoryId,
             String color
     ) {
         Shift shift = new Shift();
@@ -240,6 +317,7 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
         shift.setDuration(8.0f);
         shift.setIsOvernight(false);
         shift.setRequiredPositionId(positionId);
+        shift.setCategoryId(categoryId);
         shift.setColor(color);
         shift.setIsDeleted(false);
         shift.setChangedBy(employeeId);

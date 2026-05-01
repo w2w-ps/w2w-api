@@ -77,6 +77,16 @@ public class SchedulingService {
         return schedulingGroupingService.getShiftsGrouped(startDate, endDate, grouping);
     }
 
+    public GroupedShiftsResponse getShiftsGrouped(
+            LocalDate startDate,
+            LocalDate endDate,
+            ShiftGrouping grouping,
+            List<Integer> positionIds,
+            List<Integer> categoryIds
+    ) {
+        return schedulingGroupingService.getShiftsGrouped(startDate, endDate, grouping, positionIds, categoryIds);
+    }
+
     public DatePositionSummaryResponse getShiftsGroupedByDateAndPosition(
             LocalDate startDate,
             LocalDate endDate,

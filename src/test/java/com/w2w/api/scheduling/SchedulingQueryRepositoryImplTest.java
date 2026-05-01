@@ -2,6 +2,7 @@ package com.w2w.api.scheduling;
 
 import com.w2w.api.scheduling.dto.EmployeeShiftProjection;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.jdbc.core.RowMapper;
@@ -15,6 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class SchedulingQueryRepositoryImplTest {
@@ -75,6 +77,7 @@ class SchedulingQueryRepositoryImplTest {
         assertEquals("Bartender", result.getFirst().getAvailablePositions().getFirst().description());
         assertEquals(12, result.getFirst().getPositionId());
         assertEquals(4, result.getFirst().getCategoryId());
+        assertEquals("Front", result.getFirst().getCategory());
         assertEquals("FRT", result.getFirst().getCategoryShortDescription());
         assertEquals(true, result.getFirst().getSchedulePublished());
         assertEquals(List.of("111-222", "333-444"), result.getFirst().getPhones());
@@ -111,7 +114,7 @@ class SchedulingQueryRepositoryImplTest {
             when(resultSet.getInt("positionId")).thenReturn(12);
             when(resultSet.getString("position")).thenReturn("Bartender");
             when(resultSet.getInt("categoryId")).thenReturn(0);
-            when(resultSet.getString("category")).thenReturn("Front");
+            when(resultSet.getString("category")).thenReturn("FRT");
             when(resultSet.getString("categoryShortDescription")).thenReturn(null);
             when(resultSet.getString("description")).thenReturn("Opening shift");
             when(resultSet.getFloat("duration")).thenReturn(8.0f);
@@ -133,5 +136,42 @@ class SchedulingQueryRepositoryImplTest {
         assertEquals(null, result.getFirst().getColor());
         assertEquals(0, result.getFirst().getCategoryId());
         assertEquals(false, result.getFirst().getSchedulePublished());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void passesPositionAndCategoryFilterParametersToSql() {
+        NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
+        SchedulingQueryRepositoryImpl repository = new SchedulingQueryRepositoryImpl(
+                jdbcTemplate,
+                new DefaultResourceLoader()
+        );
+
+        when(jdbcTemplate.query(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(MapSqlParameterSource.class),
+                ArgumentMatchers.any(RowMapper.class)
+        )).thenReturn(List.of());
+
+        repository.findAllEmployeeShiftsInRange(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 27),
+                List.of(12, 12, 19),
+                List.of(4)
+        );
+
+        ArgumentCaptor<MapSqlParameterSource> parameters = ArgumentCaptor.forClass(MapSqlParameterSource.class);
+        verify(jdbcTemplate).query(
+                ArgumentMatchers.anyString(),
+                parameters.capture(),
+                ArgumentMatchers.any(RowMapper.class)
+        );
+        MapSqlParameterSource captured = parameters.getValue();
+
+        assertEquals(true, captured.getValue("positionFilterEnabled"));
+        assertEquals(true, captured.getValue("categoryFilterEnabled"));
+        assertEquals(List.of(12, 19), captured.getValue("positionIds"));
+        assertEquals(List.of(4), captured.getValue("categoryIds"));
     }
 }
