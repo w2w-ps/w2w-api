@@ -760,10 +760,6 @@ public class SchedulingGroupingService {
         return grouped;
     }
 
-    private List<String> getCompanyPositionNames(Integer companyId) {
-        return getCompanyPositionNames(companyId, Set.of());
-    }
-
     private List<String> getCompanyPositionNames(Integer companyId, Set<Integer> positionIds) {
         if (companyId == null || companyId == -1) {
             return List.of();
@@ -797,10 +793,7 @@ public class SchedulingGroupingService {
 
         Map<String, String> labels = new LinkedHashMap<>();
         for (CategorySummary category : categoryService.getCategoriesByCompanyId()) {
-            if (category.description() == null) {
-                continue;
-            }
-            if (!categoryIds.isEmpty() && !categoryIds.contains(category.id())) {
+            if (category.description() == null || (!categoryIds.isEmpty() && !categoryIds.contains(category.id()))) {
                 continue;
             }
             labels.put(category.description(), useShortName ? preferredCategoryLabel(category) : category.description());
