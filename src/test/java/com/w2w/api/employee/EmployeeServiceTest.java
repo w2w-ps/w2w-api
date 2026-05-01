@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class EmployeeServiceTest {
@@ -81,7 +82,7 @@ class EmployeeServiceTest {
         managerRole.setName("Manager");
         currentUser.setRole(managerRole);
 
-        when(loginRepository.findByLoginId("main.manager")).thenReturn(Optional.of(currentUser));
+        lenient().when(loginRepository.findByLoginId("main.manager")).thenReturn(Optional.of(currentUser));
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken("main.manager", null, List.of())
         );
@@ -398,6 +399,30 @@ class EmployeeServiceTest {
         assertEquals("Austin", address.getCity());
         assertNull(address.getState());
         assertEquals("78701", address.getZip());
+    }
+
+    @Test
+    void getEmpTypes_returnsEffectiveDisplayNamesInSortOrder() {
+        EmpType first = new EmpType();
+        first.setId(1);
+        first.setName("Purple Diamond");
+        first.setDisplayName("Full Time");
+        first.setSortOrder(1);
+
+        EmpType second = new EmpType();
+        second.setId(3);
+        second.setName("Orange Diamond");
+        second.setSortOrder(4);
+
+        when(empTypeRepository.findAllByOrderBySortOrderAsc()).thenReturn(List.of(first, second));
+
+        var response = employeeService.getEmpTypes();
+
+        assertEquals(2, response.size());
+        assertEquals(1, response.get(0).id());
+        assertEquals("Full Time", response.get(0).displayName());
+        assertEquals(3, response.get(1).id());
+        assertEquals("Orange Diamond", response.get(1).displayName());
     }
 
     private Employee existingEmployee() {

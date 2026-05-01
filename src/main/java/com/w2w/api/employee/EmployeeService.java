@@ -3,6 +3,7 @@ package com.w2w.api.employee;
 import com.w2w.api.config.CurrentTenant;
 import com.w2w.api.config.TenantContext;
 import com.w2w.api.employee.dto.EmployeeDetailResponse;
+import com.w2w.api.employee.dto.EmpTypeResponse;
 import com.w2w.api.employee.dto.EmployeeRequest;
 import com.w2w.api.employee.dto.EmployeeResponse;
 import com.w2w.api.config.exception.ResourceNotFoundException;
@@ -69,6 +70,14 @@ public class EmployeeService {
         return employeeRepository.findByCompanyIdAndIsDeletedFalse(TenantContext.getCurrentTenant())
                 .stream()
                 .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<EmpTypeResponse> getEmpTypes() {
+        return empTypeRepository.findAllByOrderBySortOrderAsc()
+                .stream()
+                .map(empType -> new EmpTypeResponse(empType.getId(), empType.getEffectiveDisplayName()))
                 .toList();
     }
 
