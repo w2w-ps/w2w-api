@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository {
@@ -82,7 +83,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
             return List.of();
         }
         return ids.stream()
-                .filter(id -> id != null)
+                .filter(Objects::nonNull)
                 .distinct()
                 .toList();
     }
