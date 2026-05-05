@@ -33,9 +33,9 @@ public class LoginController {
             String displayName = (user.getEmployee() != null) ? 
                 user.getEmployee().getFirstName() + " " + user.getEmployee().getLastName() : user.getLoginId();
 
-            return ResponseEntity.ok(new LoginResponse(true, "Login successful", token, roleName, empTypeName, displayName, user.getId(), user.getEmployeeId()));
+            return ResponseEntity.ok(new LoginResponse(true, "Login successful", token, roleName, empTypeName, displayName, user.getId(), user.getEmployeeId(), user.getCompanyId()));
         } else {
-            return ResponseEntity.status(401).body(new LoginResponse(false, "Invalid credentials", null, null, null, null, null, null));
+            return ResponseEntity.status(401).body(new LoginResponse(false, "Invalid credentials", null, null, null, null, null, null, null));
         }
     }
 
