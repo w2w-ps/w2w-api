@@ -1494,6 +1494,63 @@
           }
         }
       ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Generate CSV Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Shifts & Hours Worked - By Category Detailed\",\n  \"startDate\": \"2026-04-21\",\n  \"endDate\": \"2026-04-22\",\n  \"categoryFilter\": \"Night & WE\",\n  \"positionsFilter\": \"Bookkeeper\",\n  \"statusFilter\": \"Full Time\",\n  \"data\": [\n    {\n      \"category\": \"Night & WE\",\n      \"employee\": \"Alex Morgan\",\n      \"shifts\": 2,\n      \"hours\": 16.0\n    },\n    {\n      \"category\": \"Night & WE\",\n      \"employee\": \"Sam Smith\",\n      \"shifts\": 1,\n      \"hours\": 8.5\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/reports/csv"
+          }
+        },
+        {
+          "name": "Generate PDF Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Shifts & Hours Worked - By Category Detailed\",\n  \"startDate\": \"2026-04-21\",\n  \"endDate\": \"2026-04-22\",\n  \"categoryFilter\": \"Night & WE\",\n  \"positionsFilter\": \"Bookkeeper\",\n  \"statusFilter\": \"Full Time\",\n  \"data\": [\n    {\n      \"category\": \"Night & WE\",\n      \"employee\": \"Alex Morgan\",\n      \"shifts\": 2,\n      \"hours\": 16.0\n    },\n    {\n      \"category\": \"Night & WE\",\n      \"employee\": \"Sam Smith\",\n      \"shifts\": 1,\n      \"hours\": 8.5\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/reports/pdf"
+          }
+        }
+      ]
     }
   ]
 }
