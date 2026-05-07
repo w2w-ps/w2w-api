@@ -77,6 +77,10 @@ visible_shifts AS (
     SELECT shifts.*
     FROM filtered_shifts shifts
     WHERE shifts.employee_id IS NOT NULL
+      AND (
+          :statusFilterEnabled = false
+          OR shifts.employee_id IN (SELECT employee_id FROM filtered_employees)
+      )
     UNION ALL
     SELECT shifts.*
     FROM filtered_shifts shifts
@@ -93,7 +97,13 @@ relevant_employee_ids AS (
              AND ep.position_id IN (:positionIds)
        )
     UNION
-    SELECT employee_id FROM filtered_shifts WHERE employee_id IS NOT NULL
+    SELECT employee_id
+    FROM filtered_shifts
+    WHERE employee_id IS NOT NULL
+      AND (
+          :statusFilterEnabled = false
+          OR employee_id IN (SELECT employee_id FROM filtered_employees)
+      )
 ),
 unassigned_shifts AS (
     SELECT *

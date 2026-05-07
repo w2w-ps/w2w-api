@@ -96,7 +96,7 @@ public class SchedulingQueryRepositoryImpl implements SchedulingQueryRepository 
     }
 
     private boolean isValidStatus(Integer status) {
-        return status == null || (status >= 0 && status <= 5);
+        return status == null || (status >= 1 && status <= 5);
     }
 
     private List<Integer> normalizeFilterIds(List<Integer> ids) {
