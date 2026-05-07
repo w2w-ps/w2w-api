@@ -161,13 +161,15 @@ CREATE TABLE employee_position (
 
 -- Security/User Tables
 CREATE TABLE emp_type (
-    emp_type_id SERIAL PRIMARY KEY,
-    emp_type_name VARCHAR(100) UNIQUE NOT NULL
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    display_name VARCHAR(100),
+    sort_order INTEGER NOT NULL
 );
 
 ALTER TABLE employee
   ADD CONSTRAINT fk_employee_emp_type
-  FOREIGN KEY (emp_type_id) REFERENCES emp_type(emp_type_id);
+  FOREIGN KEY (emp_type_id) REFERENCES emp_type(id);
 
 CREATE TABLE user_roles (
     role_id SERIAL PRIMARY KEY,
@@ -179,7 +181,6 @@ CREATE TABLE users (
     user_login_id VARCHAR(255) UNIQUE NOT NULL,
     user_login_pw VARCHAR(255) NOT NULL,
     company_id INTEGER REFERENCES company(company_id),
-    emp_type_id INTEGER REFERENCES emp_type(emp_type_id),
     role_id INTEGER REFERENCES user_roles(role_id),
     employee_id INTEGER REFERENCES employee(employee_id),
     encryption_type INTEGER,

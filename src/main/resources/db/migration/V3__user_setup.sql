@@ -1,8 +1,4 @@
 -- User, role, and permission setup
-INSERT INTO emp_type (emp_type_name)
-VALUES ('Full Time'), ('Part Time'), ('Per Diem')
-ON CONFLICT (emp_type_name) DO NOTHING;
-
 INSERT INTO user_roles (role_name)
 VALUES ('Manager'), ('Employee'), ('AddManager')
 ON CONFLICT (role_name) DO NOTHING;
@@ -10,16 +6,11 @@ ON CONFLICT (role_name) DO NOTHING;
 DO $$
 DECLARE
     default_password_hash CONSTANT TEXT := '$2a$12$9B69QSXuEqf6bgZcWbJXMOc0RHlFkwHQ4iInRtrIwiC9nAJSTgdk.';
-    full_time_id INTEGER;
     employee_role_id INTEGER;
     manager_role_id INTEGER;
     add_manager_role_id INTEGER;
 BEGIN
     PERFORM set_config('app.internal_system_lookup', 'true', true);
-
-    SELECT emp_type_id INTO full_time_id
-    FROM emp_type
-    WHERE emp_type_name = 'Full Time';
 
     SELECT role_id INTO employee_role_id
     FROM user_roles
@@ -33,15 +24,14 @@ BEGIN
     FROM user_roles
     WHERE role_name = 'AddManager';
 
-    IF full_time_id IS NULL OR employee_role_id IS NULL OR manager_role_id IS NULL OR add_manager_role_id IS NULL THEN
-        RAISE EXCEPTION 'Required emp_type or user_roles rows are missing for user setup';
+    IF employee_role_id IS NULL OR manager_role_id IS NULL OR add_manager_role_id IS NULL THEN
+        RAISE EXCEPTION 'Required user_roles rows are missing for user setup';
     END IF;
 
     INSERT INTO users (
         user_login_id,
         user_login_pw,
         company_id,
-        emp_type_id,
         role_id,
         employee_id,
         encryption_type,
@@ -51,7 +41,6 @@ BEGIN
         'admin',
         default_password_hash,
         1,
-        full_time_id,
         manager_role_id,
         1,
         0,
@@ -63,7 +52,6 @@ BEGIN
         user_login_id,
         user_login_pw,
         company_id,
-        emp_type_id,
         role_id,
         employee_id,
         encryption_type,
@@ -73,7 +61,6 @@ BEGIN
         format('employee.%s', e.employee_id),
         default_password_hash,
         e.company_id,
-        COALESCE(e.emp_type_id, full_time_id),
         employee_role_id,
         e.employee_id,
         0,
@@ -95,7 +82,6 @@ BEGIN
         user_login_id,
         user_login_pw,
         company_id,
-        emp_type_id,
         role_id,
         employee_id,
         encryption_type,
@@ -126,7 +112,6 @@ BEGIN
         format('manager.%s', cm.employee_id),
         default_password_hash,
         cm.company_id,
-        full_time_id,
         manager_role_id,
         cm.employee_id,
         0,
@@ -148,7 +133,6 @@ BEGIN
         user_login_id,
         user_login_pw,
         company_id,
-        emp_type_id,
         role_id,
         employee_id,
         encryption_type,
@@ -212,7 +196,6 @@ BEGIN
         format('addmanager.%s', ac.employee_id),
         default_password_hash,
         ac.company_id,
-        full_time_id,
         add_manager_role_id,
         ac.employee_id,
         0,
