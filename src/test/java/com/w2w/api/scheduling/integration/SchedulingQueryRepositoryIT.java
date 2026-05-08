@@ -272,6 +272,63 @@ class SchedulingQueryRepositoryIT extends PostgresIntegrationTestBase {
                 frontRows.stream().map(EmployeeShiftProjection::getCategoryId).toList());
     }
 
+    @Test
+    void findAllEmployeeShiftsInRange_appliesStatusFilterAndExcludesOpenShiftsWhenSupplied() {
+        createCompany(COMPANY_A_ID, "Query Tenant A");
+
+        TenantContext.setCurrentTenant(COMPANY_A_ID);
+        createEmployee(EMPLOYEE_A_ID, COMPANY_A_ID, "Ava", "Stone", List.of("111-222"));
+        createEmployee(EMPLOYEE_A_ID + 1, COMPANY_A_ID, "Ben", "Miles", List.of("333-444"));
+        jdbcTemplate.update("UPDATE employee SET emp_type_id = 2 WHERE employee_id = ?", EMPLOYEE_A_ID);
+        jdbcTemplate.update("UPDATE employee SET emp_type_id = 4 WHERE employee_id = ?", EMPLOYEE_A_ID + 1);
+
+        Position bartender = createPosition(COMPANY_A_ID, "Bartender");
+        assignEmployeeSkill(EMPLOYEE_A_ID, bartender.getPositionId());
+        assignEmployeeSkill(EMPLOYEE_A_ID + 1, bartender.getPositionId());
+        Schedule companyASchedule = createSchedule(COMPANY_A_ID, SHIFT_DATE);
+        createShift(EMPLOYEE_A_ID, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), (short) 1);
+        createShift(EMPLOYEE_A_ID + 1, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), (short) 2);
+        createShift(null, COMPANY_A_ID, companyASchedule.getScheduleId(), bartender.getPositionId(), (short) 3);
+
+        List<EmployeeShiftProjection> unfilteredRows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                COMPANY_A_ID,
+                SHIFT_DATE,
+                SHIFT_DATE
+        );
+        List<EmployeeShiftProjection> partTimeRows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                COMPANY_A_ID,
+                SHIFT_DATE,
+                SHIFT_DATE,
+                List.of(),
+                List.of(),
+                2
+        );
+        List<EmployeeShiftProjection> statusZeroRows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                COMPANY_A_ID,
+                SHIFT_DATE,
+                SHIFT_DATE,
+                List.of(),
+                List.of(),
+                0
+        );
+        List<EmployeeShiftProjection> unsupportedStatusRows = schedulingQueryRepository.findAllEmployeeShiftsInRange(
+                COMPANY_A_ID,
+                SHIFT_DATE,
+                SHIFT_DATE,
+                List.of(),
+                List.of(),
+                99
+        );
+
+        assertEquals(3, unfilteredRows.size());
+        assertEquals(1, unfilteredRows.stream().filter(row -> row.getEmployeeId() == null).count());
+        assertEquals(1, partTimeRows.size());
+        assertEquals(EMPLOYEE_A_ID, partTimeRows.getFirst().getEmployeeId());
+        assertEquals(2, partTimeRows.getFirst().getEmpTypeId());
+        assertEquals(List.of(), statusZeroRows);
+        assertEquals(List.of(), unsupportedStatusRows);
+    }
+
     private void assignEmployeeSkill(Integer employeeId, Integer skillId) {
         jdbcTemplate.update(
                 "INSERT INTO employee_position (employee_id, position_id) VALUES (?, ?)",

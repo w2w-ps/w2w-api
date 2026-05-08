@@ -153,7 +153,7 @@ paths:
         - in: query
           name: status
           required: false
-          description: Employment type filter. Omit to ignore employment type and include unassigned/open shifts. Use 0 for employees with no employment type, or 1-5 to match emp_type.id; unsupported values return no shifts.
+          description: Employment type filter. Omit to ignore employment type and include unassigned/open shifts. Only 1-5 match emp_type.id; 0 and unsupported values return no shifts.
           schema:
             type: integer
       responses:
@@ -205,7 +205,7 @@ paths:
         - in: query
           name: status
           required: false
-          description: Employment type filter. Omit to ignore employment type and include unassigned/open shifts. Use 0 for employees with no employment type, or 1-5 to match emp_type.id; unsupported values return no shifts.
+          description: Employment type filter. Omit to ignore employment type and include unassigned/open shifts. Only 1-5 match emp_type.id; 0 and unsupported values return no shifts.
           schema:
             type: integer
       responses:
@@ -252,7 +252,7 @@ paths:
         - in: query
           name: status
           required: false
-          description: Employment type filter. Omit to ignore employment type and include unassigned/open shifts. Use 0 for employees with no employment type, or 1-5 to match emp_type.id; unsupported values return no shifts.
+          description: Employment type filter. Omit to ignore employment type and include unassigned/open shifts. Only 1-5 match emp_type.id; 0 and unsupported values return no shifts.
           schema:
             type: integer
         - in: query

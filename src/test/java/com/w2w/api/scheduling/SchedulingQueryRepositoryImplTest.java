@@ -17,6 +17,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class SchedulingQueryRepositoryImplTest {
@@ -173,5 +174,70 @@ class SchedulingQueryRepositoryImplTest {
         assertEquals(true, captured.getValue("categoryFilterEnabled"));
         assertEquals(List.of(12, 19), captured.getValue("positionIds"));
         assertEquals(List.of(4), captured.getValue("categoryIds"));
+    }
+
+    @Test
+    void passesValidStatusFilterParametersToSql() {
+        NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
+        SchedulingQueryRepositoryImpl repository = new SchedulingQueryRepositoryImpl(
+                jdbcTemplate,
+                new DefaultResourceLoader()
+        );
+
+        when(jdbcTemplate.query(
+                ArgumentMatchers.anyString(),
+                ArgumentMatchers.any(MapSqlParameterSource.class),
+                ArgumentMatchers.any(RowMapper.class)
+        )).thenReturn(List.of());
+
+        repository.findAllEmployeeShiftsInRange(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 27),
+                List.of(),
+                List.of(),
+                5
+        );
+
+        ArgumentCaptor<MapSqlParameterSource> parameters = ArgumentCaptor.forClass(MapSqlParameterSource.class);
+        verify(jdbcTemplate).query(
+                ArgumentMatchers.anyString(),
+                parameters.capture(),
+                ArgumentMatchers.any(RowMapper.class)
+        );
+        MapSqlParameterSource captured = parameters.getValue();
+
+        assertEquals(true, captured.getValue("statusFilterEnabled"));
+        assertEquals(5, captured.getValue("status"));
+    }
+
+    @Test
+    void invalidStatusFiltersReturnEmptyRowsWithoutQueryingSql() {
+        NamedParameterJdbcTemplate jdbcTemplate = mock(NamedParameterJdbcTemplate.class);
+        SchedulingQueryRepositoryImpl repository = new SchedulingQueryRepositoryImpl(
+                jdbcTemplate,
+                new DefaultResourceLoader()
+        );
+
+        List<EmployeeShiftProjection> noTypeRows = repository.findAllEmployeeShiftsInRange(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 27),
+                List.of(),
+                List.of(),
+                0
+        );
+        List<EmployeeShiftProjection> unsupportedRows = repository.findAllEmployeeShiftsInRange(
+                7,
+                LocalDate.of(2026, 3, 25),
+                LocalDate.of(2026, 3, 27),
+                List.of(),
+                List.of(),
+                99
+        );
+
+        assertEquals(List.of(), noTypeRows);
+        assertEquals(List.of(), unsupportedRows);
+        verifyNoInteractions(jdbcTemplate);
     }
 }

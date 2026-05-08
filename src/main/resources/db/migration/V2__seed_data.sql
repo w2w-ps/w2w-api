@@ -1,8 +1,18 @@
 -- Seed Data (DML)
 
-INSERT INTO emp_type (emp_type_name)
-VALUES ('Full Time'), ('Part Time'), ('Per Diem')
-ON CONFLICT (emp_type_name) DO NOTHING;
+INSERT INTO emp_type (id, name, display_name, sort_order)
+VALUES
+    (1, 'Purple Diamond', 'Full Time', 1),
+    (2, 'Blue Diamond', 'Part Time', 2),
+    (3, 'Orange Diamond', NULL, 4),
+    (4, 'Red Diamond', 'Per Diem', 3),
+    (5, 'Green Diamond', NULL, 5)
+ON CONFLICT (id) DO UPDATE
+SET name = EXCLUDED.name,
+    display_name = EXCLUDED.display_name,
+    sort_order = EXCLUDED.sort_order;
+
+SELECT setval(pg_get_serial_sequence('emp_type', 'id'), (SELECT MAX(id) FROM emp_type), true);
 
 -- ============================================================
 -- SECTION 1: Tenant-scoped demo data (tenants 1–6)
@@ -62,9 +72,9 @@ DECLARE
     end_time_for_shift TIME;
     current_duration FLOAT;
 BEGIN
-    SELECT emp_type_id INTO full_time_id FROM emp_type WHERE emp_type_name = 'Full Time';
-    SELECT emp_type_id INTO part_time_id FROM emp_type WHERE emp_type_name = 'Part Time';
-    SELECT emp_type_id INTO per_diem_id FROM emp_type WHERE emp_type_name = 'Per Diem';
+    SELECT id INTO full_time_id FROM emp_type WHERE id = 1;
+    SELECT id INTO part_time_id FROM emp_type WHERE id = 2;
+    SELECT id INTO per_diem_id FROM emp_type WHERE id = 4;
 
     FOR i IN 1..array_length(company_seeds, 1) LOOP
         company_seed := company_seeds[i];
@@ -243,7 +253,10 @@ BEGIN
                         current_duration,
                         company_position_ids[floor(random() * array_length(company_position_ids, 1)) + 1],
                         company_category_ids[floor(random() * array_length(company_category_ids, 1)) + 1],
-                        4
+                        CASE
+                            WHEN random() < 0.85 THEN NULL
+                            ELSE floor(random() * 17)::SMALLINT
+                        END
                     );
                     shift_id_value := shift_id_value + 1;
                 END IF;
@@ -276,7 +289,10 @@ BEGIN
                     8.0,
                     company_position_ids[((m - 1) % array_length(company_position_ids, 1)) + 1],
                     company_category_ids[((m - 1) % array_length(company_category_ids, 1)) + 1],
-                    4
+                    CASE
+                        WHEN random() < 0.85 THEN NULL
+                        ELSE floor(random() * 17)::SMALLINT
+                    END
                 );
                 shift_id_value := shift_id_value + 1;
             END LOOP;
