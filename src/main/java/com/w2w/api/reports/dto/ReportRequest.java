@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 public record ReportRequest(
-    String title,
-    LocalDate startDate,
-    LocalDate endDate,
-    String categoryFilter,
-    String positionsFilter,
-    String statusFilter,
-    List<Map<String, Object>> data
-) {}
+        String title,
+        LocalDate startDate,
+        LocalDate endDate,
+        String categoryFilter,
+        String positionsFilter,
+        String statusFilter,
+        List<Map<String, Object>> data) {
+}

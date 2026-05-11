@@ -1,267 +1,192 @@
 package com.w2w.api.reports;
 
-import com.lowagie.text.Document;
-import com.lowagie.text.Element;
-import com.lowagie.text.Font;
-import com.lowagie.text.Image;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.Phrase;
-import com.lowagie.text.pdf.PdfPCell;
-import com.lowagie.text.pdf.PdfPTable;
-import com.lowagie.text.pdf.PdfWriter;
-import com.opencsv.CSVWriter;
-import com.w2w.api.config.TenantContext;
-import com.w2w.api.reports.dto.ReportRequest;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRMapCollectionDataSource;
+import net.sf.jasperreports.engine.design.*;
+import net.sf.jasperreports.engine.export.JRCsvExporter;
+import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
+import net.sf.jasperreports.engine.type.ModeEnum;
+import net.sf.jasperreports.export.SimpleExporterInput;
+import net.sf.jasperreports.export.SimpleWriterExporterOutput;
+import com.w2w.api.config.CurrentTenant;
 import com.w2w.api.tenant.Company;
+import com.w2w.api.reports.dto.ReportRequest;
 import com.w2w.api.tenant.TenantService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 @Service
 public class ReportService {
 
-    @Autowired
-    private TenantService tenantService;
+    private final TenantService tenantService;
 
+    public ReportService(TenantService tenantService) {
+        this.tenantService = tenantService;
+    }
+
+    @Transactional(readOnly = true)
     public byte[] generateCsv(ReportRequest request) throws IOException {
         if (request.data() == null || request.data().isEmpty()) {
             return new byte[0];
         }
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try (CSVWriter writer = new CSVWriter(new OutputStreamWriter(out))) {
-            List<Map<String, Object>> data = request.data();
-            String[] headers = data.get(0).keySet().toArray(new String[0]);
-            writer.writeNext(headers);
-
-            Map<String, BigDecimal> totals = new HashMap<>();
-            Set<String> numericColumns = new java.util.HashSet<>();
-
-            for (Map<String, Object> item : data) {
-                String[] row = new String[headers.length];
-                for (int i = 0; i < headers.length; i++) {
-                    Object val = item.get(headers[i]);
-                    row[i] = val != null ? val.toString() : "";
-                    
-                    if (val instanceof Number num) {
-                        numericColumns.add(headers[i]);
-                        BigDecimal current = totals.getOrDefault(headers[i], BigDecimal.ZERO);
-                        totals.put(headers[i], current.add(new BigDecimal(num.toString())));
-                    }
-                }
-                writer.writeNext(row);
-            }
-
-            if (!totals.isEmpty()) {
-                String[] totalsRow = new String[headers.length];
-                int firstNumericIdx = -1;
-                for (int i = 0; i < headers.length; i++) {
-                    if (numericColumns.contains(headers[i])) {
-                        if (firstNumericIdx == -1) firstNumericIdx = i;
-                        totalsRow[i] = String.format("%.2f", totals.get(headers[i]));
-                    } else {
-                        totalsRow[i] = "";
-                    }
-                }
-                if (firstNumericIdx > 0) {
-                    totalsRow[firstNumericIdx - 1] = "Totals";
-                }
-                writer.writeNext(totalsRow);
-            }
+        try {
+            JasperPrint jasperPrint = createJasperPrint(request);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            JRCsvExporter exporter = new JRCsvExporter();
+            exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+            exporter.setExporterOutput(new SimpleWriterExporterOutput(baos));
+            exporter.exportReport();
+            return baos.toByteArray();
+        } catch (JRException e) {
+            throw new IOException("Error generating CSV report", e);
         }
-        return out.toByteArray();
     }
 
+    @Transactional(readOnly = true)
     public byte[] generatePdf(ReportRequest request) {
-        Company company = tenantService.getCompanyById(TenantContext.getCurrentTenant())
+        try {
+            JasperPrint jasperPrint = createJasperPrint(request);
+            return JasperExportManager.exportReportToPdf(jasperPrint);
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating PDF report", e);
+        }
+    }
+
+    private JasperPrint createJasperPrint(ReportRequest request) throws JRException {
+        List<Map<String, Object>> data = request.data();
+        if (data == null || data.isEmpty()) {
+            throw new RuntimeException("No data to report");
+        }
+
+        Company company = tenantService.getCompanyById(CurrentTenant.requireCurrentTenant())
                 .orElseThrow(() -> new RuntimeException("Company not found"));
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Document document = new Document(PageSize.A4);
-        PdfWriter.getInstance(document, out);
-        document.open();
+        JasperDesign design = new JasperDesign();
+        design.setName(request.title());
+        design.setPageWidth(595); // A4
+        design.setPageHeight(842);
+        design.setColumnWidth(555);
+        design.setLeftMargin(20);
+        design.setRightMargin(20);
+        design.setTopMargin(20);
+        design.setBottomMargin(20);
 
-        // Fonts
-        Font smallFont = new Font(Font.HELVETICA, 8);
-        Font normalFont = new Font(Font.HELVETICA, 10);
-        Font boldFont = new Font(Font.HELVETICA, 10, Font.BOLD);
-        Font companyFont = new Font(Font.HELVETICA, 16, Font.BOLD);
-        Font titleFont = new Font(Font.HELVETICA, 14, Font.BOLD);
-        Font rangeFont = new Font(Font.HELVETICA, 14, Font.BOLD);
-        Font filterFont = new Font(Font.HELVETICA, 11);
-
-        // Header Top Row
-        PdfPTable headerTable = new PdfPTable(3);
-        headerTable.setWidthPercentage(100);
-        try {
-            headerTable.setWidths(new float[]{1, 2, 1});
-        } catch (Exception e) {}
-
-        String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("M/d/yy, h:mm a", Locale.ENGLISH));
-        PdfPCell leftCell = new PdfPCell(new Phrase(now, smallFont));
-        leftCell.setBorder(PdfPCell.NO_BORDER);
-        headerTable.addCell(leftCell);
-
-        PdfPCell centerHeaderCell = new PdfPCell(new Phrase("WhenToWork.com - Published Schedule", smallFont));
-        centerHeaderCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        centerHeaderCell.setBorder(PdfPCell.NO_BORDER);
-        headerTable.addCell(centerHeaderCell);
-
-        PdfPCell rightCell = new PdfPCell(new Phrase("", smallFont));
-        rightCell.setBorder(PdfPCell.NO_BORDER);
-        rightCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        headerTable.addCell(rightCell);
-
-        document.add(headerTable);
-
-        // Title Section
-        PdfPTable titleTable = new PdfPTable(3);
-        titleTable.setWidthPercentage(100);
-        try { titleTable.setWidths(new float[]{1, 3, 1}); } catch (Exception e) {}
-
-        // Logo
-        try {
-            Image logo = Image.getInstance(new URL("https://whentowork.com/images_sales/w2w_logo_circle_und.png"));
-            logo.scaleToFit(80, 80);
-            PdfPCell logoCell = new PdfPCell(logo);
-            logoCell.setBorder(PdfPCell.NO_BORDER);
-            logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-            titleTable.addCell(logoCell);
-        } catch (Exception e) {
-            titleTable.addCell(createNoBorderCell("", companyFont)); // Fallback
+        // Fields Definition (Dynamic)
+        String[] headers = data.get(0).keySet().toArray(new String[0]);
+        for (String header : headers) {
+            JRDesignField field = new JRDesignField();
+            field.setName(header);
+            field.setValueClass(Object.class);
+            design.addField(field);
         }
 
-        PdfPCell centerTextCell = new PdfPCell();
-        centerTextCell.setBorder(PdfPCell.NO_BORDER);
-        centerTextCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        
-        centerTextCell.addElement(createCenteredPara(company.getCompanyName(), companyFont, 0));
-        centerTextCell.addElement(createCenteredPara(request.title(), titleFont, 5));
-        
-        DateTimeFormatter rangeFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH);
-        String rangeText = request.startDate().format(rangeFormatter) + " - " + request.endDate().format(rangeFormatter);
-        centerTextCell.addElement(createCenteredPara(rangeText, rangeFont, 5));
-        titleTable.addCell(centerTextCell);
+        // Title Band
+        JRDesignBand titleBand = new JRDesignBand();
+        titleBand.setHeight(100);
 
-        String todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH));
-        PdfPCell rightDateCell = new PdfPCell(new Phrase(todayStr, normalFont));
-        rightDateCell.setBorder(PdfPCell.NO_BORDER);
-        rightDateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        rightDateCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        titleTable.addCell(rightDateCell);
+        JRDesignStaticText titleText = new JRDesignStaticText();
+        titleText.setX(0);
+        titleText.setY(0);
+        titleText.setWidth(555);
+        titleText.setHeight(30);
+        titleText.setText(company.getCompanyName());
+        titleText.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        titleText.setFontSize(18f);
+        titleText.setBold(true);
+        titleBand.addElement(titleText);
 
-        titleTable.setSpacingBefore(10);
-        document.add(titleTable);
+        JRDesignStaticText subTitleText = new JRDesignStaticText();
+        subTitleText.setX(0);
+        subTitleText.setY(30);
+        subTitleText.setWidth(555);
+        subTitleText.setHeight(20);
+        subTitleText.setText(request.title());
+        subTitleText.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        subTitleText.setFontSize(14f);
+        titleBand.addElement(subTitleText);
 
-        // Filters
-        if (request.categoryFilter() != null || request.positionsFilter() != null || request.statusFilter() != null) {
-            Paragraph filtersPara = new Paragraph();
-            filtersPara.setAlignment(Element.ALIGN_CENTER);
-            filtersPara.setSpacingBefore(5);
-            if (request.categoryFilter() != null) filtersPara.add(new Phrase(request.categoryFilter() + "\n", filterFont));
-            if (request.positionsFilter() != null) filtersPara.add(new Phrase(request.positionsFilter() + "\n", filterFont));
-            if (request.statusFilter() != null) filtersPara.add(new Phrase(request.statusFilter() + "\n", filterFont));
-            document.add(filtersPara);
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MMM d, yyyy");
+        String range = request.startDate().format(dtf) + " - " + request.endDate().format(dtf);
+        JRDesignStaticText rangeText = new JRDesignStaticText();
+        rangeText.setX(0);
+        rangeText.setY(50);
+        rangeText.setWidth(555);
+        rangeText.setHeight(20);
+        rangeText.setText(range);
+        rangeText.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        titleBand.addElement(rangeText);
+
+        design.setTitle(titleBand);
+
+        // Header Band
+        JRDesignBand headerBand = new JRDesignBand();
+        headerBand.setHeight(20);
+        int colWidth = 555 / headers.length;
+
+        for (int i = 0; i < headers.length; i++) {
+            JRDesignStaticText headerText = new JRDesignStaticText();
+            headerText.setX(i * colWidth);
+            headerText.setY(0);
+            headerText.setWidth(colWidth);
+            headerText.setHeight(20);
+            headerText.setText(headers[i].toUpperCase());
+            headerText.setBold(true);
+            headerText.setMode(ModeEnum.OPAQUE);
+            headerText.setBackcolor(new Color(230, 230, 230));
+            headerBand.addElement(headerText);
         }
+        design.setColumnHeader(headerBand);
 
-        // Table
-        if (request.data() != null && !request.data().isEmpty()) {
-            List<Map<String, Object>> data = request.data();
-            String[] headers = data.get(0).keySet().toArray(new String[0]);
-            PdfPTable table = new PdfPTable(headers.length);
-            table.setWidthPercentage(100);
-            table.setSpacingBefore(20);
+        // Detail Band
+        JRDesignBand detailBand = new JRDesignBand();
+        detailBand.setHeight(20);
 
-            for (String header : headers) {
-                addTableHeader(table, header, boldFont);
-            }
-
-            Map<String, BigDecimal> totals = new HashMap<>();
-            Set<String> numericColumns = new java.util.HashSet<>();
-
-            for (Map<String, Object> item : data) {
-                for (String header : headers) {
-                    Object val = item.get(header);
-                    String text = val != null ? val.toString() : "";
-                    
-                    if (val instanceof Number num) {
-                        numericColumns.add(header);
-                        BigDecimal current = totals.getOrDefault(header, BigDecimal.ZERO);
-                        totals.put(header, current.add(new BigDecimal(num.toString())));
-                        text = String.format(num instanceof Double || num instanceof Float || num instanceof BigDecimal ? "%.2f" : "%s", val);
-                    }
-                    table.addCell(new Phrase(text, normalFont));
-                }
-            }
-
-            // Totals Row
-            if (!totals.isEmpty()) {
-                int firstNumericIdx = -1;
-                for (int i = 0; i < headers.length; i++) {
-                    if (numericColumns.contains(headers[i])) {
-                        firstNumericIdx = i;
-                        break;
-                    }
-                }
-
-                for (int i = 0; i < headers.length; i++) {
-                    if (numericColumns.contains(headers[i])) {
-                        PdfPCell cell = new PdfPCell(new Phrase(String.format("%.2f", totals.get(headers[i])), boldFont));
-                        table.addCell(cell);
-                    } else {
-                        String label = (i == firstNumericIdx - 1 && i >= 0) ? "Totals" : "";
-                        PdfPCell cell = new PdfPCell(new Phrase(label, boldFont));
-                        if (!label.isEmpty()) {
-                            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-                            cell.setPaddingRight(5);
-                        }
-                        table.addCell(cell);
-                    }
-                }
-            }
-            document.add(table);
+        for (int i = 0; i < headers.length; i++) {
+            JRDesignTextField textField = new JRDesignTextField();
+            textField.setX(i * colWidth);
+            textField.setY(0);
+            textField.setWidth(colWidth);
+            textField.setHeight(20);
+            textField.setExpression(new JRDesignExpression("$F{" + headers[i] + "}"));
+            detailBand.addElement(textField);
         }
+        ((JRDesignSection) design.getDetailSection()).addBand(detailBand);
 
-        document.close();
-        return out.toByteArray();
-    }
+        // Summary Band (Totals)
+        JRDesignBand summaryBand = new JRDesignBand();
+        summaryBand.setHeight(30);
 
-    private Paragraph createCenteredPara(String text, Font font, int spacingBefore) {
-        Paragraph p = new Paragraph(text, font);
-        p.setAlignment(Element.ALIGN_CENTER);
-        if (spacingBefore > 0) p.setSpacingBefore(spacingBefore);
-        return p;
-    }
+        // Optional filter text
+        StringBuilder filters = new StringBuilder("Filters: ");
+        if (request.categoryFilter() != null)
+            filters.append("Category: ").append(request.categoryFilter()).append(" ");
+        if (request.positionsFilter() != null)
+            filters.append("Positions: ").append(request.positionsFilter()).append(" ");
+        if (request.statusFilter() != null)
+            filters.append("Status: ").append(request.statusFilter());
 
-    private PdfPCell createNoBorderCell(String text, Font font) {
-        PdfPCell cell = new PdfPCell(new Phrase(text, font));
-        cell.setBorder(PdfPCell.NO_BORDER);
-        return cell;
-    }
+        JRDesignStaticText filterText = new JRDesignStaticText();
+        filterText.setX(0);
+        filterText.setY(5);
+        filterText.setWidth(555);
+        filterText.setHeight(15);
+        filterText.setText(filters.toString());
+        filterText.setFontSize(8f);
+        summaryBand.addElement(filterText);
 
-    private void addTableHeader(PdfPTable table, String headerTitle, Font font) {
-        PdfPCell header = new PdfPCell();
-        header.setBackgroundColor(new Color(255, 255, 255));
-        header.setBorderWidth(0.5f);
-        header.setPhrase(new Phrase(headerTitle, font));
-        header.setHorizontalAlignment(Element.ALIGN_CENTER);
-        header.setPadding(5);
-        table.addCell(header);
+        design.setSummary(summaryBand);
+
+        JasperReport report = JasperCompileManager.compileReport(design);
+        Map<String, Object> params = new HashMap<>();
+        return JasperFillManager.fillReport(report, params, new JRMapCollectionDataSource((java.util.Collection) data));
     }
 }
