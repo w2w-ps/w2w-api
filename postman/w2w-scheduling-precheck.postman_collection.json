@@ -2,7 +2,7 @@
   "info": {
     "name": "w2w-api scheduling pre-check scenarios",
     "_postman_id": "7f7a6047-7cdb-4d07-9e37-41e0b2d0f6a5",
-    "description": "Focused Postman collection for exercising POST /api/scheduling/validation/precheck conflict scenarios. Populate bearerToken and IDs with data from the target tenant before running conflict-specific requests.",
+    "description": "Focused Postman collection for exercising POST /api/scheduling/validation/precheck conflict scenarios, pre-configured to use the V5 seed data.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -14,38 +14,6 @@
       "key": "bearerToken",
       "value": "",
       "description": "JWT token for a tenant user."
-    },
-    {
-      "key": "companyId",
-      "value": "1"
-    },
-    {
-      "key": "employeeId",
-      "value": "101"
-    },
-    {
-      "key": "shiftId",
-      "value": "9001"
-    },
-    {
-      "key": "positionId",
-      "value": "1"
-    },
-    {
-      "key": "categoryId",
-      "value": "1"
-    },
-    {
-      "key": "shiftDate",
-      "value": "2026-04-21"
-    },
-    {
-      "key": "nextShiftDate",
-      "value": "2026-04-22"
-    },
-    {
-      "key": "color",
-      "value": "1"
     }
   ],
   "auth": {
@@ -86,13 +54,13 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": null\n}",
+              "raw": "{\n  \"companyId\": 1,\n  \"operationType\": \"CREATE\",\n  \"shift\": null\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -127,13 +95,13 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Pre-check no conflict shift\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"1:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": {{color}},\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": 1,\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": 90001,\n    \"description\": \"Pre-check no conflict shift\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"1:00PM\",\n    \"position\": 1,\n    \"category\": 1,\n    \"color\": 1,\n    \"date\": \"2026-06-28\",\n    \"duration\": 4\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -141,7 +109,7 @@
               }
             },
             "url": "{{baseUrl}}/api/scheduling/validation/precheck",
-            "description": "Use an employee/date with no overlapping shifts, blocking time off, preference conflicts, or max-hour/max-shift limit violations."
+            "description": "Uses employee 3 on an unscheduled date (2026-06-28) to ensure a clean validation response."
           }
         },
         {
@@ -168,13 +136,13 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps an existing scheduled shift\",\n    \"startTime\": \"10:00AM\",\n    \"endTime\": \"2:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": 1,\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": 90006,\n    \"description\": \"Overlaps an existing scheduled shift\",\n    \"startTime\": \"12:00PM\",\n    \"endTime\": \"8:00PM\",\n    \"position\": 1,\n    \"category\": 1,\n    \"color\": 1,\n    \"date\": \"2026-06-27\",\n    \"duration\": 8\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -182,48 +150,7 @@
               }
             },
             "url": "{{baseUrl}}/api/scheduling/validation/precheck",
-            "description": "Run against a date where the employee already has an active shift overlapping 10:00AM-2:00PM. Expected conflict field: `shift`."
-          }
-        },
-        {
-          "name": "Update Shift - Exclude Current Shift",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('pre-check returns OK', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test('response has conflict envelope', function () {",
-                  "  const json = pm.response.json();",
-                  "  pm.expect(json).to.have.property('hasConflicts');",
-                  "  pm.expect(json).to.have.property('conflicts');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"UPDATE\",\n  \"shift\": {\n    \"shiftId\": {{shiftId}},\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Update current shift without self-conflict\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": {{color}},\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
-            "description": "Validates update behavior where the supplied `shiftId` is excluded from existing-shift lookups."
+            "description": "Tests Employee 8 overlapping their pre-existing 08:00AM - 4:00PM shift."
           }
         },
         {
@@ -250,13 +177,13 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds daily scheduled hours\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
+              "raw": "{\n  \"companyId\": 1,\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": 90001,\n    \"description\": \"Exceeds daily scheduled hours\",\n    \"startTime\": \"2:00PM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": 1,\n    \"category\": 1,\n    \"color\": 1,\n    \"date\": \"2026-06-27\",\n    \"duration\": 3\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -264,7 +191,7 @@
               }
             },
             "url": "{{baseUrl}}/api/scheduling/validation/precheck",
-            "description": "Run with an employee whose `maxDailyHours` would be met or exceeded by this proposed shift plus existing shifts. Expected conflict field: `MAX_DAILY_HOURS`."
+            "description": "Tests Employee 3 whose max daily limit of 8 is breached (already has 6 hrs, adding 3 hrs)."
           }
         },
         {
@@ -291,13 +218,13 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds daily shift count\",\n    \"startTime\": \"6:00PM\",\n    \"endTime\": \"10:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": 1,\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": 90002,\n    \"description\": \"Exceeds daily shift count\",\n    \"startTime\": \"4:00PM\",\n    \"endTime\": \"6:00PM\",\n    \"position\": 1,\n    \"category\": 1,\n    \"color\": 1,\n    \"date\": \"2026-06-27\",\n    \"duration\": 2\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -305,7 +232,7 @@
               }
             },
             "url": "{{baseUrl}}/api/scheduling/validation/precheck",
-            "description": "Run with an employee whose `maxDailyShifts` would be exceeded by adding this shift. Expected conflict field: `MAX_DAILY_SHIFTS`."
+            "description": "Tests Employee 4 whose max shift count of 2 is breached (already has 2 shifts, adding 1)."
           }
         },
         {
@@ -332,13 +259,13 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Exceeds weekly limits\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 2,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 8.0\n  }\n}",
+              "raw": "{\n  \"companyId\": 1,\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": 90003,\n    \"description\": \"Exceeds weekly limits\",\n    \"startTime\": \"8:00AM\",\n    \"endTime\": \"4:00PM\",\n    \"position\": 1,\n    \"category\": 1,\n    \"color\": 2,\n    \"date\": \"2026-06-27\",\n    \"duration\": 8\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -346,7 +273,7 @@
               }
             },
             "url": "{{baseUrl}}/api/scheduling/validation/precheck",
-            "description": "Run with existing shifts in the same Monday-Sunday week such that weekly hour and/or weekly shift limits are exceeded. Expected conflict fields can include `MAX_WEEKLY_HOURS` and `MAX_WEEKLY_SHIFTS`."
+            "description": "Tests Employee 5 who already has forty hours across five days. A new shift on Saturday breaches weekly max constraints."
           }
         },
         {
@@ -373,13 +300,13 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps cannot-work or dislike preference\",\n    \"startTime\": \"10:00AM\",\n    \"endTime\": \"10:30AM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 0.5\n  }\n}",
+              "raw": "{\n  \"companyId\": 1,\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": 90004,\n    \"description\": \"Overlaps cannot-work or dislike preference\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"11:00AM\",\n    \"position\": 1,\n    \"category\": 1,\n    \"color\": 1,\n    \"date\": \"2026-06-27\",\n    \"duration\": 2\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -387,7 +314,7 @@
               }
             },
             "url": "{{baseUrl}}/api/scheduling/validation/precheck",
-            "description": "Run with resolved work preferences for the employee/date marking the proposed time as dislike or cannot-work. Expected conflict field: `WORK_PREFERENCES`."
+            "description": "Tests Employee 6 scheduling into a \"Cannot Work\" ('C') preference gap between 08:00 AM and 12:00 PM."
           }
         },
         {
@@ -414,13 +341,13 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overlaps approved or pending time off\",\n    \"startTime\": \"12:00PM\",\n    \"endTime\": \"4:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": 1,\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": 90005,\n    \"description\": \"Overlaps approved or pending time off\",\n    \"startTime\": \"10:00AM\",\n    \"endTime\": \"2:00PM\",\n    \"position\": 1,\n    \"category\": 1,\n    \"color\": 1,\n    \"date\": \"2026-06-27\",\n    \"duration\": 4\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -428,7 +355,48 @@
               }
             },
             "url": "{{baseUrl}}/api/scheduling/validation/precheck",
-            "description": "Run with approved or pending time off overlapping the proposed shift. Expected conflict field: `TIME_OFF`."
+            "description": "Tests Employee 7 who has an approved time off request between 09:00AM and 5:00PM."
+          }
+        },
+        {
+          "name": "Update Shift - Exclude Current Shift",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('pre-check returns OK', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('response has conflict envelope', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('hasConflicts');",
+                  "  pm.expect(json).to.have.property('conflicts');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": 1,\n  \"operationType\": \"UPDATE\",\n  \"shift\": {\n    \"shiftId\": 900006,\n    \"employeeId\": 90006,\n    \"description\": \"Update current shift without self-conflict\",\n    \"startTime\": \"9:00AM\",\n    \"endTime\": \"5:00PM\",\n    \"position\": 1,\n    \"category\": 1,\n    \"color\": 1,\n    \"date\": \"2026-06-27\",\n    \"duration\": 8\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/api/scheduling/validation/precheck",
+            "description": "Validates update behavior where the supplied `shiftId` is excluded from existing-shift lookups."
           }
         },
         {
@@ -455,13 +423,13 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Overnight shift spanning validation windows\",\n    \"startTime\": \"10:00PM\",\n    \"endTime\": \"2:00AM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 3,\n    \"date\": \"{{shiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": 1,\n  \"operationType\": \"CREATE\",\n  \"shift\": {\n    \"shiftId\": null,\n    \"employeeId\": 90007,\n    \"description\": \"Overnight shift spanning validation windows\",\n    \"startTime\": \"10:00PM\",\n    \"endTime\": \"2:00AM\",\n    \"position\": 1,\n    \"category\": 1,\n    \"color\": 1,\n    \"date\": \"2026-06-26\",\n    \"duration\": 4\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -496,13 +464,13 @@
             "method": "POST",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": {{companyId}},\n  \"operationType\": \"REASSIGN\",\n  \"shift\": {\n    \"shiftId\": {{shiftId}},\n    \"employeeId\": {{employeeId}},\n    \"description\": \"Reassign pre-check for target employee\",\n    \"startTime\": \"2:00PM\",\n    \"endTime\": \"6:00PM\",\n    \"position\": {{positionId}},\n    \"category\": {{categoryId}},\n    \"color\": 1,\n    \"date\": \"{{nextShiftDate}}\",\n    \"duration\": 4.0\n  }\n}",
+              "raw": "{\n  \"companyId\": 1,\n  \"operationType\": \"REASSIGN\",\n  \"shift\": {\n    \"shiftId\": 900006,\n    \"employeeId\": 90006,\n    \"description\": \"Reassign pre-check for target employee\",\n    \"startTime\": \"2:00PM\",\n    \"endTime\": \"6:00PM\",\n    \"position\": 1,\n    \"category\": 1,\n    \"color\": 1,\n    \"date\": \"2026-06-27\",\n    \"duration\": 4\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -510,7 +478,7 @@
               }
             },
             "url": "{{baseUrl}}/api/scheduling/validation/precheck",
-            "description": "Uses `operationType: REASSIGN` with the target employee in `shift.employeeId`. Current validation rules use the nested shift values for conflict checks."
+            "description": "Uses operationType: REASSIGN targeting an employee with an existing shift on the same date."
           }
         }
       ]
