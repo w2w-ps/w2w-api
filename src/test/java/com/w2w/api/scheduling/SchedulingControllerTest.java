@@ -689,7 +689,10 @@ class SchedulingControllerTest {
     void preCheck_withConflicts_returnsConflictPayload() throws Exception {
         when(schedulingService.validate(argThat(value ->
                 value.operationType() != null && "Updated opening shift".equals(value.shift().description()))))
-                .thenReturn(List.of(new ConflictItem("shift", "Overlaps existing shift")));
+                .thenReturn(List.of(new ConflictItem(
+                        "shift",
+                        "Richard Comp is already assigned to a shift at the same time on Wednesday."
+                )));
 
         String request = """
                 {
@@ -716,7 +719,8 @@ class SchedulingControllerTest {
                 .andExpect(jsonPath("$.hasConflicts").value(true))
                 .andExpect(jsonPath("$.conflicts", hasSize(1)))
                 .andExpect(jsonPath("$.conflicts[0].field").value("shift"))
-                .andExpect(jsonPath("$.conflicts[0].message").value("Overlaps existing shift"));
+                .andExpect(jsonPath("$.conflicts[0].message")
+                        .value("Richard Comp is already assigned to a shift at the same time on Wednesday."));
     }
 
     @Test

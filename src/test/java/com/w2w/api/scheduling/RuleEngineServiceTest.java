@@ -135,13 +135,13 @@ class RuleEngineServiceTest {
         ));
 
         assertEquals(List.of(
-                new ConflictItem("MAX_DAILY_HOURS", "Total scheduled hours exceed the employee's maximum daily hours."),
-                new ConflictItem("MAX_DAILY_SHIFTS", "Total shifts exceed the employee's maximum daily shifts."),
-                new ConflictItem("MAX_WEEKLY_HOURS", "Total scheduled hours exceed the employee's maximum weekly hours."),
-                new ConflictItem("MAX_WEEKLY_SHIFTS", "Total shifts exceed the employee's maximum weekly shifts."),
-                new ConflictItem("WORK_PREFERENCES", "Dislikes work: part of this shift overlaps the employee's work preference."),
-                new ConflictItem("TIME_OFF", "Overlaps employee time off"),
-                new ConflictItem("shift", "Overlaps existing shift")
+                new ConflictItem("MAX_DAILY_HOURS", "Richard Comp is over their max hours per day on Tuesday"),
+                new ConflictItem("MAX_DAILY_SHIFTS", "Richard Comp is over their max shifts per day on Tuesday"),
+                new ConflictItem("MAX_WEEKLY_HOURS", "Richard Comp is over their max hours per week."),
+                new ConflictItem("MAX_WEEKLY_SHIFTS", "Richard Comp is over their max shifts per week."),
+                new ConflictItem("WORK_PREFERENCES", "Richard Comp is set to DISLIKES WORK at this time on Tuesday."),
+                new ConflictItem("TIME_OFF", "Richard Comp is OFF at this time on Tuesday"),
+                new ConflictItem("shift", "Richard Comp is already assigned to a shift at the same time on Tuesday.")
         ), conflicts);
     }
 
@@ -220,7 +220,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "MAX_DAILY_HOURS",
-                "Total scheduled hours exceed the employee's maximum daily hours."
+                "Richard Comp is over their max hours per day on Tuesday"
         )), conflicts);
     }
 
@@ -291,7 +291,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "MAX_DAILY_HOURS",
-                "Total scheduled hours exceed the employee's maximum daily hours."
+                "Richard Comp is over their max hours per day on Tuesday"
         )), conflicts);
     }
 
@@ -327,7 +327,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "MAX_DAILY_HOURS",
-                "Total scheduled hours exceed the employee's maximum daily hours."
+                "Richard Comp is over their max hours per day on Wednesday"
         )), conflicts);
     }
 
@@ -415,7 +415,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "MAX_DAILY_SHIFTS",
-                "Total shifts exceed the employee's maximum daily shifts."
+                "Richard Comp is over their max shifts per day on Tuesday"
         )), conflicts);
     }
 
@@ -506,7 +506,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "MAX_DAILY_SHIFTS",
-                "Total shifts exceed the employee's maximum daily shifts."
+                "Richard Comp is over their max shifts per day on Tuesday"
         )), conflicts);
     }
 
@@ -623,7 +623,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "MAX_WEEKLY_HOURS",
-                "Total scheduled hours exceed the employee's maximum weekly hours."
+                "Richard Comp is over their max hours per week."
         )), conflicts);
     }
 
@@ -680,7 +680,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "MAX_WEEKLY_SHIFTS",
-                "Total shifts exceed the employee's maximum weekly shifts."
+                "Richard Comp is over their max shifts per week."
         )), conflicts);
     }
 
@@ -748,7 +748,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "MAX_WEEKLY_HOURS",
-                "Total scheduled hours exceed the employee's maximum weekly hours."
+                "Richard Comp is over their max hours per week."
         )), conflicts);
     }
 
@@ -779,11 +779,11 @@ class RuleEngineServiceTest {
         assertEquals(List.of(
                 new ConflictItem(
                         "MAX_WEEKLY_HOURS",
-                        "Total scheduled hours exceed the employee's maximum weekly hours."
+                        "Richard Comp is over their max hours per week."
                 ),
                 new ConflictItem(
                         "MAX_WEEKLY_SHIFTS",
-                        "Total shifts exceed the employee's maximum weekly shifts."
+                        "Richard Comp is over their max shifts per week."
                 )
         ), conflicts);
     }
@@ -846,7 +846,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "WORK_PREFERENCES",
-                "Dislikes work: part of this shift overlaps the employee's work preference."
+                "Employee 101 is set to DISLIKES WORK at this time on Tuesday."
         )), conflicts);
     }
 
@@ -866,7 +866,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "WORK_PREFERENCES",
-                "Cannot work: part of this shift overlaps the employee's work preference."
+                "Employee 101 is set to CANNOT WORK at this time on Tuesday."
         )), conflicts);
     }
 
@@ -886,7 +886,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "WORK_PREFERENCES",
-                "Cannot work: part of this shift overlaps the employee's work preference."
+                "Employee 101 is set to CANNOT WORK at this time on Tuesday."
         )), conflicts);
     }
 
@@ -906,7 +906,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "WORK_PREFERENCES",
-                "Dislikes work: part of this shift overlaps the employee's work preference."
+                "Employee 101 is set to DISLIKES WORK at this time on Tuesday."
         )), conflicts);
     }
 
@@ -928,7 +928,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "WORK_PREFERENCES",
-                "Dislikes work: part of this shift overlaps the employee's work preference."
+                "Employee 101 is set to DISLIKES WORK at this time on Wednesday."
         )), conflicts);
         verify(preferencesService).getResolvedPreference(101, LocalDate.of(2026, 4, 21));
         verify(preferencesService).getResolvedPreference(101, LocalDate.of(2026, 4, 22));
@@ -950,7 +950,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "WORK_PREFERENCES",
-                "Dislikes work: part of this shift overlaps the employee's work preference."
+                "Employee 101 is set to DISLIKES WORK at this time on Tuesday."
         )), conflicts);
         verify(preferencesService).getResolvedPreference(101, LocalDate.of(2026, 4, 21));
     }
@@ -1041,7 +1041,7 @@ class RuleEngineServiceTest {
                 8.0f
         ));
 
-        assertEquals(List.of(new ConflictItem("TIME_OFF", "Overlaps employee time off")), conflicts);
+        assertEquals(List.of(new ConflictItem("TIME_OFF", "Employee 101 is OFF at this time on Tuesday")), conflicts);
     }
 
     @Test
@@ -1062,7 +1062,7 @@ class RuleEngineServiceTest {
                 8.0f
         ));
 
-        assertEquals(List.of(new ConflictItem("TIME_OFF", "Overlaps employee time off")), conflicts);
+        assertEquals(List.of(new ConflictItem("TIME_OFF", "Employee 101 is OFF at this time on Wednesday")), conflicts);
         verify(timeOffService).findBlockingTimeOff(101, LocalDate.of(2026, 4, 21), LocalDate.of(2026, 4, 22));
     }
 
@@ -1086,7 +1086,7 @@ class RuleEngineServiceTest {
                 8.0f
         ));
 
-        assertEquals(List.of(new ConflictItem("TIME_OFF", "Overlaps employee time off")), conflicts);
+        assertEquals(List.of(new ConflictItem("TIME_OFF", "Employee 101 is OFF at this time on Tuesday")), conflicts);
     }
 
     @Test
@@ -1132,7 +1132,7 @@ class RuleEngineServiceTest {
                 8.0f
         ));
 
-        assertEquals(List.of(new ConflictItem("TIME_OFF", "Overlaps employee time off")), conflicts);
+        assertEquals(List.of(new ConflictItem("TIME_OFF", "Employee 101 is OFF at this time on Wednesday")), conflicts);
     }
 
     @Test
@@ -1258,7 +1258,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "shift",
-                "Overlaps existing shift"
+                "Employee 101 is already assigned to a shift at the same time on Tuesday."
         )), conflicts);
     }
 
@@ -1348,7 +1348,7 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "shift",
-                "Overlaps existing shift"
+                "Employee 101 is already assigned to a shift at the same time on Tuesday."
         )), conflicts);
     }
 
@@ -1409,13 +1409,15 @@ class RuleEngineServiceTest {
 
         assertEquals(List.of(new ConflictItem(
                 "shift",
-                "Overlaps existing shift"
+                "Employee 101 is already assigned to a shift at the same time on Wednesday."
         )), conflicts);
     }
 
     private Employee employeeWithMaxDailyHours(int maxDailyHours) {
         Employee employee = new Employee();
         employee.setEmployeeId(101);
+        employee.setFirstName("Richard");
+        employee.setLastName("Comp");
         employee.setMaxDailyHours(maxDailyHours);
         return employee;
     }
@@ -1423,6 +1425,8 @@ class RuleEngineServiceTest {
     private Employee employeeWithMaxDailyShifts(int maxDailyShifts) {
         Employee employee = new Employee();
         employee.setEmployeeId(101);
+        employee.setFirstName("Richard");
+        employee.setLastName("Comp");
         employee.setMaxDailyShifts(maxDailyShifts);
         return employee;
     }
@@ -1430,6 +1434,8 @@ class RuleEngineServiceTest {
     private Employee employeeWithWeeklyLimits(Integer maxScheduledHours, Integer maxWeeklyDays) {
         Employee employee = new Employee();
         employee.setEmployeeId(101);
+        employee.setFirstName("Richard");
+        employee.setLastName("Comp");
         employee.setMaxScheduledHours(maxScheduledHours);
         employee.setMaxWeeklyDays(maxWeeklyDays);
         return employee;

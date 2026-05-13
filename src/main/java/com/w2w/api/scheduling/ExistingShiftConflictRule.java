@@ -5,13 +5,14 @@ import com.w2w.api.scheduling.dto.DailyHoursShiftProjection;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Component
 @Order(60)
 class ExistingShiftConflictRule implements SchedulingValidationRule {
     private static final String FIELD = "shift";
-    private static final String MESSAGE = "Overlaps existing shift";
+    private static final String MESSAGE_TEMPLATE = "%s is already assigned to a shift at the same time on %s.";
 
     @Override
     public List<ConflictItem> validate(SchedulingValidationContext context) {
@@ -30,8 +31,12 @@ class ExistingShiftConflictRule implements SchedulingValidationRule {
                     existingShift.getStartTime(),
                     existingShift.getEndTime()
             );
-            if (existingInterval != null && context.overlaps(proposedInterval, existingInterval)) {
-                return List.of(new ConflictItem(FIELD, MESSAGE));
+            LocalDate overlapDate = context.overlapDate(proposedInterval, existingInterval);
+            if (overlapDate != null) {
+                return List.of(new ConflictItem(
+                        FIELD,
+                        MESSAGE_TEMPLATE.formatted(context.employeeDisplayName(), context.weekdayName(overlapDate))
+                ));
             }
         }
 

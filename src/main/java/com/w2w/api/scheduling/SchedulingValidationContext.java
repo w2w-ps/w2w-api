@@ -15,11 +15,13 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -139,6 +141,36 @@ final class SchedulingValidationContext {
         ).orElse(null);
     }
 
+    String employeeDisplayName() {
+        Employee currentEmployee = employee();
+        if (currentEmployee == null) {
+            return employeeId() == null ? "Employee" : "Employee " + employeeId();
+        }
+
+        String firstName = nullToBlank(currentEmployee.getFirstName()).trim();
+        String lastName = nullToBlank(currentEmployee.getLastName()).trim();
+        String fullName = (firstName + " " + lastName).trim();
+        if (!fullName.isBlank()) {
+            return fullName;
+        }
+
+        return currentEmployee.getEmployeeId() == null ? "Employee" : "Employee " + currentEmployee.getEmployeeId();
+    }
+
+    String weekdayName(LocalDate date) {
+        LocalDate messageDate = date == null ? shiftDate() : date;
+        return messageDate == null ? "" : messageDate.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+    }
+
+    LocalDate overlapDate(ShiftInterval first, ShiftInterval second) {
+        if (first == null || second == null || !overlaps(first, second)) {
+            return null;
+        }
+
+        LocalDateTime overlapStart = first.start().isAfter(second.start()) ? first.start() : second.start();
+        return overlapStart.toLocalDate();
+    }
+
     Map<LocalDate, Float> hoursByDate(List<DailyHoursShiftProjection> shifts) {
         Map<LocalDate, Float> hoursByDate = new LinkedHashMap<>();
         for (DailyHoursShiftProjection existingShift : shifts) {
@@ -188,10 +220,14 @@ final class SchedulingValidationContext {
     }
 
     boolean overlapsTimeOff(TimeOffRequest timeOffRequest) {
+        return timeOffOverlapDate(timeOffRequest) != null;
+    }
+
+    LocalDate timeOffOverlapDate(TimeOffRequest timeOffRequest) {
         if (Boolean.TRUE.equals(timeOffRequest.getFullDay())) {
-            return overlapsFullDayTimeOff(timeOffRequest);
+            return fullDayTimeOffOverlapDate(timeOffRequest);
         }
-        return overlapsTimedTimeOff(timeOffRequest);
+        return timedTimeOffOverlapDate(timeOffRequest);
     }
 
     private Integer companyId() {
@@ -203,7 +239,8 @@ final class SchedulingValidationContext {
             if (employeeId() == null) {
                 return null;
             }
-            return employeeService.findActiveEmployeeForCurrentTenant(employeeId()).orElse(null);
+            Optional<Employee> currentEmployee = employeeService.findActiveEmployeeForCurrentTenant(employeeId());
+            return currentEmployee == null ? null : currentEmployee.orElse(null);
         });
     }
 
@@ -361,27 +398,27 @@ final class SchedulingValidationContext {
         );
     }
 
-    private boolean overlapsFullDayTimeOff(TimeOffRequest timeOffRequest) {
+    private LocalDate fullDayTimeOffOverlapDate(TimeOffRequest timeOffRequest) {
         if (timeOffRequest.getStartDate() == null || timeOffRequest.getEndDate() == null) {
-            return false;
+            return null;
         }
 
         for (ShiftDateWindow coveredWindow : coveredWindows()) {
             if (!coveredWindow.date().isBefore(timeOffRequest.getStartDate())
                     && !coveredWindow.date().isAfter(timeOffRequest.getEndDate())) {
-                return true;
+                return coveredWindow.date();
             }
         }
 
-        return false;
+        return null;
     }
 
-    private boolean overlapsTimedTimeOff(TimeOffRequest timeOffRequest) {
+    private LocalDate timedTimeOffOverlapDate(TimeOffRequest timeOffRequest) {
         if (timeOffRequest.getStartDate() == null
                 || timeOffRequest.getStartTime() == null
                 || timeOffRequest.getEndTime() == null
                 || !timeOffRequest.getEndTime().isAfter(timeOffRequest.getStartTime())) {
-            return false;
+            return null;
         }
 
         ShiftInterval timeOffInterval = new ShiftInterval(
@@ -392,11 +429,15 @@ final class SchedulingValidationContext {
         for (ShiftDateWindow coveredWindow : coveredWindows()) {
             if (coveredWindow.date().equals(timeOffRequest.getStartDate())
                     && overlaps(coveredWindow.interval(), timeOffInterval)) {
-                return true;
+                return coveredWindow.date();
             }
         }
 
-        return false;
+        return null;
+    }
+
+    private String nullToBlank(String value) {
+        return value == null ? "" : value;
     }
 
     private <T> Supplier<T> memoize(Supplier<T> supplier) {

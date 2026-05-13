@@ -11,7 +11,7 @@ import java.util.List;
 @Order(20)
 class MaxDailyShiftsRule implements SchedulingValidationRule {
     private static final String FIELD = "MAX_DAILY_SHIFTS";
-    private static final String MESSAGE = "Total shifts exceed the employee's maximum daily shifts.";
+    private static final String MESSAGE_TEMPLATE = "%s is over their max shifts per day on %s";
 
     @Override
     public List<ConflictItem> validate(SchedulingValidationContext context) {
@@ -26,7 +26,10 @@ class MaxDailyShiftsRule implements SchedulingValidationRule {
 
         int totalShiftCount = context.sameDayShifts().size() + 1;
         if (totalShiftCount > employee.getMaxDailyShifts()) {
-            return List.of(new ConflictItem(FIELD, MESSAGE));
+            return List.of(new ConflictItem(
+                    FIELD,
+                    MESSAGE_TEMPLATE.formatted(context.employeeDisplayName(), context.weekdayName(context.shiftDate()))
+            ));
         }
 
         return List.of();
