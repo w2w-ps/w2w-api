@@ -13,9 +13,9 @@ import java.util.List;
 @Order(30)
 class MaxWeeklyHoursAndShiftsRule implements SchedulingValidationRule {
     private static final String MAX_WEEKLY_HOURS_FIELD = "MAX_WEEKLY_HOURS";
-    private static final String MAX_WEEKLY_HOURS_MESSAGE = "Total scheduled hours exceed the employee's maximum weekly hours.";
+    private static final String MAX_WEEKLY_HOURS_MESSAGE_TEMPLATE = "%s is over their max hours per week.";
     private static final String MAX_WEEKLY_SHIFTS_FIELD = "MAX_WEEKLY_SHIFTS";
-    private static final String MAX_WEEKLY_SHIFTS_MESSAGE = "Total shifts exceed the employee's maximum weekly shifts.";
+    private static final String MAX_WEEKLY_SHIFTS_MESSAGE_TEMPLATE = "%s is over their max shifts per week.";
 
     @Override
     public List<ConflictItem> validate(SchedulingValidationContext context) {
@@ -50,7 +50,10 @@ class MaxWeeklyHoursAndShiftsRule implements SchedulingValidationRule {
 
         float totalWeeklyHours = existingWeeklyHours(context) + context.proposedDuration();
         if (totalWeeklyHours > employee.getMaxScheduledHours()) {
-            conflicts.add(new ConflictItem(MAX_WEEKLY_HOURS_FIELD, MAX_WEEKLY_HOURS_MESSAGE));
+            conflicts.add(new ConflictItem(
+                    MAX_WEEKLY_HOURS_FIELD,
+                    MAX_WEEKLY_HOURS_MESSAGE_TEMPLATE.formatted(context.employeeDisplayName())
+            ));
         }
     }
 
@@ -73,7 +76,10 @@ class MaxWeeklyHoursAndShiftsRule implements SchedulingValidationRule {
 
         int totalWeeklyShifts = context.weeklyShifts().size() + 1;
         if (totalWeeklyShifts > employee.getMaxWeeklyDays()) {
-            conflicts.add(new ConflictItem(MAX_WEEKLY_SHIFTS_FIELD, MAX_WEEKLY_SHIFTS_MESSAGE));
+            conflicts.add(new ConflictItem(
+                    MAX_WEEKLY_SHIFTS_FIELD,
+                    MAX_WEEKLY_SHIFTS_MESSAGE_TEMPLATE.formatted(context.employeeDisplayName())
+            ));
         }
     }
 }

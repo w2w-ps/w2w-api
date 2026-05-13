@@ -13,7 +13,7 @@ import java.util.Map;
 @Order(10)
 class MaxDailyHoursRule implements SchedulingValidationRule {
     private static final String FIELD = "MAX_DAILY_HOURS";
-    private static final String MESSAGE = "Total scheduled hours exceed the employee's maximum daily hours.";
+    private static final String MESSAGE_TEMPLATE = "%s is over their max hours per day on %s";
 
     @Override
     public List<ConflictItem> validate(SchedulingValidationContext context) {
@@ -35,7 +35,10 @@ class MaxDailyHoursRule implements SchedulingValidationRule {
         for (Map.Entry<LocalDate, Float> proposedDay : context.proposedHoursByDate().entrySet()) {
             float totalHours = existingHoursByDate.getOrDefault(proposedDay.getKey(), 0.0f) + proposedDay.getValue();
             if (totalHours >= employee.getMaxDailyHours()) {
-                return List.of(new ConflictItem(FIELD, MESSAGE));
+                return List.of(new ConflictItem(
+                        FIELD,
+                        MESSAGE_TEMPLATE.formatted(context.employeeDisplayName(), context.weekdayName(proposedDay.getKey()))
+                ));
             }
         }
 
